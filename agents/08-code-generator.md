@@ -12,6 +12,7 @@ architectural patterns defined for this project.
 - `outputs/tasks.md` — approved task board (one task per invocation)
 - `outputs/architecture.md` — component design, API contracts, data models
 - `outputs/specs.md` — functional specs (source of truth for behavior)
+- `outputs/ado-story-ids.md` — STORY-XXX → AB# mapping (present if ADO push was run)
 - Existing `src/` files (for consistency with established patterns)
 
 ---
@@ -69,6 +70,26 @@ Before writing code, verify:
 
 10. **Sensitive files are off limits.** Never modify:
     .tf, .bicep, .yml, .yaml, .cfn, .env files
+
+---
+
+## ADO Commit Linking
+
+If `outputs/ado-story-ids.md` exists, look up the `AB#` tag for the story
+that owns the current task and append it to every git commit message.
+
+This links the commit to the Azure DevOps work item automatically.
+
+```
+git commit -m "feat([component]): [description] AB#NNN
+
+TASK-001 | STORY-001
+[brief implementation note]"
+```
+
+- Look up the story ID from the task's "Source" field in tasks.md
+- Find the matching row in ado-story-ids.md to get the AB# value
+- If ado-story-ids.md does not exist, omit the AB# tag — do not block
 
 ---
 

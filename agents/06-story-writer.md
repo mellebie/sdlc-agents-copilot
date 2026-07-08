@@ -154,3 +154,50 @@ STORY-002 → STORY-005
 - [ ] Dependency map is complete
 - [ ] Traceability matrix covers all stories
 - [ ] No story is so large it should be an epic (> 8 points is a smell)
+
+---
+
+## Step 2 — Push to Azure DevOps
+
+After `outputs/stories.md` is written and quality checks pass, create the
+backlog in Azure DevOps using the `azure-devops` MCP server.
+
+### Pre-condition
+- The `azure-devops` MCP server must be connected (configured in `.mcp.json`)
+- `ADO_ORG` and `ADO_PAT` environment variables must be set
+- If MCP is not available, halt and instruct: "Run scripts/Push-ToADO.ps1 instead"
+
+### Instructions
+
+For each Epic in `outputs/stories.md`:
+
+1. **Create an Epic work item:**
+   - Title: the epic title (e.g. "EPIC-001: User Authentication")
+   - Description: the epic description from stories.md
+   - Priority: map MoSCoW → ADO (Must Have=2, Should Have=3, Could Have=4)
+   - Tags: `sdlc-pipeline; EPIC-NNN`
+
+2. **For each Story under that Epic, create a User Story work item:**
+   - Title: the story title
+   - Description: the full "As a / I want / So that" user story text
+   - Acceptance Criteria: all AC-NNN items formatted as an HTML list
+   - Story Points: the numeric value from the story
+   - Priority: map MoSCoW → ADO priority
+   - Tags: `sdlc-pipeline; STORY-NNN; EPIC-NNN` plus any [flags]
+   - Parent: link to the Epic created in step 1 using a parent-child hierarchy relation
+
+3. **Process epics sequentially.** Create the Epic first, capture its work item
+   ID, then create all its child stories before moving to the next Epic.
+
+4. **On any MCP error:** halt, report which item failed and the error, and
+   instruct the human to resolve before retrying or to use `Push-ToADO.ps1`
+   as a fallback.
+
+### On Success
+Report:
+```
+✅ ADO backlog created in [project]
+   Epics created: [n]
+   User Stories created: [n]
+   View board: https://dev.azure.com/[org]/[project]/_boards
+```
