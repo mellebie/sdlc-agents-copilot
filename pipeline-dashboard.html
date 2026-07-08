@@ -1,0 +1,1683 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SDLC Pipeline Dashboard v3</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --surface-0: #f5f5f2;
+      --surface-1: #efefeb;
+      --surface-2: #ffffff;
+      --text-primary: #1a1a18;
+      --text-secondary: #5f5e5a;
+      --text-muted: #888780;
+      --border: rgba(0,0,0,0.10);
+      --border-strong: rgba(0,0,0,0.18);
+      --radius: 8px;
+
+      --bg-success: #eaf3de; --text-success: #3b6d11; --border-success: #97c459; --fill-success: #639922;
+      --bg-warning: #faeeda; --text-warning: #854f0b; --border-warning: #ef9f27; --fill-warning: #ba7517;
+      --bg-danger:  #fcebeb; --text-danger:  #a32d2d; --border-danger:  #f09595; --fill-danger:  #e24b4a;
+      --bg-accent:  #e6f1fb; --text-accent:  #185fa5; --border-accent:  #85b7eb; --fill-accent:  #378add;
+      --bg-info:    #eeedfe; --text-info:    #534ab7; --border-info:    #afa9ec;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --surface-0: #1a1a18; --surface-1: #242422; --surface-2: #2c2c2a;
+        --text-primary: #f0efe8; --text-secondary: #b4b2a9; --text-muted: #888780;
+        --border: rgba(255,255,255,0.10); --border-strong: rgba(255,255,255,0.18);
+
+        --bg-success: #173404; --text-success: #c0dd97; --border-success: #3b6d11; --fill-success: #639922;
+        --bg-warning: #412402; --text-warning: #fac775; --border-warning: #854f0b; --fill-warning: #ba7517;
+        --bg-danger:  #501313; --text-danger:  #f7c1c1; --border-danger:  #a32d2d; --fill-danger:  #e24b4a;
+        --bg-accent:  #042c53; --text-accent:  #b5d4f4; --border-accent:  #185fa5; --fill-accent:  #378add;
+        --bg-info:    #26215c; --text-info:    #cecbf6; --border-info:    #534ab7;
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--surface-0);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 1.5rem;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    /* Header */
+    .header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 12px; }
+    .header-left h1 { font-size: 20px; font-weight: 500; color: var(--text-primary); }
+    .header-left p { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+
+    /* Stats */
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 1.75rem; }
+    .stat { background: var(--surface-2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 12px 16px; position: relative; }
+    .stat-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
+    .stat-info { font-size: 11px; color: var(--text-muted); cursor: default; line-height: 1; }
+    .stat-value { font-size: 24px; font-weight: 500; }
+    .stat-value.green { color: var(--text-success); }
+    .stat-value.amber { color: var(--text-warning); }
+    .stat-value.blue  { color: var(--text-accent); }
+    .stat-sub { font-size: 10px; color: var(--text-muted); margin-top: 3px; }
+
+    /* Tooltip */
+    .tooltip-wrap { position: relative; display: inline-flex; }
+    .tooltip-box {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--text-primary);
+      color: var(--surface-0);
+      font-size: 11px;
+      line-height: 1.5;
+      padding: 7px 10px;
+      border-radius: 6px;
+      width: 220px;
+      white-space: normal;
+      z-index: 100;
+      pointer-events: none;
+    }
+    .tooltip-box::after {
+      content: "";
+      position: absolute;
+      top: 100%; left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: var(--text-primary);
+    }
+    .tooltip-wrap:hover .tooltip-box { display: block; }
+    .tooltip-box.below {
+      bottom: auto;
+      top: calc(100% + 8px);
+    }
+    .tooltip-box.below::after {
+      top: auto;
+      bottom: 100%;
+      border-top-color: transparent;
+      border-bottom-color: var(--text-primary);
+    }
+
+    /* Phase rail */
+    .phase-rail { display: flex; align-items: stretch; gap: 0; margin-bottom: 1rem; position: relative; }
+    .phase-block { flex: 1; }
+    .phase-block:not(:last-child) { margin-right: 28px; }
+    .phase-block:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      width: 28px;
+      height: 1px;
+      background: var(--border-strong);
+      top: 50%;
+    }
+
+    .phase-rail { position: relative; }
+    .phase-item { position: relative; flex: 1; }
+    .phase-item:not(:last-child) { margin-right: 0; padding-right: 0; }
+
+    .phase-wrap { display: flex; align-items: center; gap: 0; flex: 1; }
+    .phase-card {
+      flex: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 12px;
+      background: var(--surface-2);
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+      user-select: none;
+    }
+    .phase-summary-short { flex: 1; }
+    .phase-card:hover { border-color: var(--border-strong); }
+    .phase-card.selected { border-width: 1.5px; }
+    .phase-card.done  { border-color: var(--border-success); }
+    .phase-card.warn  { border-color: var(--border-warning); }
+    .phase-card.err   { border-color: var(--border-danger); }
+    .phase-card.selected.done { background: var(--bg-success); }
+    .phase-card.selected.warn { background: var(--bg-warning); }
+    .phase-card.selected.err  { background: var(--bg-danger); }
+
+    .phase-icon { font-size: 20px; color: var(--text-secondary); margin-bottom: 8px; }
+    .phase-icon.done { color: var(--text-success); }
+    .phase-icon.warn { color: var(--text-warning); }
+    .phase-icon.err  { color: var(--text-danger); }
+    .phase-name { font-size: 12px; font-weight: 500; color: var(--text-primary); margin-bottom: 5px; line-height: 1.3; }
+    .phase-summary-short { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
+    .pill { display: inline-block; font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 10px; }
+    .pill.done { background: var(--bg-success); color: var(--text-success); }
+    .pill.warn { background: var(--bg-warning); color: var(--text-warning); }
+    .pill.err  { background: var(--bg-danger);  color: var(--text-danger); }
+    .pill.pend { background: var(--surface-1);  color: var(--text-muted); border: 0.5px solid var(--border); }
+    .pill-wrap { display: inline-flex; position: relative; cursor: default; }
+    .pill-wrap .tooltip-box { width: 200px; left: 0; transform: none; }
+
+    /* Import bar */
+    .import-bar {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      background: var(--surface-2); border: 0.5px solid var(--border);
+      border-radius: var(--radius); padding: 10px 14px;
+      margin-bottom: 1.75rem;
+    }
+    .import-bar-label { font-size: 11px; color: var(--text-muted); margin-right: 4px; }
+    .import-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 500; padding: 5px 12px;
+      border-radius: 6px; border: 0.5px solid var(--border-strong);
+      background: var(--surface-1); color: var(--text-primary);
+      cursor: pointer; transition: background .15s, border-color .15s;
+    }
+    .import-btn:hover { background: var(--surface-0); border-color: var(--fill-accent); color: var(--text-accent); }
+    .import-bar-divider { width: 1px; height: 22px; background: var(--border-strong); margin: 0 2px; flex-shrink: 0; }
+    .start-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 600; padding: 5px 14px;
+      border-radius: 6px; border: none;
+      background: var(--fill-accent); color: #fff;
+      cursor: pointer; transition: opacity .15s;
+    }
+    .start-btn:hover { opacity: 0.88; }
+    .start-btn:disabled { background: var(--surface-2); color: var(--text-muted); cursor: not-allowed; opacity: 1; }
+    .start-btn:disabled:hover { opacity: 1; }
+    .start-btn-wrap { position: relative; display: inline-block; }
+    .start-btn-wrap .tooltip-box { min-width: 220px; left: 50%; transform: translateX(-50%); bottom: calc(100% + 6px); top: auto; }
+    .import-bar-sep { flex: 1; }
+    .import-hint { font-size: 11px; color: var(--text-muted); }
+
+    /* Run button on agent cards */
+    .run-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10px; font-weight: 500; padding: 2px 8px;
+      border-radius: 6px; border: 0.5px solid var(--border-accent);
+      background: var(--bg-accent); color: var(--text-accent);
+      cursor: pointer; margin-left: auto; flex-shrink: 0;
+      transition: background .15s;
+    }
+    .run-btn:hover { background: var(--fill-accent); color: #fff; border-color: var(--fill-accent); }
+
+    /* Command modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45); z-index: 200;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-panel {
+      background: var(--surface-2); border-radius: 10px;
+      padding: 24px; width: min(560px, 92vw);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+      position: relative;
+    }
+    .modal-title { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+    .modal-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
+    .modal-prompt {
+      background: var(--surface-1); border: 0.5px solid var(--border);
+      border-radius: 6px; padding: 12px; font-family: monospace;
+      font-size: 12px; line-height: 1.6; white-space: pre-wrap;
+      word-break: break-word; max-height: 320px; overflow-y: auto;
+      color: var(--text-primary); margin-bottom: 14px;
+    }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .modal-copy-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 500; padding: 6px 14px;
+      border-radius: 6px; border: none; cursor: pointer;
+      background: var(--fill-accent); color: #fff; transition: opacity .15s;
+    }
+    .modal-copy-btn:hover { opacity: 0.88; }
+    .modal-copy-btn.copied { background: var(--fill-success); }
+    .modal-close-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 500; padding: 6px 14px;
+      border-radius: 6px; border: 0.5px solid var(--border-strong);
+      background: var(--surface-1); color: var(--text-secondary);
+      cursor: pointer;
+    }
+    .modal-close-btn:hover { background: var(--surface-0); }
+
+    /* Monitor bar */
+    .monitor-bar {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      background: var(--surface-2); border: 0.5px solid var(--border);
+      border-radius: var(--radius); padding: 8px 14px;
+      margin-bottom: 8px; font-size: 12px;
+    }
+    .monitor-status { display: flex; align-items: center; gap: 7px; }
+    .monitor-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .monitor-dot.active { background: var(--fill-success); box-shadow: 0 0 0 3px var(--bg-success); animation: pulse 1.8s infinite; }
+    .monitor-dot.idle   { background: var(--text-muted); }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 3px var(--bg-success); }
+      50%       { box-shadow: 0 0 0 6px transparent; }
+    }
+    .monitor-label { font-weight: 500; }
+    .monitor-label.active { color: var(--text-success); }
+    .monitor-label.idle   { color: var(--text-muted); }
+    .monitor-sep  { flex: 1; }
+    .monitor-meta { color: var(--text-muted); font-size: 11px; }
+    .monitor-toggle-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 500; padding: 3px 10px;
+      border-radius: 6px; border: 0.5px solid var(--border-strong);
+      background: var(--surface-1); color: var(--text-secondary);
+      cursor: pointer; transition: background .15s;
+    }
+    .monitor-toggle-btn:hover { background: var(--surface-0); }
+    .monitor-toggle-btn i { transition: transform .2s; }
+    .monitor-toggle-btn.open i { transform: rotate(180deg); }
+    .monitor-refresh-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; padding: 3px 10px;
+      border-radius: 6px; border: 0.5px solid var(--border-accent);
+      background: var(--bg-accent); color: var(--text-accent);
+      cursor: pointer;
+    }
+    .monitor-refresh-btn:hover { background: var(--fill-accent); color: #fff; border-color: var(--fill-accent); }
+
+    /* Activity log */
+    .activity-log {
+      display: none; background: #1a1a18; border-radius: var(--radius);
+      border: 0.5px solid var(--border-strong); margin-bottom: 1rem;
+      overflow: hidden;
+    }
+    .activity-log.open { display: block; }
+    .activity-log-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 14px; border-bottom: 0.5px solid rgba(255,255,255,0.08);
+      font-size: 11px; color: #888780;
+    }
+    .activity-log-header span { display: flex; align-items: center; gap: 6px; }
+    .activity-body {
+      font-family: 'Cascadia Code', 'Consolas', 'SF Mono', monospace;
+      font-size: 11px; line-height: 1.65;
+      color: #c8c7c0; padding: 12px 16px;
+      max-height: 260px; overflow-y: auto;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    .activity-body::-webkit-scrollbar { width: 4px; }
+    .activity-body::-webkit-scrollbar-track { background: transparent; }
+    .activity-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+    .activity-empty { color: #555; font-style: italic; padding: 20px 16px; font-size: 11px; }
+
+    /* syntax-ish colouring inside log */
+    .log-h2    { color: #c0dd97; font-weight: bold; }
+    .log-h3    { color: #b5d4f4; }
+    .log-key   { color: #fac775; }
+    .log-path  { color: #afa9ec; }
+    .log-note  { color: #888780; }
+
+    .arrow { display: flex; align-items: center; padding: 0 6px; color: var(--text-muted); font-size: 16px; flex-shrink: 0; align-self: center; }
+
+    /* Detail panel */
+    .detail-panel {
+      background: var(--surface-1);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: none;
+      margin-bottom: 1rem;
+    }
+    .detail-panel.open { display: grid; grid-template-columns: 1fr 220px; gap: 16px; align-items: start; }
+    @media(max-width:700px) { .detail-panel.open { grid-template-columns: 1fr; } }
+
+    /* Confidence chart card */
+    .conf-card {
+      background: var(--surface-2); border: 0.5px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px;
+    }
+    .conf-card:last-child { margin-bottom: 0; }
+    .conf-card-title { font-size: 12px; font-weight: 500; color: var(--text-primary); margin-bottom: 2px; }
+    .conf-card-sub { font-size: 11px; color: var(--text-muted); margin-bottom: 12px; }
+    .conf-chart-legend { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+    .conf-leg { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text-secondary); }
+    .conf-leg-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .phase-cf-row { margin-bottom: 8px; }
+    .phase-cf-row:last-child { margin-bottom: 0; }
+    .phase-cf-lbl { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-secondary); margin-bottom: 3px; }
+    .phase-cf-bar { height: 4px; background: var(--surface-1); border-radius: 2px; overflow: hidden; }
+    .phase-cf-fill { height: 100%; border-radius: 2px; transition: width .35s; }
+
+    .detail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 0.5px solid var(--border); flex-wrap: wrap; gap: 8px; }
+    .detail-title { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 500; }
+    .detail-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+
+    /* Agent list */
+    .agents { display: flex; flex-direction: column; gap: 8px; }
+
+    .checkpoint-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 14px; border-radius: var(--radius);
+    }
+    .checkpoint-row.pass { background: var(--bg-success); border: 0.5px solid var(--border-success); }
+    .checkpoint-row.open { background: var(--bg-warning); border: 0.5px solid var(--border-warning); }
+    .checkpoint-row i { font-size: 14px; }
+    .checkpoint-row.pass i { color: var(--text-success); }
+    .checkpoint-row.open i { color: var(--text-warning); }
+    .checkpoint-label { font-size: 12px; font-weight: 500; }
+    .checkpoint-row.pass .checkpoint-label { color: var(--text-success); }
+    .checkpoint-row.open .checkpoint-label { color: var(--text-warning); }
+    .checkpoint-date { font-size: 11px; color: var(--text-muted); margin-left: auto; }
+    .cp-review-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 500; padding: 3px 9px;
+      border-radius: 5px; cursor: pointer; font-family: inherit;
+      border: 1px solid var(--border-warning); background: var(--bg-warning);
+      color: var(--text-warning); transition: opacity .12s;
+    }
+    .cp-review-btn:hover { opacity: .75; }
+    .cp-review-btn i { font-size: 12px; }
+
+    .modal-file-chips { display: flex; flex-direction: column; gap: 6px; }
+    .modal-file-chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 12px; font-family: monospace;
+      background: var(--surface-1); border: 0.5px solid var(--border);
+      border-radius: 5px; padding: 6px 10px; cursor: pointer;
+      color: var(--text-accent); transition: background .12s;
+      user-select: none;
+    }
+    .modal-file-chip:hover { background: var(--surface-2); }
+    .modal-file-chip i { font-size: 13px; color: var(--text-muted); flex-shrink: 0; }
+    .modal-file-chip .chip-copied { font-size: 10px; color: var(--text-success); margin-left: auto; opacity: 0; transition: opacity .2s; }
+    .modal-file-chip.copied .chip-copied { opacity: 1; }
+    .modal-files-label { font-size: 11px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+
+    .agent-card {
+      background: var(--surface-2);
+      border: 0.5px solid var(--border);
+      border-left-width: 2px;
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      cursor: pointer;
+    }
+    .agent-card.done { border-left-color: var(--fill-success); }
+    .agent-card.warn { border-left-color: var(--fill-warning); }
+    .agent-card.err  { border-left-color: var(--fill-danger); }
+    .agent-card.pend { border-left-color: var(--border-strong); }
+
+    .agent-top { display: flex; align-items: center; gap: 10px; }
+    .agent-step { font-size: 10px; color: var(--text-muted); font-family: monospace; min-width: 46px; }
+    .agent-name { font-size: 13px; font-weight: 500; flex: 1; }
+    .agent-date { font-size: 11px; color: var(--text-muted); }
+    .agent-duration { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; color: var(--text-accent); background: var(--bg-accent); padding: 1px 5px; border-radius: 4px; margin-left: 4px; cursor: default; }
+    .agent-duration .tooltip-box { left: 0; transform: none; min-width: 200px; }
+    .phase-duration { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; color: var(--text-accent); background: var(--bg-accent); padding: 1px 5px; border-radius: 4px; cursor: default; }
+    .phase-duration .tooltip-box { left: 0; transform: none; min-width: 200px; }
+    .agent-chevron { font-size: 14px; color: var(--text-muted); transition: transform .2s; }
+    .agent-chevron.open { transform: rotate(180deg); }
+
+    .agent-body { display: none; border-top: 0.5px solid var(--border); margin-top: 10px; padding-top: 10px; }
+    .agent-body.open { display: block; }
+
+    .io-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 10px; }
+    .io-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin-bottom: 5px; }
+    .io-section-label.toggle { display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+    .io-section-label.toggle:hover { color: var(--text-secondary); }
+    .io-count { font-size: 10px; color: var(--text-muted); font-style: italic; padding: 2px 0; }
+    .io-item { font-size: 11px; color: var(--text-secondary); padding: 2px 0; display: flex; align-items: flex-start; gap: 5px; }
+    .io-item i { font-size: 11px; color: var(--text-muted); margin-top: 1px; flex-shrink: 0; }
+    .agent-file { font-size: 10px; font-family: monospace; color: var(--text-muted); margin-top: 6px; padding-top: 6px; border-top: 0.5px solid var(--border); display: flex; align-items: center; gap: 5px; }
+
+    .agent-note { font-size: 12px; padding: 7px 11px; border-radius: var(--radius); margin-top: 8px; }
+    .agent-note.info { background: var(--bg-success); color: var(--text-success); }
+    .agent-note.warn { background: var(--bg-warning); color: var(--text-warning); }
+    .agent-note.err  { background: var(--bg-danger);  color: var(--text-danger); }
+
+    /* Legend */
+    .legend { display: flex; align-items: center; gap: 16px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-secondary); }
+    .legend-sep  { width: 1px; height: 14px; background: var(--border-strong); margin: 0 4px; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .legend-dot.done { background: var(--fill-success); }
+    .legend-dot.warn { background: var(--fill-warning); }
+    .legend-dot.err  { background: var(--fill-danger); }
+    .legend-dot.pend { background: var(--border-strong); }
+
+    /* Confidence badges */
+    .conf-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10px; font-weight: 500; cursor: default;
+      position: relative;
+    }
+    .conf-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .conf-dot.high   { background: var(--fill-success); }
+    .conf-dot.medium { background: var(--fill-warning); }
+    .conf-dot.low    { background: var(--fill-danger); }
+    .conf-label.high   { color: var(--text-success); }
+    .conf-label.medium { color: var(--text-warning); }
+    .conf-label.low    { color: var(--text-danger); }
+    .conf-badge .tooltip-box { width: 200px; left: 0; transform: none; bottom: calc(100% + 6px); font-weight: 400; }
+
+    /* Phase rail layout */
+    .phase-rail-outer { display: flex; align-items: stretch; gap: 0; margin-bottom: 1.25rem; overflow-x: auto; padding-bottom: 4px; }
+    .phase-rail-outer::-webkit-scrollbar { height: 4px; }
+    .phase-rail-outer::-webkit-scrollbar-track { background: transparent; }
+    .phase-rail-outer::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+    .phase-rail-item { flex: 1; min-width: 140px; display: flex; align-items: stretch; }
+    .phase-rail-item:not(:last-child) { margin-right: 4px; }
+    .phase-rail-arrow { flex-shrink: 0; padding: 0 2px; display: flex; align-items: center; }
+    .phase-rail-arrow i { font-size: 18px; color: var(--text-muted); }
+
+    @media (max-width: 700px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .io-grid { grid-template-columns: 1fr; }
+      body { padding: 1rem; }
+    }
+
+    /* Tab bar */
+    .tab-bar { display: flex; align-items: center; gap: 4px; margin-bottom: 1.25rem; }
+    .tab-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 500; padding: 6px 16px;
+      border: 1px solid var(--border-strong); border-radius: var(--radius);
+      background: transparent; color: var(--text-secondary);
+      cursor: pointer; font-family: inherit;
+      transition: background .12s, border-color .12s, color .12s, box-shadow .12s;
+    }
+    .tab-btn:hover { background: var(--surface-2); color: var(--text-primary); }
+    .tab-btn.active {
+      background: var(--bg-accent); color: var(--text-accent);
+      border-color: var(--border-accent);
+      font-weight: 600;
+      box-shadow: 0 1px 4px rgba(24,95,165,0.18);
+    }
+    .tab-btn i { font-size: 14px; }
+    .tab-bar-right { margin-left: auto; font-size: 11px; color: var(--text-muted); }
+
+    /* Artifact view */
+    .av-summary-bar {
+      display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+      padding: 8px 12px; border-radius: var(--radius);
+      background: var(--surface-2); border: 0.5px solid var(--border);
+      margin-bottom: 1rem; font-size: 12px;
+    }
+    .av-sb-item { display: flex; align-items: center; gap: 5px; color: var(--text-secondary); }
+    .av-sb-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .av-sb-dot.present { background: var(--fill-success); }
+    .av-sb-dot.missing  { background: var(--fill-danger); }
+    .av-sb-dot.pending  { background: var(--border-strong); }
+    .av-sb-sep { width: 0.5px; height: 16px; background: var(--border); flex-shrink: 0; }
+    .av-sb-total { margin-left: auto; color: var(--text-muted); }
+    .av-section { margin-bottom: 1rem; }
+    .av-phase-hdr {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 10px; border-radius: var(--radius);
+      background: var(--surface-1); border: 0.5px solid var(--border);
+      margin-bottom: 2px; cursor: default; user-select: none;
+    }
+    .av-phase-hdr i.ph-icon { font-size: 14px; color: var(--text-muted); }
+    .av-phase-lbl { font-size: 12px; font-weight: 500; color: var(--text-secondary); flex: 1; }
+    .av-phase-ct  { font-size: 11px; color: var(--text-muted); }
+    .av-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .av-table th {
+      font-size: 10px; font-weight: 500; color: var(--text-muted);
+      text-align: left; padding: 5px 10px; border-bottom: 0.5px solid var(--border);
+      text-transform: uppercase; letter-spacing: .04em;
+    }
+    .av-table td {
+      font-size: 12px; color: var(--text-secondary);
+      padding: 6px 10px; border-bottom: 0.5px solid var(--border); vertical-align: middle;
+    }
+    .av-table tr:last-child td { border-bottom: none; }
+    .av-table tbody tr:hover td { background: var(--surface-1); }
+    .av-file  { font-family: monospace; font-size: 11px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+    .av-agent { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+    .av-mono  { font-family: monospace; font-size: 11px; color: var(--text-muted); }
+    .col-file  { width: 38%; } .col-agent { width: 22%; }
+    .col-st    { width: 14%; } .col-sz    { width: 10%; } .col-mt { width: 16%; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="header-left">
+      <h1 id="proj-name">SDLC pipeline</h1>
+      <p id="proj-sub"></p>
+    </div>
+  </div>
+
+  <div class="import-bar">
+    <span class="import-bar-label">Import</span>
+    <button class="import-btn" onclick="triggerUpload('brd')">
+      <i class="ti ti-file-upload"></i> Upload BRD
+    </button>
+    <button class="import-btn" onclick="triggerUpload('prd')">
+      <i class="ti ti-file-upload"></i> Upload PRD
+    </button>
+    <input type="file" id="file-input-brd" style="display:none" accept=".md,.txt,.doc,.docx,.pdf" onchange="handleUpload(event,'brd')">
+    <input type="file" id="file-input-prd" style="display:none" accept=".md,.txt" onchange="handleUpload(event,'prd')">
+    <span class="import-bar-divider"></span>
+    <span class="start-btn-wrap tooltip-wrap" id="start-btn-wrap">
+      <button class="start-btn" id="start-btn" onclick="startPipeline()">
+        <i class="ti ti-player-play"></i> Start pipeline
+      </button>
+      <span class="tooltip-box" id="start-btn-tip"></span>
+    </span>
+    <span class="import-bar-sep"></span>
+    <span class="import-hint"><i class="ti ti-info-circle"></i> Generates a Claude Code prompt — paste into your Claude Code terminal to execute</span>
+  </div>
+
+  <div class="stats" id="stats-row"></div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tab-pipeline" onclick="switchTab('pipeline')">
+      <i class="ti ti-layout-columns" aria-hidden="true"></i> Pipeline view
+    </button>
+    <button class="tab-btn" id="tab-artifact" onclick="switchTab('artifact')">
+      <i class="ti ti-files" aria-hidden="true"></i> Artifact view
+    </button>
+    <span class="tab-bar-right">v3.0</span>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item tooltip-wrap">
+      <span class="legend-dot done"></span> Complete
+      <span class="tooltip-box below" style="width:210px;left:0;transform:none">All agents in this phase have run and every output artifact has been promoted to APPROVED. No action needed.</span>
+    </div>
+    <div class="legend-item tooltip-wrap">
+      <span class="legend-dot warn"></span> Conditions open
+      <span class="tooltip-box below" style="width:210px;left:0;transform:none">The agent ran and produced output, but one or more artifacts are still in DRAFT status or returned APPROVED WITH CONDITIONS. Promote the artifact to APPROVED in the output file to clear this.</span>
+    </div>
+    <div class="legend-item tooltip-wrap">
+      <span class="legend-dot err"></span> Incomplete
+      <span class="tooltip-box below" style="width:210px;left:0;transform:none">Expected output artifacts are missing or the review verdict is CHANGES REQUIRED. The agent needs to be run or its blocking findings resolved before the pipeline can continue.</span>
+    </div>
+    <div class="legend-item tooltip-wrap">
+      <span class="legend-dot pend"></span> Pending
+      <span class="tooltip-box below" style="width:210px;left:0;transform:none">This agent has not started. Its upstream input artifacts don't exist yet — earlier pipeline stages must complete first.</span>
+    </div>
+    <span class="legend-sep"></span>
+    <div class="legend-item tooltip-wrap">
+      <span class="conf-dot high"></span> Confidence score
+      <span class="tooltip-box below" style="width:230px;left:0;transform:none">
+        <strong>High</strong> — Artifact is clean: no unresolved flags, no open decisions, and any review verdict is APPROVED or PASS.<br><br>
+        <strong>Medium</strong> — Some flags exist (e.g. [COMPLEX], [ARCH-RISK]) but within acceptable thresholds, or a review returned APPROVED WITH CONDITIONS.<br><br>
+        <strong>Low</strong> — Significant unresolved flags, open blocking questions, a NO-GO recommendation, or a FAIL/CHANGES REQUIRED verdict.<br><br>
+        Phase confidence is a weighted average of its agents (High=2, Medium=1, Low=0). Hover any agent badge to see which signals drove the score.
+      </span>
+    </div>
+  </div>
+
+  <!-- Monitor bar -->
+  <div class="monitor-bar">
+    <div class="monitor-status">
+      <span class="monitor-dot idle" id="monitor-dot"></span>
+      <span class="monitor-label idle" id="monitor-label">IDLE</span>
+    </div>
+    <span class="monitor-meta" id="monitor-meta">No activity detected</span>
+    <span class="monitor-sep"></span>
+    <button class="monitor-refresh-btn" onclick="manualRefresh()">
+      <i class="ti ti-refresh"></i> Refresh now
+    </button>
+    <button class="monitor-toggle-btn" id="monitor-toggle-btn" onclick="toggleActivityLog()">
+      <i class="ti ti-terminal-2"></i> Activity log
+      <i class="ti ti-chevron-down"></i>
+    </button>
+  </div>
+
+  <!-- Activity log panel -->
+  <div class="activity-log" id="activity-log">
+    <div class="activity-log-header">
+      <span><i class="ti ti-file-text"></i> outputs/task-log.md — live tail</span>
+      <span id="activity-log-ts" style="font-size:10px"></span>
+    </div>
+    <div id="activity-body"></div>
+  </div>
+
+  <div id="pipeline-view">
+    <div class="phase-rail-outer" id="phase-rail"></div>
+    <div class="detail-panel" id="detail-panel"></div>
+  </div>
+  <div id="artifact-view" style="display:none"></div>
+
+</div>
+
+<!-- Command modal -->
+<div class="modal-overlay" id="cmd-modal" onclick="closeModal(event)">
+  <div class="modal-panel" onclick="event.stopPropagation()">
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-sub" id="modal-sub">Copy this prompt and paste it into the Claude Code chat to execute.</div>
+    <div id="modal-files" style="display:none;margin-bottom:12px"></div>
+    <div class="modal-prompt" id="modal-prompt"></div>
+    <div class="modal-actions">
+      <button class="modal-close-btn" onclick="document.getElementById('cmd-modal').classList.remove('open')">Close</button>
+      <button class="modal-copy-btn" id="modal-copy-btn" onclick="copyPrompt()">
+        <i class="ti ti-copy"></i> Copy prompt
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// <<PIPELINE_STATE_BEGIN>>
+// Edit this object to update the dashboard. Mirrors pipeline-state.json.
+const PIPELINE_STATE = {"project":{"name":"TCPA Regulatory Compliance API","client":"Southern Company Gas","phase":"Phase 1","prd":"inputs/prd.md"},"stats":{"totalTasks":121,"estimatedHours":356,"agentsRun":16,"agentsTotal":16,"phasesComplete":3,"phasesTotal":5},"inputs":{"brd":false,"prd":true},"artifacts":{"inputs/prd.md":{"exists":true,"size":"25.6 KB","mtime":"2026-06-26 16:33"},"outputs/requirements.md":{"exists":true,"size":"21.9 KB","mtime":"2026-06-26 16:42"},"outputs/clarifications.md":{"exists":true,"size":"17.7 KB","mtime":"2026-06-26 16:42"},"outputs/specs.md":{"exists":true,"size":"57.4 KB","mtime":"2026-07-07 10:15"},"outputs/architecture.md":{"exists":true,"size":"68 KB","mtime":"2026-07-07 10:15"},"outputs/risks.md":{"exists":true,"size":"31.3 KB","mtime":"2026-07-07 10:15"},"outputs/stories.md":{"exists":true,"size":"62 KB","mtime":"2026-06-26 17:04"},"outputs/tasks.md":{"exists":true,"size":"91.2 KB","mtime":"2026-06-26 17:12"},"src/TCPA.Api/":{"exists":true,"size":"330.9 KB","mtime":"2026-06-26 18:03"},"src/TCPA.Scheduler/":{"exists":true,"size":"16.2 KB","mtime":"2026-06-26 17:25"},"outputs/task-log.md":{"exists":true,"size":"46.7 KB","mtime":"2026-06-26 18:33"},"tests/TCPA.Api.Tests/":{"exists":true,"size":"152.2 KB","mtime":"2026-06-26 17:38"},"tests/functional/":{"exists":true,"size":"58.4 KB","mtime":"2026-06-26 18:32"},"tests/Test-Cases.csv":{"exists":false,"size":null,"mtime":null},"tests/Test-Plan.xlsx":{"exists":false,"size":null,"mtime":null},"outputs/review-findings.md":{"exists":true,"size":"34 KB","mtime":"2026-06-26 18:03"},"outputs/security-findings.md":{"exists":true,"size":"29.7 KB","mtime":"2026-06-26 18:03"},"outputs/docs/README.md":{"exists":true,"size":"3.7 KB","mtime":"2026-06-26 18:05"},"outputs/docs/api.md":{"exists":true,"size":"17.8 KB","mtime":"2026-06-26 18:06"},"outputs/docs/operations.md":{"exists":true,"size":"16.2 KB","mtime":"2026-06-26 18:09"},"outputs/docs/CHANGELOG.md":{"exists":true,"size":"7.4 KB","mtime":"2026-06-26 18:09"},"outputs/pr-description.md":{"exists":true,"size":"38 KB","mtime":"2026-06-26 18:14"}},"phases":[{"id":"requirements","label":"Requirements","icon":"ti-clipboard-list","status":"done","confidence":{"level":"low","reason":"Weighted average Low - dragged by: BRD to PRD bridge, PRD analyst, Clarification, Architecture"},"durationSeconds":-1,"summary":"7 agents - 6 output artifacts - 3 checkpoints passed","agents":[{"id":"00","name":"BRD to PRD bridge","file":"agents/00-brd-to-prd.md","status":"done","completedAt":"2026-06-26","durationSeconds":894,"inputs":["inputs/brd.doc"],"outputs":["inputs/prd.md"],"note":null,"confidence":{"level":"low","reason":"8 product decisions unresolved"}},{"checkpoint":true,"label":"Checkpoint 0 - PRD review approved","passed":true,"approvedAt":"2026-06-26"},{"id":"01","name":"PRD analyst","file":"agents/01-prd-analyst.md","status":"done","completedAt":"2026-06-26","durationSeconds":513,"inputs":["inputs/prd.md"],"outputs":["outputs/requirements.md"],"note":null,"confidence":{"level":"low","reason":"8 open flags require resolution"}},{"id":"02","name":"Clarification","file":"agents/02-clarification.md","status":"done","completedAt":"2026-06-26","durationSeconds":null,"inputs":["outputs/requirements.md"],"outputs":["outputs/clarifications.md"],"note":null,"confidence":{"level":"low","reason":"23 blocking question(s) unanswered"}},{"checkpoint":true,"label":"Checkpoint 1 - requirements sign-off","passed":true,"approvedAt":"2026-06-26"},{"id":"03","name":"Spec decomposer","file":"agents/03-spec-decomposer.md","status":"done","completedAt":"2026-06-26","durationSeconds":-1,"inputs":["outputs/requirements.md","outputs/clarifications.md"],"outputs":["outputs/specs.md"],"note":null,"confidence":{"level":"medium","reason":"3 complex specs flagged - review with architect before dev\n\n- SPEC-001: Outbound SMS Proxy â€” Receive and Gate\n- SPEC-007: Re-Opt-In via Privileged Admin API Endpoint\n- SPEC-013: Automated Weekly Compliance Report"}},{"id":"04","name":"Architecture","file":"agents/04-architecture.md","status":"done","completedAt":"2026-06-26","durationSeconds":29,"inputs":["outputs/specs.md","outputs/requirements.md"],"outputs":["outputs/architecture.md"],"note":null,"confidence":{"level":"low","reason":"17 architectural risks - review before proceeding\n\n- BizTalk cannot call REST natively; requires a custom adapter. Adapter development is the BizTalk team\u0027s responsibility and is on the critical path for compliance deadline.\n- Single-region deployment cannot protect against full Azure region outage, which would exceed the 99.9% SLA and prevent opt-out processing during an outage.\n- Azure SQL Always Encrypted (deterministic) has constraints: no server-side range queries on encrypted columns. Reporting queries that filter on cell_number directly must pass the plaintext value from the application. Compliance Officer ad-hoc queries may not be possible without decryption capability in the query tool.\n(+ 14 more - see outputs/architecture.md)"}},{"id":"05","name":"Risk assessment","file":"agents/05-risk-assessment.md","status":"done","completedAt":"2026-06-26","durationSeconds":21,"inputs":["outputs/specs.md","outputs/architecture.md"],"outputs":["outputs/risks.md"],"note":{"type":"info","text":"Risk assessment complete. Review risks.md for GO / NO-GO recommendation."},"confidence":{"level":"medium","reason":"GO WITH CONDITIONS - 1 high risk remain open\n\n- BizTalk REST Adapter â€” External Dependency on the Compliance Deadline Critical Path\n- Opt-Out Confirmation SMS Text Not Yet Legally Approved\n- CCB/My Account Go-Live Timing â€” Potential Unprotected SMS Window"}},{"checkpoint":true,"label":"Checkpoint 2 - architecture \u0026 risk approved","passed":true,"approvedAt":"2026-06-26"}]},{"id":"stories","label":"Epics \u0026 user stories","icon":"ti-list-check","status":"warn","confidence":{"level":"medium","reason":"Weighted average Medium - dragged by: Task breakdown"},"durationSeconds":487,"summary":"2 agents - 2 output artifacts - 1 checkpoint passed","agents":[{"id":"06","name":"Story writer","file":"agents/06-story-writer.md","status":"warn","completedAt":"2026-06-26","durationSeconds":null,"inputs":["outputs/specs.md","outputs/architecture.md","outputs/risks.md"],"outputs":["outputs/stories.md"],"note":null,"confidence":{"level":"high","reason":"No complex or spike stories"}},{"id":"07","name":"Task breakdown","file":"agents/07-task-breakdown.md","status":"warn","completedAt":"2026-06-26","durationSeconds":487,"inputs":["outputs/stories.md","outputs/architecture.md"],"outputs":["outputs/tasks.md"],"note":{"type":"info","text":"121 tasks - 356 estimated hours - 0 blocked tasks"},"confidence":{"level":"low","reason":"5 decisions pending, 17 blocked tasks - resolve before dev starts\n\n- \n(+ 21 more - see outputs/tasks.md)"}},{"checkpoint":true,"label":"Checkpoint 3 - stories \u0026 tasks approved","passed":true,"approvedAt":"2026-06-26"}]},{"id":"development","label":"Development","icon":"ti-code","status":"done","confidence":{"level":"medium","reason":"Weighted average Medium - dragged by: Code generator"},"durationSeconds":4660,"summary":"1 agent - implementation files generated","agents":[{"id":"08","name":"Code generator","file":"agents/08-code-generator.md","status":"done","completedAt":"2026-06-26","durationSeconds":4887,"inputs":["outputs/tasks.md","outputs/architecture.md","outputs/specs.md","src/ (existing)"],"outputs":["src/TCPA.Api/","src/TCPA.Scheduler/","outputs/task-log.md"],"note":{"type":"info","text":"Implementation files generated. Review task-log.md for per-task details."},"confidence":{"level":"medium","reason":"4 task(s) complete, implementation notes logged"}}]},{"id":"testing","label":"Testing","icon":"ti-test-pipe","status":"done","confidence":{"level":"medium","reason":"Weighted average Medium - dragged by: Unit \u0026 integration tests"},"durationSeconds":3676,"summary":"3 agents - 3 of 3 complete","agents":[{"id":"09","name":"Unit \u0026 integration tests","file":"agents/09-test-generator.md","status":"done","completedAt":"2026-06-26","durationSeconds":1841,"inputs":["outputs/tasks.md","outputs/specs.md","src/"],"outputs":["tests/TCPA.Api.Tests/","outputs/task-log.md"],"note":null,"confidence":{"level":"low","reason":"No test coverage recorded in task log"}},{"id":"9b","name":"Functional \u0026 E2E tests","file":"agents/09b-functional-test-agent.md","status":"done","completedAt":"2026-06-26","durationSeconds":null,"inputs":["outputs/stories.md","outputs/specs.md","outputs/architecture.md","outputs/risks.md","tests/"],"outputs":["tests/functional/"],"note":{"type":"info","text":"Functional and E2E tests generated."},"confidence":{"level":"high","reason":"Journey, contract and smoke tests all present"}},{"id":"9c","name":"Test plan generator","file":"agents/09c-test-plan-agent.md","status":"done","completedAt":"2026-06-26","durationSeconds":null,"inputs":["outputs/requirements.md","outputs/stories.md","outputs/risks.md","tests/"],"outputs":["tests/Test-Cases.csv","tests/Test-Plan.xlsx"],"note":{"type":"info","text":"Test plan generated."},"confidence":{"level":"high","reason":"Test plan CSV and Excel both generated"}}]},{"id":"quality","label":"Security \u0026 quality","icon":"ti-shield-check","status":"warn","confidence":{"level":"medium","reason":"Weighted average Medium - dragged by: Code reviewer, Security agent, PR assembler"},"durationSeconds":686,"summary":"4 agents - 0 checkpoints passed","agents":[{"id":"10","name":"Code reviewer","file":"agents/10-code-reviewer.md","status":"warn","completedAt":"2026-06-26","durationSeconds":28,"inputs":["src/","tests/","outputs/architecture.md","outputs/specs.md"],"outputs":["outputs/review-findings.md"],"note":{"type":"warn","text":"APPROVED WITH CONDITIONS - open findings require owner acknowledgement before merge."},"confidence":{"level":"medium","reason":"APPROVED WITH CONDITIONS - 0 open conditions\n\n- Stale Using Directive in InboundSmsHandler Will Cause Compilation Failure\n- ReportEmailer CSV Attachment Contains Aggregated Counts, Not Per-Record Detail as Required by SPEC-013\n- Compliance Failure Detection Logic Uses a Flawed Heuristic That Will Produce False Positives and Miss Real Failures"}},{"id":"11","name":"Security agent","file":"agents/11-security-agent.md","status":"warn","completedAt":"2026-06-26","durationSeconds":14,"inputs":["src/","outputs/specs.md","outputs/risks.md","outputs/architecture.md"],"outputs":["outputs/security-findings.md"],"note":{"type":"warn","text":"PASS WITH CONDITIONS - security conditions must be acknowledged before merge."},"confidence":{"level":"medium","reason":"Security review complete - check verdict"}},{"checkpoint":true,"label":"Checkpoint 4 - review \u0026 security sign-off","passed":false,"approvedAt":null},{"id":"12","name":"Documentation","file":"agents/12-documentation-agent.md","status":"done","completedAt":"2026-06-26","durationSeconds":411,"inputs":["src/","tests/","outputs/architecture.md","outputs/specs.md"],"outputs":["outputs/docs/README.md","outputs/docs/api.md","outputs/docs/operations.md","outputs/docs/CHANGELOG.md"],"note":null,"confidence":{"level":"high","reason":"All 4 documentation artifacts present"}},{"id":"13","name":"PR assembler","file":"agents/13-pr-assembler.md","status":"done","completedAt":"2026-06-26","durationSeconds":672,"inputs":["outputs/requirements.md","outputs/stories.md","outputs/task-log.md","outputs/review-findings.md","outputs/security-findings.md"],"outputs":["outputs/pr-description.md"],"note":{"type":"warn","text":"PR assembled. Human approval required before merge."},"confidence":{"level":"medium","reason":"2 condition(s) require acknowledgement"}}]}]};
+// <<PIPELINE_STATE_END>>
+
+let state = null;
+let selectedPhase = null;
+let openAgents = {};
+let openOutputs = {};
+let activeTab = 'pipeline';
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.getElementById('tab-pipeline').classList.toggle('active', tab === 'pipeline');
+  document.getElementById('tab-artifact').classList.toggle('active', tab === 'artifact');
+  document.getElementById('pipeline-view').style.display = tab === 'pipeline' ? '' : 'none';
+  document.getElementById('artifact-view').style.display = tab === 'pipeline' ? 'none' : 'block';
+  if (tab === 'artifact') renderArtifactView();
+}
+
+function avStatus(agentStatus, exists) {
+  if (exists === true)  return { cls: 'done', label: 'Present',    icon: 'ti-check' };
+  if (exists === false) return { cls: 'err',  label: 'Missing',    icon: 'ti-x' };
+  if (agentStatus === 'done') return { cls: 'done', label: 'Present',    icon: 'ti-check' };
+  if (agentStatus === 'warn') return { cls: 'warn', label: 'Conditions', icon: 'ti-alert-triangle' };
+  if (agentStatus === 'err')  return { cls: 'err',  label: 'Missing',    icon: 'ti-x' };
+  return { cls: 'pend', label: 'Pending', icon: 'ti-clock' };
+}
+
+function renderArtifactView() {
+  const el = document.getElementById('artifact-view');
+  let totalPresent = 0, totalMissing = 0, totalPending = 0;
+
+  const byPhase = (state.phases || []).map(ph => {
+    const rows = [];
+    (ph.agents || []).forEach(a => {
+      if (a.checkpoint) return;
+      (a.outputs || []).forEach(out => {
+        const enriched = state.artifacts && state.artifacts[out];
+        const exists = enriched ? enriched.exists : null;
+        const st = avStatus(a.status, exists);
+        if      (st.cls === 'done') totalPresent++;
+        else if (st.cls === 'err')  totalMissing++;
+        else                        totalPending++;
+        rows.push({
+          path:      out,
+          agentName: 'Step ' + a.id + ' — ' + a.name,
+          st,
+          size:  enriched ? enriched.size  : null,
+          mtime: enriched ? enriched.mtime : null,
+        });
+      });
+    });
+    return { ph, rows };
+  }).filter(x => x.rows.length);
+
+  const total = totalPresent + totalMissing + totalPending;
+
+  let html = `<div class="av-summary-bar">
+    <div class="av-sb-item"><span class="av-sb-dot present"></span> ${totalPresent} present</div>
+    <div class="av-sb-sep"></div>
+    <div class="av-sb-item"><span class="av-sb-dot missing"></span> ${totalMissing} missing</div>
+    <div class="av-sb-sep"></div>
+    <div class="av-sb-item"><span class="av-sb-dot pending"></span> ${totalPending} pending</div>
+    <span class="av-sb-total">${total} artifacts across ${byPhase.length} phases</span>
+  </div>`;
+
+  byPhase.forEach(({ ph, rows }) => {
+    const anyMissing  = rows.some(r => r.st.cls === 'err');
+    const allPresent  = rows.every(r => r.st.cls === 'done');
+    const phCls       = anyMissing ? 'err' : allPresent ? 'done' : 'warn';
+    const missingCt   = rows.filter(r => r.st.cls === 'err').length;
+    const phPillTxt   = anyMissing ? missingCt + ' missing' : allPresent ? 'all present' : 'conditions';
+
+    html += `<div class="av-section">
+      <div class="av-phase-hdr">
+        <i class="ti ${ph.icon} ph-icon" aria-hidden="true"></i>
+        <span class="av-phase-lbl">${ph.label}</span>
+        <span class="av-phase-ct">${rows.length} artifact${rows.length !== 1 ? 's' : ''}</span>
+        <span class="pill ${phCls}" style="font-size:10px">${phPillTxt}</span>
+      </div>
+      <table class="av-table">
+        <thead><tr>
+          <th class="col-file">File</th>
+          <th class="col-agent">Agent</th>
+          <th class="col-st">Status</th>
+          <th class="col-sz">Size</th>
+          <th class="col-mt">Last modified</th>
+        </tr></thead>
+        <tbody>`;
+
+    rows.forEach(r => {
+      html += `<tr>
+        <td class="col-file"><span class="av-file" title="${r.path}">${r.path}</span></td>
+        <td class="col-agent"><span class="av-agent">${r.agentName}</span></td>
+        <td class="col-st"><span class="pill ${r.st.cls}"><i class="ti ${r.st.icon}" style="font-size:9px;vertical-align:1px"></i> ${r.st.label}</span></td>
+        <td class="col-sz"><span class="av-mono">${r.size || '&mdash;'}</span></td>
+        <td class="col-mt"><span class="av-mono">${r.mtime || '&mdash;'}</span></td>
+      </tr>`;
+    });
+
+    html += `</tbody></table></div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+const pillLabel = { done: "Complete", warn: "Conditions open", err: "Incomplete", pend: "Pending" };
+const pillTip   = {
+  done: "All agents ran and artifacts are approved. No action needed.",
+  warn: "Pipeline ran but one or more artifacts are still in DRAFT status. Promote to APPROVED in the output file to clear this.",
+  err:  "Expected output artifacts are missing. Check the agent detail to see what needs to run.",
+  pend: "Upstream inputs don't exist yet — this phase or agent hasn't started."
+};
+function makePill(status) {
+  return `<span class="pill-wrap tooltip-wrap">
+    <span class="pill ${status}">${pillLabel[status]}</span>
+    <span class="tooltip-box">${pillTip[status]}</span>
+  </span>`;
+}
+
+const confLabels = { high: 'High', medium: 'Medium', low: 'Low' };
+
+// Maps agent id → output files a reviewer should open when confidence is low/medium
+const agentOutputFiles = {
+  '00': ['inputs/prd.md'],
+  '01': ['outputs/requirements.md'],
+  '02': ['outputs/clarifications.md'],
+  '03': ['outputs/specs.md'],
+  '04': ['outputs/architecture.md'],
+  '05': ['outputs/risks.md'],
+  '06': ['outputs/stories.md'],
+  '07': ['outputs/tasks.md'],
+  '08': ['outputs/task-log.md'],
+  '09': ['outputs/task-log.md'],
+  '09b': ['outputs/task-log.md'],
+  '09c': ['outputs/task-log.md'],
+  '10': ['outputs/review-findings.md'],
+  '11': ['outputs/security-findings.md'],
+  '12': ['outputs/docs/README.md', 'outputs/docs/api.md', 'outputs/docs/architecture.md', 'outputs/docs/operations.md'],
+  '13': ['outputs/pr-description.md'],
+};
+
+const confActions = {
+  '00': 'Resolve all [PRODUCT-DECISION-NEEDED] items in inputs/prd.md before running the pipeline. Each unresolved item is a gap the downstream agents will have to guess at.',
+  '01': 'Review outputs/requirements.md and resolve every [AMBIGUOUS] and [GAP] flag before Checkpoint 1. Ambiguous requirements produce ambiguous code.',
+  '02': 'Open outputs/clarifications.md. Find every Answer field still showing _[human to fill in]_ and provide a concrete answer. Blocking questions must be resolved before Step 3.',
+  '03': 'Open outputs/specs.md and search for [COMPLEX]. Each flagged spec needs your architect to confirm the approach before the code generator runs — complex specs are where rework risk is highest.',
+  '04': 'Open outputs/architecture.md → Architectural Risks section. Decide whether each risk needs a design change now or can be mitigated in implementation. Unmitigated architectural risks become production incidents.',
+  '05': 'Open outputs/risks.md. For each Critical/High risk, set Status to Mitigated or Accepted. A NO-GO recommendation means do not proceed to story writing without a design change.',
+  '06': 'Open outputs/stories.md. [COMPLEX] stories should be split into smaller stories before the sprint. [SPIKE] stories need a time-boxed investigation first — allocate sprint capacity before adding them to the board.',
+  '07': 'Open outputs/tasks.md. Resolve every [DECISION-NEEDED] with a tech lead decision. Unblock every [BLOCKED-BY] by completing the dependency. Unresolved items will halt the code generator.',
+  '08': 'Review outputs/task-log.md. Check every "Known Limitations" and "Deviations from Spec" entry — these are places where the generated code does not fully match the spec and may need manual correction.',
+  '09': 'Review outputs/task-log.md → Known Coverage Gaps. Each gap is an untested behaviour path. Decide whether to add manual tests or accept the risk before the code review gate.',
+  '9b': 'Check tests/functional/ — one or more test categories (journeys, contracts, smoke) are missing. Missing smoke tests mean no post-deploy verification. Missing contract tests mean integration regressions may go undetected.',
+  '9c': 'The test plan is incomplete. Run scripts/Generate-TestPlan.ps1 to produce the Excel. If Excel COM is unavailable, use the CSV at tests/Test-Cases.csv as the fallback.',
+  '10': 'Open outputs/review-findings.md. All [BLOCKING] findings must be resolved and their Status updated to Resolved before the PR can be assembled. APPROVED WITH CONDITIONS items should be tracked as follow-on tickets.',
+  '11': 'Open outputs/security-findings.md. [SECURITY-BLOCKING] findings are non-negotiable — fix before merge. High findings should be resolved in this sprint, not deferred.',
+  '12': 'Review outputs/docs/ for [TODO:] markers. Each one is a documentation gap that needs to be filled before the PR is ready for external consumers.',
+  '13': 'Check outputs/pr-description.md. Verify all pre-conditions are met: no BLOCKING findings open, no SECURITY-BLOCKING findings open, and all deployment notes are complete.',
+};
+
+function openConfFromEl(el) {
+  const agentId = el.dataset.aid, level = el.dataset.lv, reason = el.dataset.reason || '';
+  const files = agentOutputFiles[agentId] || [];
+  const levelLabel = { high: 'High', medium: 'Medium', low: 'Low' }[level] || level;
+  const action = confActions[agentId] || '';
+  const openCmd = files.length ? 'code ' + files.join(' ') : null;
+
+  // Parse reason into headline + bullet lines
+  const lines = reason.split('\n');
+  const headline = lines[0] || '';
+  const bullets = lines.slice(1).filter(l => l.trim());
+
+  const levelColors = { high: '#3a7d44', medium: '#b07a1e', low: '#b93535' };
+  const levelColor = levelColors[level] || '#666';
+
+  // Build the modal body HTML
+  const bulletHtml = bullets.length
+    ? `<ul style="margin:10px 0 0 0;padding-left:18px;font-size:13px;color:var(--text-secondary);line-height:1.6">${
+        bullets.map(b => `<li style="margin-bottom:4px">${b.replace(/^[-•]\s*/,'')}</li>`).join('')
+      }</ul>`
+    : '';
+
+  const actionHtml = action
+    ? `<div style="margin-top:12px;padding:10px 12px;background:var(--surface-2);border-radius:6px;border-left:3px solid ${levelColor}">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:4px">What to do next</div>
+        <div style="font-size:13px;color:var(--text-secondary);line-height:1.55">${action}</div>
+       </div>`
+    : '';
+
+  const fileHtml = files.length
+    ? `<div style="margin-top:14px">
+        <div class="modal-files-label">File${files.length !== 1 ? 's' : ''} to open</div>
+        <div class="modal-file-chips">${files.map(f =>
+          `<div class="modal-file-chip" onclick="copyFilePath(this,'${f}')">
+            <i class="ti ti-file-text"></i>${f}
+            <span class="chip-copied">✓ Copied</span>
+          </div>`).join('')}
+        </div>
+       </div>`
+    : '';
+
+  showModal(`Confidence: ${levelLabel} — what to review`, '');
+  document.getElementById('modal-sub').textContent = '';
+  const promptEl = document.getElementById('modal-prompt');
+  promptEl.style.fontFamily = 'inherit';
+  promptEl.style.fontSize = 'inherit';
+  promptEl.style.background = 'transparent';
+  promptEl.style.border = 'none';
+  promptEl.style.padding = '0';
+  promptEl.innerHTML =
+    `<div style="font-size:13.5px;font-weight:500;color:var(--text-primary);line-height:1.5">${headline}</div>${bulletHtml}${actionHtml}${fileHtml}`;
+
+  const filesDiv = document.getElementById('modal-files');
+  filesDiv.style.display = 'none';
+
+  const copyBtn = document.getElementById('modal-copy-btn');
+  if (openCmd) {
+    copyBtn.style.display = '';
+    copyBtn.innerHTML = '<i class="ti ti-terminal"></i> Copy open command';
+    copyBtn.onclick = function() {
+      navigator.clipboard.writeText(openCmd).then(() => {
+        copyBtn.innerHTML = '<i class="ti ti-check"></i> Copied!';
+        setTimeout(() => {
+          copyBtn.innerHTML = '<i class="ti ti-terminal"></i> Copy open command';
+        }, 1800);
+      });
+    };
+  } else {
+    copyBtn.style.display = 'none';
+  }
+}
+
+function copyFilePath(chip, path) {
+  navigator.clipboard.writeText(path).then(() => {
+    chip.classList.add('copied');
+    setTimeout(() => chip.classList.remove('copied'), 1800);
+  });
+}
+
+function makeConfBadge(conf, agentId) {
+  if (!conf || conf.level === 'pend') return '';
+  const lbl = confLabels[conf.level] || conf.level;
+  const reason = conf.reason || '';
+  const clickable = conf.level !== 'high' && agentId;
+  const dataAttrs = clickable
+    ? `data-aid="${agentId}" data-lv="${conf.level}" data-reason="${reason.replace(/"/g,'&quot;')}" onclick="event.stopPropagation();openConfFromEl(this)" style="cursor:pointer"`
+    : '';
+  const indicator = clickable ? `<i class="ti ti-external-link" style="font-size:9px;opacity:.6;margin-left:2px"></i>` : '';
+  return `<span class="conf-badge tooltip-wrap" ${dataAttrs}>
+    <span class="conf-dot ${conf.level}"></span>
+    <span class="conf-label ${conf.level}">Confidence: ${lbl}</span>${indicator}
+    <span class="tooltip-box">${reason}${clickable ? '<br><em style="opacity:.7">Click for details</em>' : ''}</span>
+  </span>`;
+}
+
+function fmtDuration(seconds) {
+  if (seconds == null || seconds === undefined) return null;
+  if (seconds === -1) return 'multi-session';
+  if (seconds < 5)   return null;
+  if (seconds < 60)   return `~${seconds}s`;
+  if (seconds < 3600) return `~${Math.round(seconds / 60)}m`;
+  return `~${(seconds / 3600).toFixed(1)}h`;
+}
+
+function closeModal() {
+  document.getElementById('cmd-modal').classList.remove('open');
+}
+
+function showTasksDetail(tasks, hours) {
+  const body =
+    `${tasks} developer tasks generated by Agent 07 (Task Breakdown).\n\n` +
+    `Each task:\n` +
+    `  - Maps to one or more story acceptance criteria\n` +
+    `  - Is capped at 8 hours (split if larger)\n` +
+    `  - Belongs to a component from the architecture\n` +
+    `  - Has a sequence order within its story\n\n` +
+    `Total estimated effort: ${hours}h across all tasks.\n\n` +
+    `---------------------------------------------\n\n` +
+    `Source artifacts:\n` +
+    `  outputs/tasks.md    - full task board with implementation notes\n` +
+    `  outputs/stories.md  - parent stories and acceptance criteria\n\n` +
+    `The Development phase (Agent 08) processes these tasks\n` +
+    `in sequence order, one story at a time.`;
+
+  showModal('Tasks generated — ' + tasks + ' tasks', body);
+  document.getElementById('modal-sub').textContent = 'Click below to open the task board or jump to the Development phase.';
+  document.getElementById('modal-copy-btn').style.display = 'none';
+
+  const filesDiv = document.getElementById('modal-files');
+  filesDiv.style.display = 'block';
+  filesDiv.innerHTML = `
+    <div class="modal-files-label">Quick actions</div>
+    <div class="modal-file-chips">
+      <span class="modal-file-chip" style="cursor:pointer" onclick="copyFilePath(this,'code outputs/tasks.md')">
+        <i class="ti ti-file-text"></i> outputs/tasks.md
+      </span>
+      <span class="modal-file-chip" style="cursor:pointer;background:var(--bg-accent,#1d4ed8);color:#fff;border-color:transparent"
+            onclick="closeModal();selectPhase('development')">
+        <i class="ti ti-arrow-right"></i> Go to Development phase
+      </span>
+      <span class="modal-file-chip" style="cursor:pointer" onclick="closeModal();selectPhase('stories')">
+        <i class="ti ti-list-check"></i> Go to Epics &amp; stories
+      </span>
+    </div>`;
+}
+
+function showHoursDetail(hours, tasks) {
+  // Human effort = checkpoint reviews only; AI executes all 16 agents
+  const checkpoints = [
+    { label: 'Checkpoint 0 — BRD/PRD review',         min: 1, max: 2 },
+    { label: 'Checkpoint 1 — Requirements sign-off',  min: 1, max: 3 },
+    { label: 'Checkpoint 2 — Architecture approval',  min: 2, max: 4 },
+    { label: 'Checkpoint 3 — Story & task review',    min: 1, max: 3 },
+    { label: 'Checkpoint 4 — Review & security pass', min: 2, max: 4 },
+    { label: 'Fixing BLOCKING findings',              min: 0, max: 8 },
+    { label: 'Final PR review & approval',            min: 1, max: 2 },
+  ];
+  const totalMin = checkpoints.reduce((a, c) => a + c.min, 0);
+  const totalMax = checkpoints.reduce((a, c) => a + c.max, 0);
+
+  const prodHrsPerDay = 6;
+  const sprintDays    = 10;
+  const overhead      = 1.25;
+
+  function calRow(devs, effectiveHours) {
+    const calDays = Math.ceil((effectiveHours * overhead) / (devs * prodHrsPerDay));
+    const sprints = Math.ceil(calDays / sprintDays);
+    const weeks   = Math.ceil(calDays / 5);
+    return `${devs} dev${devs>1?'s':''}: ~${calDays}d (~${weeks}wk / ${sprints} sprint${sprints!==1?'s':''})`;
+  }
+
+  let cpRows = '';
+  checkpoints.forEach(c => {
+    const pad = ' '.repeat(Math.max(0, 44 - c.label.length));
+    cpRows += `  ${c.label}${pad}${c.min}-${c.max}h\n`;
+  });
+
+  const aiLevels = [
+    { label: 'No AI (baseline)',                      mult: 1.00 },
+    { label: 'AI-assisted (~40% saving)',             mult: 0.60 },
+    { label: 'AI-led (~65% saving)',                  mult: 0.35 },
+    { label: 'Full AI pipeline (this) (~95% saving)', mult: 0.05 },
+  ];
+
+  let aiRows = '';
+  aiLevels.forEach(lvl => {
+    const eff = lvl.mult <= 0.05
+      ? `~${totalMin}-${totalMax}h (human reviews only)`
+      : `~${Math.round(hours * lvl.mult)}h   |   Calendar: ${calRow(3, Math.round(hours * lvl.mult))}`;
+    aiRows += `  ${lvl.label}\n    ${eff}\n\n`;
+  });
+
+  const body =
+    `HUMAN EFFORT - checkpoint reviews only\n` +
+    `(AI executes all 16 agents; you review outputs at 5 gates)\n\n` +
+    cpRows +
+    `\n  Total human effort:  ~${totalMin}-${totalMax} hours\n\n` +
+    `---------------------------------------------\n\n` +
+    `AVOIDED EFFORT - what the pipeline replaces\n\n` +
+    `  ${hours}h across ${tasks} tasks: specs, architecture, code,\n` +
+    `  tests, functional tests, test plan, security review,\n` +
+    `  documentation, and PR assembly. All AI-executed.\n\n` +
+    `---------------------------------------------\n\n` +
+    `EFFORT COMPARISON - without this pipeline\n\n` +
+    aiRows +
+    `Not included: environment setup, UAT, deployment windows.`;
+
+  showModal('Human effort — checkpoint review hours', body);
+  document.getElementById('modal-sub').textContent = `~${totalMin}-${totalMax}h human  |  ${hours}h avoided effort  |  AI executes all 16 agents`;
+  document.getElementById('modal-copy-btn').style.display = 'none';
+}
+
+function loadState() {
+  // State is embedded below — edit PIPELINE_STATE to update the dashboard.
+  // To load from an external file instead, replace this function body with:
+  //   fetch("pipeline-state.json").then(r=>r.json()).then(d=>{state=d;render();});
+  state = PIPELINE_STATE;
+  render();
+}
+
+function render() {
+  renderHeader();
+  renderStats();
+  renderPhaseRail();
+  renderStartButton();
+  if (activeTab === 'artifact') renderArtifactView();
+}
+
+function renderStartButton() {
+  const inp = state.inputs || {};
+  const hasInput = inp.brd || inp.prd;
+  // Fallback: if any agent has run, inputs must have existed
+  const agentRan = state.phases && state.phases.some(ph =>
+    ph.agents && ph.agents.some(a => !a.checkpoint && a.status === 'done')
+  );
+  const enabled = hasInput || agentRan;
+
+  const btn = document.getElementById('start-btn');
+  const tip = document.getElementById('start-btn-tip');
+
+  if (enabled) {
+    btn.disabled = false;
+    const label = inp.prd ? 'PRD ready — runs from Agent 01'
+                : inp.brd ? 'BRD ready — runs from Agent 00'
+                : 'Pipeline inputs detected';
+    tip.textContent = label;
+  } else {
+    btn.disabled = true;
+    tip.textContent = 'Upload a BRD or PRD first to enable the pipeline.';
+  }
+}
+
+function renderHeader() {
+  const p = state.project;
+  document.getElementById("proj-name").textContent = p.name + " — AI First SDLC pipeline";
+  document.getElementById("proj-sub").textContent = [p.client, p.phase].filter(Boolean).join(" · ");
+}
+
+function renderStats() {
+  const s = state.stats;
+  const rows = [
+    {
+      label: "Phases complete", value: s.phasesComplete + " / " + s.phasesTotal, cls: "green",
+      tip: "Pipeline phases are: Requirements, Epics & user stories, Development, Testing, and Security & quality. A phase is complete when all its agents have run and any required checkpoints are passed."
+    },
+    {
+      label: "Agents run", value: s.agentsRun + " / " + s.agentsTotal, cls: "green",
+      tip: "Count of pipeline agents that have produced at least one output artifact. Includes all 16 agent stages (00–13, with 9b and 9c counted separately). Pending agents are those whose input artifacts don't exist yet."
+    },
+    {
+      label: "Tasks generated", value: s.totalTasks, cls: "blue",
+      tip: "Click to navigate to the Development phase and open the task breakdown.",
+      onclick: `showTasksDetail(${s.totalTasks},${s.estimatedHours})`
+    },
+    {
+      label: "AI effort multiplier", value: "~" + Math.round(s.estimatedHours / 26) + "×", cls: "amber",
+      sub: `AI delivers ~${Math.round(s.estimatedHours / 26)}h of work for every 1h you spend reviewing`,
+      tip: "Click to see the full effort breakdown — what the pipeline delivers vs. what humans review.",
+      onclick: `showHoursDetail(${s.estimatedHours},${s.totalTasks})`
+    },
+  ];
+  document.getElementById("stats-row").innerHTML = rows.map(r => {
+    const infoEl = r.onclick
+      ? `<span class="tooltip-wrap" onclick="${r.onclick}" style="cursor:pointer">
+           <i class="ti ti-info-circle stat-info" style="color:var(--text-accent)"></i>
+           <span class="tooltip-box">${r.tip}</span>
+         </span>`
+      : `<span class="tooltip-wrap">
+           <i class="ti ti-info-circle stat-info"></i>
+           <span class="tooltip-box">${r.tip}</span>
+         </span>`;
+    return `<div class="stat">
+       <div class="stat-label">
+         <span>${r.label}</span>
+         ${infoEl}
+       </div>
+       <div class="stat-value ${r.cls}">${r.value}</div>
+       ${r.sub ? `<div class="stat-sub">${r.sub}</div>` : ''}
+     </div>`;
+  }).join("");
+}
+
+function renderPhaseRail() {
+  const rail = document.getElementById("phase-rail");
+  rail.innerHTML = "";
+  state.phases.forEach((phase, i) => {
+    const isSel = selectedPhase === phase.id;
+    const card = document.createElement("div");
+    card.style.flex = "1";
+    card.innerHTML = `<div class="phase-card ${phase.status}${isSel ? " selected" : ""}"
+        onclick="selectPhase('${phase.id}')">
+      <div class="phase-icon ${phase.status}"><i class="ti ${phase.icon}"></i></div>
+      <div class="phase-name">${phase.label}</div>
+      <div class="phase-summary-short">${phase.summary.split("·")[0].trim()}</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        ${makePill(phase.status)}
+        ${makeConfBadge(phase.confidence, null)}
+        ${fmtDuration(phase.durationSeconds) ? `<span class="phase-duration tooltip-wrap"><i class="ti ti-clock" style="font-size:10px"></i> ${fmtDuration(phase.durationSeconds)}<span class="tooltip-box" style="min-width:220px">${phase.durationSeconds === -1 ? 'This phase ran across multiple sessions (includes human checkpoint review time). See individual agent badges for AI processing time.' : 'Time from first to last artifact written in this phase — reflects actual AI processing time on this pipeline run.'}</span></span>` : ''}
+      </div>
+    </div>`;
+    rail.appendChild(card);
+
+    if (i < state.phases.length - 1) {
+      const arrow = document.createElement("div");
+      arrow.className = "phase-rail-arrow";
+      arrow.innerHTML = `<i class="ti ti-chevron-right"></i>`;
+      arrow.style.cssText = "flex-shrink:0;padding:0 4px;display:flex;align-items:center;align-self:center";
+      rail.appendChild(arrow);
+    }
+  });
+}
+
+function selectPhase(id) {
+  if (selectedPhase === id) {
+    selectedPhase = null;
+    openAgents = {}; openOutputs = {};
+    document.getElementById("detail-panel").className = "detail-panel";
+    renderPhaseRail();
+    return;
+  }
+  selectedPhase = id;
+  openAgents = {};
+  renderPhaseRail();
+  renderDetailPanel();
+}
+
+function renderDetailPanel() {
+  const panel = document.getElementById("detail-panel");
+  const phase = state.phases.find(p => p.id === selectedPhase);
+  if (!phase) { panel.className = "detail-panel"; return; }
+  panel.className = "detail-panel open";
+
+  let html = `<div><div class="detail-header">
+    <div>
+      <div class="detail-title">
+        <i class="ti ${phase.icon}" style="font-size:18px"></i>
+        ${phase.label}
+      </div>
+      <div class="detail-subtitle">${phase.summary}</div>
+    </div>
+    ${makePill(phase.status)}
+  </div>
+  <div class="agents">`;
+
+  phase.agents.forEach((a, idx) => {
+    if (a.checkpoint) {
+      const cls = a.passed ? "pass" : "open";
+      const icon = a.passed ? "ti-circle-check" : "ti-clock";
+      const dateStr = a.approvedAt ? "Approved " + a.approvedAt : "Pending approval";
+      const reviewBtn = !a.passed && getCheckpointReview(a.label)
+        ? `<button class="cp-review-btn" onclick="event.stopPropagation();reviewCheckpoint('${a.label.replace(/'/g,"\\'")}')"><i class="ti ti-file-search"></i> What to review</button>`
+        : '';
+      html += `<div class="checkpoint-row ${cls}">
+        <i class="ti ${icon}"></i>
+        <span class="checkpoint-label">${a.label}</span>
+        ${reviewBtn}
+        <span class="checkpoint-date">${dateStr}</span>
+      </div>`;
+      return;
+    }
+
+    const bodyOpen = !!openAgents[a.id];
+    const statusCls = a.status || "pend";
+    const durStr  = fmtDuration(a.durationSeconds);
+    const agentDateLabel = durStr
+      ? `<span class="agent-duration tooltip-wrap"><i class="ti ti-clock" style="font-size:10px"></i> ${durStr}<span class="tooltip-box" style="min-width:200px">${a.durationSeconds === -1 ? 'Ran across multiple sessions — includes human review time between agent runs.' : 'Time from when inputs were ready to last file written — reflects actual AI processing time.'}</span></span>`
+      : (a.status === 'pend' ? `<span class="agent-date">Not started</span>` : '');
+
+    html += `<div class="agent-card ${statusCls}" onclick="toggleAgent('${a.id}')">
+      <div class="agent-top">
+        <span class="agent-step">Step ${a.id}</span>
+        <span class="agent-name">${a.name}</span>
+        ${makePill(statusCls)}
+        ${makeConfBadge(a.confidence, a.id)}
+        ${agentDateLabel}
+        <button class="run-btn" onclick="event.stopPropagation(); runAgent('${a.id}')">
+          <i class="ti ti-player-play"></i> Run
+        </button>
+        <i class="ti ti-chevron-down agent-chevron${bodyOpen ? " open" : ""}"></i>
+      </div>
+      <div class="agent-body${bodyOpen ? " open" : ""}">
+        <div class="io-grid">
+          <div>
+            <div class="io-section-label">Reads</div>
+            ${a.inputs.map(x => `<div class="io-item"><i class="ti ti-arrow-right"></i>${x}</div>`).join("")}
+          </div>
+          <div>
+            <div class="io-section-label toggle" onclick="event.stopPropagation(); toggleOutput('${a.id}')">
+              <span>Writes</span>
+              <i class="ti ti-chevron-${openOutputs[a.id] ? 'up' : 'down'}" style="font-size:10px"></i>
+            </div>
+            ${openOutputs[a.id]
+              ? a.outputs.map(x => `<div class="io-item"><i class="ti ti-file-export"></i>${x}</div>`).join("")
+              : `<div class="io-count" onclick="event.stopPropagation(); toggleOutput('${a.id}')">${a.outputs.length} file${a.outputs.length !== 1 ? 's' : ''} — click to expand</div>`
+            }
+          </div>
+        </div>
+        <div class="agent-file">
+          <i class="ti ti-robot"></i> ${a.file}
+        </div>
+        ${a.note ? `<div class="agent-note ${a.note.type}">${a.note.text}</div>` : ""}
+      </div>
+    </div>`;
+  });
+
+  html += `</div></div>
+  <div>
+    <div class="conf-card">
+      <div class="conf-card-title">Confidence trend</div>
+      <div class="conf-card-sub">All 16 agents &middot; phase boundaries marked</div>
+      ${buildConfChart(phase)}
+      <div class="conf-chart-legend">
+        <span class="conf-leg"><span class="conf-leg-dot" style="background:#639922"></span>High</span>
+        <span class="conf-leg"><span class="conf-leg-dot" style="background:#ba7517"></span>Medium</span>
+        <span class="conf-leg"><span class="conf-leg-dot" style="background:#e24b4a"></span>Low</span>
+        <span class="conf-leg"><span class="conf-leg-dot" style="background:#c0bfba"></span>Pending</span>
+      </div>
+    </div>
+    <div class="conf-card">
+      <div class="conf-card-title">Phase confidence</div>
+      <div class="conf-card-sub">Weighted avg &mdash; High=2 &middot; Med=1 &middot; Low=0</div>
+      ${buildPhaseConf()}
+    </div>
+  </div>`;
+  panel.innerHTML = html;
+}
+
+const checkpointReview = {
+  'Checkpoint 0': {
+    files: ['inputs/prd.md'],
+    prompt: 'Review inputs/prd.md.\nResolve all [PRODUCT-DECISION-NEEDED] items by editing the file directly.\nWhen satisfied, confirm with:\n"Checkpoint 0 approved — PRD ready"'
+  },
+  'Checkpoint 1': {
+    files: ['outputs/requirements.md', 'outputs/clarifications.md'],
+    prompt: 'Review outputs/requirements.md and outputs/clarifications.md.\nAnswer all Blocking questions in clarifications.md by editing the Answer fields.\nResolve all [AMBIGUOUS] and [GAP] flags in requirements.md.\nWhen satisfied, confirm with:\n"Checkpoint 1 approved"'
+  },
+  'Checkpoint 2': {
+    files: ['outputs/specs.md', 'outputs/architecture.md', 'outputs/risks.md'],
+    prompt: 'Review outputs/specs.md, outputs/architecture.md, and outputs/risks.md.\nApprove the architecture design.\nAccept or dismiss risks by updating their Status fields.\nResolve any [ARCH-RISK] items that require design changes.\nWhen satisfied, confirm with:\n"Checkpoint 2 approved"'
+  },
+  'Checkpoint 3': {
+    files: ['outputs/stories.md', 'outputs/tasks.md'],
+    prompt: 'Review outputs/stories.md and outputs/tasks.md.\nAdjust story scope, priority, or estimates as needed.\nResolve any [DECISION-NEEDED] flags in tasks.md.\nWhen satisfied, confirm with:\n"Checkpoint 3 approved"'
+  },
+  'Checkpoint 4': {
+    files: ['outputs/review-findings.md', 'outputs/security-findings.md'],
+    prompt: 'Review outputs/review-findings.md and outputs/security-findings.md.\nAll [BLOCKING] findings must be resolved before continuing.\nAll [SECURITY-BLOCKING] findings must be resolved before continuing.\nFor each resolved finding, update its Status to "Resolved" and add a resolution note.\nWhen satisfied, confirm with:\n"Checkpoint 4 approved"'
+  },
+};
+
+function getCheckpointReview(label) {
+  for (const key of Object.keys(checkpointReview)) {
+    if (label && label.startsWith(key)) return checkpointReview[key];
+  }
+  return null;
+}
+
+function reviewCheckpoint(label) {
+  const info = getCheckpointReview(label);
+  if (!info) return;
+  const fileList = info.files.map(f => '  • ' + f).join('\n');
+  showModal('Review: ' + label,
+    'Files to review:\n' + fileList + '\n\n' + info.prompt);
+}
+
+function buildConfChart(activePh) {
+  const all = [], bounds = [];
+  let activeRange = null;
+  state.phases.forEach(ph => {
+    const start = all.length;
+    ph.agents.filter(a => !a.checkpoint).forEach(a => all.push(a));
+    bounds.push(all.length);
+    if (activePh && ph.id === activePh.id) activeRange = [start, all.length - 1];
+  });
+  const n = all.length;
+  if (!n) return '';
+  const W=256, H=90, ml=28, mr=8, mt=8, mb=8;
+  const cw = W-ml-mr, ch = H-mt-mb;
+  const xOf = i => ml + (i/(n-1))*cw;
+  const yOf = s => mt + ch - (s/100)*ch;
+  const score = c => !c||c.level==='pend'?null:c.level==='high'?100:c.level==='medium'?50:0;
+  const cMap  = {high:'#639922',medium:'#ba7517',low:'#e24b4a'};
+
+  const yLines = [[100,'High'],[50,'Med'],[0,'Low']].map(([v,lbl]) => {
+    const y = yOf(v).toFixed(1);
+    return `<line x1="${ml}" y1="${y}" x2="${W-mr}" y2="${y}" stroke="rgba(0,0,0,0.07)" stroke-width="1"/>
+            <text x="${ml-3}" y="${y}" font-size="7" font-family="monospace" fill="#888780" text-anchor="end" dominant-baseline="middle">${lbl}</text>`;
+  }).join('');
+
+  const bLines = bounds.slice(0,-1).map(idx => {
+    const x = (ml + (idx-0.5)/(n-1)*cw).toFixed(1);
+    return `<line x1="${x}" y1="${mt}" x2="${x}" y2="${mt+ch}" stroke="rgba(0,0,0,0.10)" stroke-width="1" stroke-dasharray="3,2"/>`;
+  }).join('');
+
+  let band = '';
+  if (activeRange) {
+    const [s, e] = activeRange;
+    const bx1 = s===0 ? ml : ml+(s-0.5)/(n-1)*cw;
+    const bx2 = e===n-1 ? ml+cw : ml+(e+0.5)/(n-1)*cw;
+    band = `<rect x="${bx1.toFixed(1)}" y="${mt}" width="${(bx2-bx1).toFixed(1)}" height="${ch}" fill="rgba(55,138,221,0.08)" rx="2"/>`;
+  }
+
+  const pts = all.map((a,i) => { const s=score(a.confidence); return s!==null?{x:xOf(i),y:yOf(s),lvl:a.confidence.level}:null; });
+  const scored = pts.filter(Boolean);
+  let fillEl='', lineEl='';
+  if (scored.length >= 2) {
+    const pStr = scored.map(p=>`L${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('');
+    const fx=scored[0].x.toFixed(1), lx=scored[scored.length-1].x.toFixed(1), bot=(mt+ch).toFixed(1);
+    fillEl = `<path d="M${fx},${bot}${pStr}L${lx},${bot}Z" fill="url(#cg1)"/>`;
+    lineEl = `<path d="M${scored.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('L')}" fill="none" stroke="#378add" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  }
+  const dots = pts.map(p => p
+    ? `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.5" fill="${cMap[p.lvl]||'#888780'}" stroke="white" stroke-width="1.5"/>`
+    : '').join('');
+
+  return `<svg viewBox="0 0 ${W} ${H}" style="display:block;width:100%;height:${H}px">
+    <defs>
+      <linearGradient id="cg1" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#378add" stop-opacity="0.13"/>
+        <stop offset="100%" stop-color="#378add" stop-opacity="0.01"/>
+      </linearGradient>
+    </defs>
+    ${band}${yLines}${bLines}${fillEl}${lineEl}${dots}
+  </svg>`;
+}
+
+function buildPhaseConf() {
+  return state.phases.map(ph => {
+    const lvl = ph.confidence ? ph.confidence.level : 'pend';
+    const lbl = {high:'High',medium:'Medium',low:'Low',pend:'Pending'}[lvl]||lvl;
+    const clr = lvl==='high'?'#639922':lvl==='medium'?'#ba7517':lvl==='low'?'#e24b4a':'#c0bfba';
+    const pct = lvl==='high'?'100%':lvl==='medium'?'58%':lvl==='low'?'18%':'5%';
+    return `<div class="phase-cf-row">
+      <div class="phase-cf-lbl"><span>${ph.label}</span><span>${lbl}</span></div>
+      <div class="phase-cf-bar"><div class="phase-cf-fill" style="width:${pct};background:${clr}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function toggleAgent(id) {
+  openAgents[id] = !openAgents[id];
+  renderDetailPanel();
+}
+
+function toggleOutput(id) {
+  openOutputs[id] = !openOutputs[id];
+  renderDetailPanel();
+}
+
+// ── Agent prompts ──────────────────────────────────────────────────────────────
+const agentPrompts = {
+  '00': 'Run @agents/00-brd-to-prd.md against inputs/brd.md',
+  '01': 'Run @agents/01-prd-analyst.md against inputs/prd.md',
+  '02': 'Run @agents/02-clarification.md',
+  '03': 'Run @agents/03-spec-decomposer.md',
+  '04': 'Run @agents/04-architecture.md',
+  '05': 'Run @agents/05-risk-assessment.md',
+  '06': 'Run @agents/06-story-writer.md',
+  '07': 'Run @agents/07-task-breakdown.md',
+  '08': 'Run @agents/08-code-generator.md',
+  '09': 'Run @agents/09-test-generator.md',
+  '9b': 'Run @agents/09b-functional-test-agent.md',
+  '9c': 'Run @agents/09c-test-plan-agent.md',
+  '10': 'Run @agents/10-code-reviewer.md',
+  '11': 'Run @agents/11-security-agent.md',
+  '12': 'Run @agents/12-documentation-agent.md',
+  '13': 'Run @agents/13-pr-assembler.md',
+};
+
+// ── Modal ──────────────────────────────────────────────────────────────────────
+function showModal(title, prompt) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-prompt').textContent = prompt;
+  document.getElementById('modal-sub').textContent = 'Copy this prompt and paste it into the Claude Code chat to execute.';
+  const fd = document.getElementById('modal-files');
+  if (fd) fd.style.display = 'none';
+  const btn = document.getElementById('modal-copy-btn');
+  btn.classList.remove('copied');
+  btn.innerHTML = '<i class="ti ti-copy"></i> Copy prompt';
+  document.getElementById('cmd-modal').classList.add('open');
+}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('cmd-modal')) {
+    document.getElementById('cmd-modal').classList.remove('open');
+  }
+}
+
+function copyPrompt() {
+  const text = document.getElementById('modal-prompt').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('modal-copy-btn');
+    btn.classList.add('copied');
+    btn.innerHTML = '<i class="ti ti-check"></i> Copied!';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = '<i class="ti ti-copy"></i> Copy prompt';
+    }, 2000);
+  });
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('cmd-modal').classList.remove('open');
+});
+
+// ── Run agent ──────────────────────────────────────────────────────────────────
+function runAgent(id) {
+  const phase = state.phases.find(p => p.agents.some(a => !a.checkpoint && a.id === id));
+  const agent = phase ? phase.agents.find(a => !a.checkpoint && a.id === id) : null;
+  const name  = agent ? agent.name : 'Agent ' + id;
+  const prompt = agentPrompts[id] || ('Run @agents/' + id + '.md');
+  showModal('Run: ' + name, prompt);
+}
+
+// ── Start pipeline ─────────────────────────────────────────────────────────────
+function startPipeline() {
+  const inp = state.inputs || {};
+
+  let title, prompt, sub;
+
+  if (inp.prd) {
+    // PRD already exists — skip Agent 00, start from Agent 01
+    title  = 'Start pipeline — from PRD';
+    prompt =
+`A PRD already exists at inputs/prd.md. Start the SDLC pipeline from Agent 01.
+
+Execute each step in sequence:
+1. Run @agents/01-prd-analyst.md against inputs/prd.md
+2. Run @agents/02-clarification.md
+3. Pause at Checkpoint 1 — present outputs/requirements.md and outputs/clarifications.md for review before continuing
+4. On approval, continue with @agents/03-spec-decomposer.md through the full pipeline, honouring all human checkpoints as defined in CLAUDE.md`;
+    sub = 'PRD detected at inputs/prd.md — pipeline starts from Agent 01. Paste into your Claude Code terminal.';
+
+  } else if (inp.brd) {
+    // BRD exists, no PRD yet — start from Agent 00
+    title  = 'Start pipeline — from BRD';
+    prompt =
+`A BRD has been placed at inputs/brd.md. Start the SDLC pipeline from Agent 00.
+
+Execute each step in sequence:
+1. Run @agents/00-brd-to-prd.md against inputs/brd.md
+2. Pause at Checkpoint 0 — present inputs/prd.md for review before continuing
+3. On approval, continue with @agents/01-prd-analyst.md through the full pipeline, honouring all human checkpoints as defined in CLAUDE.md`;
+    sub = 'BRD detected at inputs/brd.md — pipeline starts from Agent 00. Paste into your Claude Code terminal.';
+
+  } else {
+    // Pipeline already running — resume from next incomplete agent
+    const nextAgent = (state.phases || [])
+      .flatMap(ph => ph.agents || [])
+      .find(a => !a.checkpoint && a.status === 'pending');
+    const nextRef = nextAgent ? `@${nextAgent.file}` : 'the next incomplete agent';
+    title  = 'Resume pipeline';
+    prompt =
+`The SDLC pipeline is already in progress. Resume from the next incomplete step.
+
+1. Check outputs/ for the most recently completed artifact
+2. Resume from ${nextRef}
+3. Continue in sequence, honouring all human checkpoints as defined in CLAUDE.md`;
+    sub = 'No input files detected — resuming from next incomplete agent. Paste into your Claude Code terminal.';
+  }
+
+  showModal(title, prompt);
+  document.getElementById('modal-sub').textContent = sub;
+}
+
+// ── File upload ────────────────────────────────────────────────────────────────
+function triggerUpload(type) {
+  document.getElementById('file-input-' + type).click();
+}
+
+function handleUpload(event, type) {
+  const file = event.target.files[0];
+  if (!file) return;
+  event.target.value = ''; // reset so same file can be re-selected
+
+  const isText = /\.(md|txt)$/i.test(file.name);
+
+  if (type === 'prd' || (type === 'brd' && isText)) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const content = e.target.result;
+      const dest = type === 'brd' ? 'inputs/brd.md' : 'inputs/prd.md';
+      const nextStep = type === 'brd'
+        ? 'then run @agents/00-brd-to-prd.md'
+        : 'then run @agents/01-prd-analyst.md';
+      const prompt = `Please write the following content to ${dest}, ${nextStep}:\n\n---\n${content}\n---`;
+      showModal(
+        (type === 'brd' ? 'Import BRD' : 'Import PRD') + ': ' + file.name,
+        prompt
+      );
+    };
+    reader.readAsText(file);
+  } else {
+    // Binary file (Word, PDF) — user must place it manually
+    const dest = 'inputs/' + file.name;
+    const prompt = type === 'brd'
+      ? `I have placed the BRD at ${dest}. Please run @agents/00-brd-to-prd.md against ${dest}`
+      : `I have placed the PRD at ${dest}. Please run @agents/01-prd-analyst.md against ${dest}`;
+    showModal(
+      (type === 'brd' ? 'Import BRD' : 'Import PRD') + ': ' + file.name,
+      prompt
+    );
+    document.getElementById('modal-sub').textContent =
+      'First copy ' + file.name + ' into the inputs/ folder, then paste this prompt into Claude Code.';
+  }
+}
+
+// ── Live monitoring ────────────────────────────────────────────────────────────
+const ACTIVE_WINDOW_MS  = 45000;  // mark ACTIVE if task-log changed within 45s
+const TASK_LOG_POLL_MS  = 3000;   // task-log poll interval
+const STATE_POLL_TICKS  = 10;     // re-check pipeline-state every N ticks (~30s)
+
+let mon = {
+  lastTaskLogContent: null,
+  lastTaskLogChange:  null,
+  lastStateHash:      null,
+  pollTick:           0,
+  logOpen:            false,
+};
+
+function timeAgo(ts) {
+  if (!ts) return '';
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 5)    return 'just now';
+  if (s < 60)   return s + 's ago';
+  if (s < 3600) return Math.floor(s / 60) + 'm ago';
+  return Math.floor(s / 3600) + 'h ago';
+}
+
+function toggleActivityLog() {
+  mon.logOpen = !mon.logOpen;
+  document.getElementById('activity-log').classList.toggle('open', mon.logOpen);
+  document.getElementById('monitor-toggle-btn').classList.toggle('open', mon.logOpen);
+}
+
+function updateMonitorBar() {
+  const isActive = mon.lastTaskLogChange && (Date.now() - mon.lastTaskLogChange < ACTIVE_WINDOW_MS);
+  const dot   = document.getElementById('monitor-dot');
+  const label = document.getElementById('monitor-label');
+  const meta  = document.getElementById('monitor-meta');
+  dot.className   = 'monitor-dot ' + (isActive ? 'active' : 'idle');
+  label.className = 'monitor-label ' + (isActive ? 'active' : 'idle');
+  label.textContent = isActive ? 'ACTIVE' : 'IDLE';
+  meta.textContent  = mon.lastTaskLogChange
+    ? 'Last activity: ' + timeAgo(mon.lastTaskLogChange)
+    : 'No activity detected — task-log.md not found';
+}
+
+function coloriseLine(line) {
+  const esc = line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  if (/^## /.test(line))    return `<span class="log-h2">${esc}</span>`;
+  if (/^### /.test(line))   return `<span class="log-h3">${esc}</span>`;
+  if (/^\- \*\*/.test(line)) {
+    return esc.replace(/(\*\*[^*]+\*\*)/g, m =>
+      `<span class="log-key">${m}</span>`
+    ).replace(/(src\/[^\s]+|tests\/[^\s]+|outputs\/[^\s]+)/g, m =>
+      `<span class="log-path">${m}</span>`
+    );
+  }
+  if (/^\s+- /.test(line))  return `<span class="log-path">${esc}</span>`;
+  return `<span class="log-note">${esc}</span>`;
+}
+
+function renderActivityLog(content) {
+  const body = document.getElementById('activity-body');
+  if (!content || !content.trim()) {
+    body.innerHTML = '<div class="activity-empty">No entries yet. task-log.md will populate as agents run.</div>';
+    return;
+  }
+  const lines = content.split('\n');
+  const tail  = lines.slice(-80);  // last 80 lines
+  body.innerHTML = '<div class="activity-body">' +
+    tail.map(coloriseLine).join('\n') +
+    '</div>';
+  // Auto-scroll to bottom
+  const pre = body.querySelector('.activity-body');
+  if (pre) pre.scrollTop = pre.scrollHeight;
+  document.getElementById('activity-log-ts').textContent =
+    'Updated ' + new Date().toLocaleTimeString();
+}
+
+async function pollTaskLog() {
+  try {
+    const resp = await fetch('/outputs/task-log.md?_=' + Date.now());
+    if (!resp.ok) { updateMonitorBar(); return; }
+    const text = await resp.text();
+    if (text !== mon.lastTaskLogContent) {
+      mon.lastTaskLogContent = text;
+      mon.lastTaskLogChange  = Date.now();
+      if (mon.logOpen) renderActivityLog(text);
+    }
+  } catch(e) {}
+  updateMonitorBar();
+}
+
+async function pollPipelineState() {
+  try {
+    const resp = await fetch('/pipeline-state.json?_=' + Date.now());
+    if (!resp.ok) return;
+    const newState = await resp.json();
+    const hash = JSON.stringify(newState.stats) + JSON.stringify(newState.phases.map(p => p.status));
+    if (hash !== mon.lastStateHash) {
+      mon.lastStateHash = hash;
+      state = newState;
+      render();
+    }
+  } catch(e) {}
+}
+
+async function pollTick() {
+  mon.pollTick++;
+  await pollTaskLog();
+  if (mon.pollTick % STATE_POLL_TICKS === 0) await pollPipelineState();
+}
+
+async function manualRefresh() {
+  await pollPipelineState();
+  await pollTaskLog();
+  if (mon.logOpen) renderActivityLog(mon.lastTaskLogContent || '');
+}
+
+function startMonitoring() {
+  pollTick();
+  setInterval(pollTick, TASK_LOG_POLL_MS);
+  // Also refresh the activity log content when user opens it
+  const origToggle = toggleActivityLog;
+  window.toggleActivityLog = () => {
+    origToggle();
+    if (mon.logOpen) renderActivityLog(mon.lastTaskLogContent || '');
+  };
+}
+
+loadState();
+startMonitoring();
+</script>
+</body>
+</html>

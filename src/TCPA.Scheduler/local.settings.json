@@ -1,0 +1,24 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+
+    "ConnectionStrings__TcpaDatabase": "[SET_IN_KEY_VAULT_OR_APP_CONFIGURATION]",
+
+    "Reporting__SmtpHost": "[SET_IN_APP_CONFIGURATION]",
+    "Reporting__SmtpPort": "587",
+    "Reporting__SmtpUser": "[SET_IN_APP_CONFIGURATION]",
+    "Reporting__SmtpPassword": "[SET_IN_KEY_VAULT — never commit a real value here]",
+    "Reporting__RecipientList": "[SET_IN_APP_CONFIGURATION — semicolon-separated compliance officer addresses]",
+    "Reporting__SenderAddress": "[SET_IN_APP_CONFIGURATION]",
+
+    "AzureAppConfiguration__Endpoint": "[SET_IN_APP_CONFIGURATION]",
+
+    "Logging__MinimumLevel": "Information"
+  },
+  "Host": {
+    "CORS": "*",
+    "CORSCredentials": false
+  }
+}
