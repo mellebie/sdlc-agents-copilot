@@ -417,4 +417,4 @@ Do not proceed to Step 12 until confirmed.
 | 10   | Code Reviewer            | outputs/review-findings.md             |                   |
 | 11   | Security Agent           | outputs/security-findings.md           | Checkpoint 4      |
 | 12   | Documentation            | outputs/docs/                          |                   |
-| 13   | PR Assembler             | outputs/pr-description.md              | Human PR approval |
+| 13   | PR Assembler             | outputs/pr-description.md + GitHub PR  | Human PR approval |
