@@ -38,7 +38,39 @@
       "PowerShell(winget install --id GitHub.cli --silent --accept-package-agreements --accept-source-agreements 2>&1)",
       "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"User\"\\); gh --version 2>&1)",
       "PowerShell(& \"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" repo list 2>&1)",
-      "PowerShell(& \"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" repo list --limit 100 --json name,description,visibility,pushedAt,url 2>&1)"
+      "PowerShell(& \"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" repo list --limit 100 --json name,description,visibility,pushedAt,url 2>&1)",
+      "PowerShell(git config --global user.name \"Mark Ellebie\")",
+      "PowerShell(git config --global user.email \"mark.ellebie@accenture.com\")",
+      "PowerShell(git config --global user.name)",
+      "PowerShell(git config --global user.email)",
+      "mcp__mcp-registry__search_mcp_registry",
+      "PowerShell(echo $env:ADO_ORG)",
+      "PowerShell(echo $env:ADO_PAT)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(Get-ChildItem \"C:\\\\Users\\\\mark.ellebie\\\\Projects\\\\Southern\\\\Claude_projects\\\\sdlc-agents\\\\tests\" -Filter \"*.csv\")",
+      "Bash(Select-Object Name)",
+      "Bash(Get-ChildItem \"C:\\\\Users\\\\mark.ellebie\\\\Projects\\\\Southern\\\\Claude_projects\\\\sdlc-agents\\\\tests\" -Filter \"*.xlsx\")",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\mark.ellebie\\\\Projects\\\\Southern\\\\Claude_projects\\\\sdlc-agents\\\\tests\" | Where-Object { $_.Extension -in '.csv','.xlsx' } | Select-Object Name)",
+      "PowerShell(Start-Process -FilePath \"npx\" -ArgumentList \"serve\", \".\", \"--listen\", \"3030\" -WorkingDirectory \"C:\\\\Users\\\\mark.ellebie\\\\Projects\\\\Southern\\\\Claude_projects\\\\sdlc-agents\" -WindowStyle Hidden)",
+      "PowerShell(Test-NetConnection -ComputerName localhost -Port 3030 -InformationLevel Quiet)",
+      "PowerShell(Start-Process -FilePath \"python\" -ArgumentList \"-m\", \"http.server\", \"3030\" -WorkingDirectory \"C:\\\\Users\\\\mark.ellebie\\\\Projects\\\\Southern\\\\Claude_projects\\\\sdlc-agents\" -WindowStyle Hidden)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$j = $input | ConvertFrom-Json; $f = $j.tool_input.file_path; if ($f -match 'sdlc-agents.(outputs|src|tests|inputs)') { & 'C:\\Users\\mark.ellebie\\Projects\\Southern\\Claude_projects\\sdlc-agents\\scripts\\Sync-Dashboard.ps1' 2>$null }",
+            "shell": "powershell",
+            "statusMessage": "Syncing dashboard...",
+            "async": true
+          }
+        ]
+      }
     ]
   }
 }

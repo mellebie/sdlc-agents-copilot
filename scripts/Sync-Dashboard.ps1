@@ -501,7 +501,7 @@ $s9cNoteText = if ($s9c -eq 'err') {'Test plan CSV and Excel not produced. Trace
 $testAgents = @(
     (New-Agent '09' 'Unit & integration tests'  'agents/09-test-generator.md'         $s09 'outputs/task-log.md' @('outputs/tasks.md','outputs/specs.md','src/')                                                                  @('tests/TCPA.Api.Tests/','outputs/task-log.md') $null           $null)
     (New-Agent '9b' 'Functional & E2E tests'    'agents/09b-functional-test-agent.md' $s9b 'outputs/task-log.md' @('outputs/stories.md','outputs/specs.md','outputs/architecture.md','outputs/risks.md','tests/')                 @('tests/functional/')                          $s9bNoteType    $s9bNoteText)
-    (New-Agent '9c' 'Test plan generator'       'agents/09c-test-plan-agent.md'       $s9c 'outputs/task-log.md' @('outputs/requirements.md','outputs/stories.md','outputs/risks.md','tests/')                                    @('tests/Test-Cases.csv','tests/Test-Plan.xlsx') $s9cNoteType   $s9cNoteText)
+    (New-Agent '9c' 'Test plan generator'       'agents/09c-test-plan-agent.md'       $s9c 'outputs/task-log.md' @('outputs/requirements.md','outputs/stories.md','outputs/risks.md','tests/')                                    @('tests/TCPA-Test-Cases.csv','tests/TCPA-Test-Plan.xlsx') $s9cNoteType   $s9cNoteText)
 )
 
 $s10NoteType = if ($s10 -eq 'warn') {'warn'} elseif ($s10 -eq 'done') {'info'} else {$null}
