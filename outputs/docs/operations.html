@@ -1,0 +1,219 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>operations</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root {
+      --bg:        #0f1117;
+      --surface:   #1a1d27;
+      --border:    #2a2d3a;
+      --text:      #e2e8f0;
+      --muted:     #94a3b8;
+      --accent:    #6366f1;
+      --accent2:   #818cf8;
+      --green:     #22c55e;
+      --yellow:    #eab308;
+      --red:       #ef4444;
+      --code-bg:   #12141e;
+      --font-mono: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 15px; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* â”€â”€ Nav bar â”€â”€ */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    nav a {
+      color: var(--accent2);
+      text-decoration: none;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      opacity: 0.8;
+      transition: opacity 0.15s;
+    }
+    nav a:hover { opacity: 1; }
+    nav .sep { color: var(--border); font-size: 0.9rem; }
+    nav .title {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    nav .badge {
+      margin-left: auto;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* â”€â”€ Main content â”€â”€ */
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem 5rem;
+    }
+
+    /* â”€â”€ Markdown styles â”€â”€ */
+    #content h1 { font-size: 1.9rem; font-weight: 700; margin: 0 0 1.5rem; color: #fff; border-bottom: 1px solid var(--border); padding-bottom: 0.6rem; }
+    #content h2 { font-size: 1.3rem; font-weight: 600; margin: 2.2rem 0 0.8rem; color: #fff; }
+    #content h3 { font-size: 1.05rem; font-weight: 600; margin: 1.8rem 0 0.6rem; color: var(--text); }
+    #content h4 { font-size: 0.95rem; font-weight: 600; margin: 1.4rem 0 0.5rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+    #content p { margin: 0.7rem 0; }
+
+    #content a { color: var(--accent2); text-decoration: underline; text-underline-offset: 2px; }
+    #content a:hover { color: #fff; }
+
+    #content strong { color: #fff; font-weight: 600; }
+    #content em { color: var(--muted); }
+
+    #content ul, #content ol { margin: 0.6rem 0 0.6rem 1.4rem; }
+    #content li { margin: 0.25rem 0; }
+    #content li > ul, #content li > ol { margin-top: 0.2rem; }
+
+    #content blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 0.5rem 1rem;
+      margin: 1rem 0;
+      background: var(--surface);
+      border-radius: 0 6px 6px 0;
+      color: var(--muted);
+    }
+
+    #content code {
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: #a5f3fc;
+    }
+
+    #content pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.1rem 1.3rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+    #content pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.83rem;
+      color: var(--text);
+    }
+
+    #content hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2rem 0;
+    }
+
+    /* â”€â”€ Tables â”€â”€ */
+    #content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.2rem 0;
+      font-size: 0.88rem;
+    }
+    #content thead th {
+      background: var(--surface);
+      color: var(--muted);
+      font-weight: 600;
+      text-align: left;
+      padding: 0.55rem 0.9rem;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    #content tbody tr { border-bottom: 1px solid var(--border); }
+    #content tbody tr:hover { background: rgba(99,102,241,0.05); }
+    #content td { padding: 0.5rem 0.9rem; vertical-align: top; }
+
+    /* â”€â”€ Status pill colouring â”€â”€ */
+    #content td:has(> *:only-child), #content td {
+      line-height: 1.5;
+    }
+
+    /* â”€â”€ Checkboxes (GFM task lists) â”€â”€ */
+    #content ul li input[type=checkbox] {
+      margin-right: 0.4rem;
+      accent-color: var(--accent);
+    }
+
+    /* â”€â”€ Artifact header comment â”€â”€ */
+    .artifact-header {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.8rem 1.2rem;
+      margin-bottom: 2rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--muted);
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../../pipeline-dashboard.html">&#8592; Dashboard</a>
+    <span class="sep">&#47;</span>
+    <span class="title">operations.md</span>
+    <span class="badge">SDLC Artifact</span>
+  </nav>
+  <main>
+    <div id="content"></div>
+  </main>
+  <script>
+    const raw = "# TCPA Compliance API — Operations Guide\n\nThis document is for the IT operations team responsible for deploying, configuring, and operating the TCPA Compliance API.\n\n---\n\n## Environment Variables and Configuration Reference\n\nConfiguration is loaded in this order (later sources override earlier ones):\n1. `appsettings.json` (base defaults, committed to source — values are empty strings)\n2. `appsettings.{Environment}.json` (Development overrides only; not deployed to Production)\n3. Azure Key Vault (secrets — highest priority for sensitive values)\n4. Azure App Configuration (dynamic settings, e.g., log level toggle)\n5. Environment variables (override any of the above)\n\n### Connection Strings\n\n| Key | Required | Description |\n|-----|----------|-------------|\n| `ConnectionStrings:TcpaDatabase` | Yes | Azure SQL connection string for the operational database (opt-out status, app registry, audit log, SMS message log). Must include `Column Encryption Setting=Enabled` for Always Encrypted to function. Store in Azure Key Vault. |\n| `ConnectionStrings:AuditLogDatabase` | No | Reserved for a separate audit log database if introduced in Phase 2. Not used in Phase 1 — the audit log shares `TcpaDatabase`. |\n\n**Example connection string structure (do not include real credentials in documentation):**\n\n```\nServer=tcp:\u003cserver\u003e.database.windows.net,1433;Initial Catalog=TcpaApi;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Column Encryption Setting=Enabled;\n```\n\n### Authentication\n\n| Key | Required | Description |\n|-----|----------|-------------|\n| `Auth:ApiKey` | Yes | Shared API key for upstream SCG application authentication (`X-API-Key` header). Store in Azure Key Vault. Rotate by updating this value — no restart needed. |\n| `Authentication:AdminApi:Authority` | Yes (for Admin API) | OIDC authority endpoint for the SCG Identity Provider (Azure AD/Entra ID). Example: `https://login.microsoftonline.com/\u003ctenant-id\u003e/`. Without this, Admin endpoints are unavailable (warning logged at startup). |\n| `Authentication:AdminApi:Audience` | Yes (for Admin API) | Expected JWT audience claim. Confirms tokens are issued for this application. |\n| `Authentication:AdminApi:ValidIssuer` | No | Optional additional issuer validation. |\n\n### Cool Text Integration\n\n| Key | Required | Description |\n|-----|----------|-------------|\n| `CoolText:BaseUrl` | Yes | Base URL for the Cool Text API (e.g., `https://api.cooltext.com`). |\n| `CoolText:TimeoutSeconds` | No | HTTP timeout for Cool Text API calls. Default: `10`. Increase if Cool Text consistently times out under load. |\n| `CoolText:WebhookSecret` | Yes | HMAC-SHA256 shared secret used to validate inbound webhooks from Cool Text. Store in Azure Key Vault. Confirm the exact value with the Cool Text vendor. |\n| `CoolText:WebhookSignatureHeader` | No | HTTP header name Cool Text uses for the HMAC signature. Default: `X-CoolText-Signature`. Override if the vendor uses a different header name. Confirm with Cool Text vendor (ARCH-RISK-004). |\n\n### Application Registry\n\n| Key | Required | Description |\n|-----|----------|-------------|\n| `ApplicationRegistry:CacheTtlMinutes` | No | Time-to-live for the application registry in-memory cache. Default: `5`. Reduces database calls for near-static data. |\n| `ApplicationRegistry:StartupValidation:RequiredApplicationNames` | No | JSON array of application names expected at startup. A warning is logged for any missing name. Default: `[\"BizTalk\",\"GCMA\",\"KMI Active\",\"ARM/Construction Portal\",\"CCB/My Account\"]`. |\n\n### Azure Platform\n\n| Key | Required | Description |\n|-----|----------|-------------|\n| `AzureKeyVault:Endpoint` | Yes (in Azure) | Azure Key Vault URI (e.g., `https://\u003cvault-name\u003e.vault.azure.net/`). The application uses `DefaultAzureCredential` to authenticate (Managed Identity in Azure). |\n| `AzureAppConfiguration:Endpoint` | No | Azure App Configuration URI for dynamic log level toggling. Without this, log level can only be changed via restart. |\n| `AzureAppConfiguration:RefreshIntervalSeconds` | No | How often the app polls App Configuration for log level changes. Default: `30`. |\n\n### Reporting (Azure Functions Scheduler)\n\nThese settings apply to the `TCPA.Scheduler` Azure Functions project:\n\n| Key | Required | Description |\n|-----|----------|-------------|\n| `Reporting:SmtpHost` | Yes | SMTP relay hostname (SCG email relay). |\n| `Reporting:SmtpPort` | No | SMTP port. Default: `587` (STARTTLS). |\n| `Reporting:SmtpUser` | Yes | SMTP authentication username. Store in Azure Key Vault or App Configuration. |\n| `Reporting:SmtpPassword` | Yes | SMTP password. Store in Azure Key Vault. Never commit a real value. |\n| `Reporting:RecipientList` | Yes | Semicolon-separated list of Compliance Officer email addresses. [TODO: confirm distribution list address with Compliance team — CQ-004 is open.] |\n| `Reporting:SenderAddress` | Yes | From address for compliance report emails. |\n\n### Health Checks\n\n| Key | Required | Description |\n|-----|----------|-------------|\n| `HealthChecks:DependencyTimeoutSeconds` | No | Timeout for each dependency health check. Default: `2`. |\n\n---\n\n## Health Check Endpoint\n\n`GET /health` — no authentication required.\n\nThe health check evaluates all registered dependencies and returns:\n- `200 OK` with `{\"status\":\"healthy\",...}` when all checks pass.\n- `503 Service Unavailable` with `{\"status\":\"degraded\",...}` when any check fails.\n\n**Currently registered checks:**\n\n| Check name | What it verifies |\n|------------|-----------------|\n| `tcpa-database` | EF Core can open a connection to `TcpaDatabase` and execute a minimal query. |\n\n[TODO: Cool Text connectivity check is not yet registered. TASK-059 notes it as a planned addition. Until implemented, health will show `healthy` even if Cool Text is unreachable.]\n\n**Monitoring recommendation:** Configure your load balancer and Azure Monitor to probe `/health` at 1-minute intervals. Alert on sustained 503 responses.\n\n---\n\n## Key Log Events and Meanings\n\nAll logs are structured JSON (Serilog). Each log event includes `CorrelationId`, `Timestamp`, `Level`, and `MachineName`.\n\n### Critical — Requires Immediate Response\n\n| Event | Log message pattern | Meaning and action |\n|-------|--------------------|--------------------|\n| Audit log write failure | `AUDIT LOG WRITE FAILURE — compliance event not persisted` | The audit log INSERT failed. A TCPA compliance event was not recorded. **Immediate action required.** IT must manually reconstruct the missing record from operational logs and the failed request context (CorrelationId in the log event). Check database connectivity and disk space. |\n| Outbound gate DB failure | `Outbound SMS BLOCKED (fail-closed): TCPA database unavailable` | The compliance gate cannot read opt-out status. All outbound SMS is blocked until the database is restored. Check Azure SQL availability. |\n| Outbound SMS error | `Outbound SMS failed: unexpected error` | An unhandled exception from the compliance gate (including Cool Text unreachable). The calling application received 502. |\n| Compliance failure detected | `COMPLIANCE FAILURE detected in report` (in `ReportingService`) | A forwarded message was found for an opted-out number. Regulatory risk. Investigate immediately. |\n| Weekly report job failure | `WEEKLY REPORT JOB FAILURE — compliance report not delivered` | The Azure Functions Timer Trigger failed to generate or send the weekly report. The report was not delivered to Compliance Officers. Use the manual re-run endpoint to regenerate. |\n| API key misconfiguration | `API key authentication misconfiguration: \u0027Auth:ApiKey\u0027 is not set` | The API key is not configured. All outbound SMS requests will be rejected with 503 until fixed. Update Key Vault and restart or wait for config refresh. |\n\n### Warning — Investigate\n\n| Event | Log message pattern | Meaning |\n|-------|--------------------|--------------------|\n| Inbound webhook HMAC failure | `Inbound webhook rejected: HMAC signature invalid or missing` | A webhook request arrived with a missing or mismatched signature. May indicate a misconfigured Cool Text webhook secret, or a spoofed request attempt. |\n| API key auth failure | `API key authentication failed: invalid key supplied` | An SCG application supplied the wrong key. Check whether the key was recently rotated and the application configuration was not updated. |\n| Outbound SMS validation failure | `Outbound SMS request rejected: validation failure` | An upstream application sent a malformed request (invalid E.164, missing field). Contact the sending application team. |\n| Application registry warning | `Required application \u0027{name}\u0027 not found in the active registry` | Startup check found fewer applications than expected. Verify the seed script ran and the Cool Text account IDs are populated. |\n| Confirmation SMS SLA breach | `SLA BREACH: opt-out confirmation SMS not dispatched within 60 seconds` | The 60-second TCPA confirmation SLA was exceeded. Investigate Cool Text API latency or database write delays. |\n\n### Information — Normal Operations\n\n| Event pattern | Meaning |\n|--------------|---------|\n| `Outbound SMS compliance decision: FORWARDED` | Normal forwarded message. |\n| `Outbound SMS compliance decision: SUPPRESSED` | Message blocked — recipient is opted out. |\n| `Inbound webhook received and signature validated` | Normal inbound webhook receipt. |\n| `SECURITY_EVENT: Admin re-opt-in called` | Help Desk or Compliance Officer initiated a re-opt-in action. Every admin action is logged at this level. |\n| `Weekly compliance report job completed successfully` | Normal scheduler completion. Includes forwarded/blocked counts and compliance failure count. |\n\n### Dynamic Log Level Toggle\n\nThe minimum log level can be changed without restarting the service:\n1. Update `Logging:MinimumLevel` in Azure App Configuration.\n2. The change takes effect within 30 seconds (configurable via `AzureAppConfiguration:RefreshIntervalSeconds`).\n3. To enable debug logging temporarily: set `Logging:MinimumLevel` to `Debug` in Azure App Configuration.\n4. Restore to `Information` after investigation.\n\n---\n\n## Common Failure Modes and Diagnostics\n\n### All outbound SMS returning 503\n\n**Symptom:** Upstream applications receive 503 with `\"SERVICE_UNAVAILABLE\"`.\n\n**Cause:** The TCPA opt-out database is unavailable (fail-closed behavior is working correctly).\n\n**Diagnosis:**\n1. Check Azure SQL Database availability in the Azure Portal.\n2. Look for `Outbound SMS BLOCKED (fail-closed): TCPA database unavailable` in Azure Monitor / Log Analytics.\n3. Check the connection string in Key Vault is correct and includes `Column Encryption Setting=Enabled`.\n4. Test connectivity: `GET /health` — if `tcpa-database` shows `degraded`, the database is confirmed unavailable.\n\n**Resolution:** Restore the Azure SQL Database. The application will recover automatically once connectivity is re-established (EF Core has retry-on-failure configured with 3 retries and 10-second backoff).\n\n### Inbound webhooks returning 401\n\n**Symptom:** Cool Text reports webhook delivery failures; this API returns 401.\n\n**Cause:** HMAC signature mismatch. Possible causes:\n- `CoolText:WebhookSecret` in Key Vault does not match the secret configured on the Cool Text side.\n- Cool Text changed their signing mechanism (ARCH-RISK-004: mechanism must be confirmed with vendor).\n- The `X-CoolText-Signature` header name changed on the Cool Text side (configurable via `CoolText:WebhookSignatureHeader`).\n\n**Diagnosis:** Check logs for `Inbound webhook rejected: HMAC signature invalid or missing`. Confirm the signature header name and secret value with the Cool Text vendor.\n\n### Weekly compliance report not delivered\n\n**Symptom:** Compliance Officers did not receive the Monday report.\n\n**Diagnosis:**\n1. Check Azure Functions Monitor for `WeeklyComplianceReportFunction` execution history.\n2. Look for `WEEKLY REPORT JOB FAILURE` in logs.\n3. Check `Reporting:SmtpHost`, `Reporting:SmtpUser`, `Reporting:SmtpPassword`, `Reporting:RecipientList` in App Configuration.\n4. Check that `Reporting:RecipientList` is populated.\n\n**Manual re-run:** Use the HTTP-triggered companion function `ManualReportTriggerFunction` at `POST /api/reports/manual-run` (requires `ComplianceReporting` role). Provide `period_start` and `period_end` in the request body. Maximum 31-day period per manual run.\n\n### Opt-out not being enforced immediately\n\n**Symptom:** An outbound message was forwarded to a number that had previously sent \"STOP\".\n\n**Possible causes:**\n- The inbound webhook for the \"STOP\" message was not processed (check webhook delivery history in Cool Text portal).\n- The HMAC secret was misconfigured and the webhook was rejected (check logs for 401 on inbound).\n- The opt-out status write failed (check logs for audit log write failures around that time).\n\n**Diagnosis:** Search logs for `sender_cell_number` suffix (last 4 digits) around the time of the opt-out, then around the time of the forwarded message. Retrieve the full audit trail from the database using the `GET /api/v1/reports/opted-out` endpoint.\n\n---\n\n## Running Database Migrations\n\n### Non-Production (automatic)\n\nMigrations run automatically at application startup in non-Production environments. The application detects pending migrations and applies them.\n\n### Production (manual, via CI/CD pipeline)\n\n```bash\ndotnet ef database update \\\n  --project src/TCPA.Api \\\n  --connection \"\u003cproduction-connection-string-from-key-vault\u003e\"\n```\n\nRun this before deploying the new application version.\n\n### Post-Migration Steps (first deployment only)\n\nAfter the initial migration (`20260626000001_InitialSchema`) is applied in Production, the platform team must complete three steps before the service goes live:\n\n**Step 1: Apply Always Encrypted** (TASK-061)\n\nEncrypt the `CellPhoneNumber` column on these three tables using Azure SQL Always Encrypted with a Column Master Key stored in Azure Key Vault:\n- `CellNumberOptOutRecords.CellPhoneNumber`\n- `AuditLogEntries.CellPhoneNumber`\n- `SmsMessageLogs.CellPhoneNumber`\n\nUse deterministic AES-256 encryption to allow indexed lookups. Coordinate with IT Security for CMK/CEK provisioning.\n\n**Step 2: Apply the audit log immutability trigger** (TASK-064)\n\nRun the SQL script at `src/TCPA.Api/Infrastructure/Data/Seeds/002_AuditLogImmutabilityTrigger.sql` against the Production database. This creates the DDL trigger that prevents UPDATE or DELETE operations on `AuditLogEntries`.\n\n**Step 3: Seed the application registry** (TASK-049)\n\nRun `src/TCPA.Api/Infrastructure/Data/Seeds/001_ApplicationRegistrationSeed.sql` after replacing the placeholder values (`[PLACEHOLDER: ...]`) with the actual Cool Text account IDs and callback URLs for each SCG application. CCB is seeded with `IsActive = 0` — activate it only after end-to-end integration testing with the CCB team.\n\n---\n\n## Key Rotation Procedures\n\n### Upstream Application API Key (`Auth:ApiKey`)\n\n1. Generate a new key (minimum 32 random bytes, base64-encoded or hex).\n2. Update the secret in Azure Key Vault.\n3. The change takes effect on the next request (the filter reads from `IConfiguration` at request time — no restart needed).\n4. Update the calling application\u0027s configuration to use the new key.\n5. Verify delivery resumes, then confirm the old key is no longer needed.\n\n### Cool Text Webhook Secret (`CoolText:WebhookSecret`)\n\n1. Coordinate with the Cool Text vendor to change the signing secret on their side.\n2. Update `CoolText:WebhookSecret` in Azure Key Vault.\n3. Restart the application (or wait for Key Vault refresh) to pick up the new value.\n4. Verify inbound webhook delivery succeeds.\n\n### SMTP Credentials (`Reporting:SmtpPassword`)\n\n1. Update the password in Azure Key Vault.\n2. The `ReportEmailer` reads credentials from `IConfiguration` at dispatch time — the new value is used on the next report send without a restart.\n\n---\n\n## Querying Archived Audit Records (\u003e 90 Days)\n\nAudit log records are kept in Azure SQL for 90 days (hot, fully queryable via the API). Records older than 90 days are tiered to Azure Blob Storage WORM (immutable storage) for cost management.\n\nTo query records older than 90 days:\n\n[TODO: The Azure Blob Storage tiering pipeline and external query path (Azure Data Factory or external table bridge) have not yet been implemented. This is a Phase 2 item. For regulatory discovery requests requiring records older than 90 days, contact IT to perform a manual data export from Blob Storage. Reference ADR-004 in `outputs/architecture.md`.]\n";
+
+    // Strip the HTML comment artifact header before rendering
+    const cleaned = raw.replace(/^<!--[\s\S]*?-->\s*/m, '');
+
+    marked.setOptions({
+      gfm: true,
+      breaks: false
+    });
+
+    document.getElementById('content').innerHTML = marked.parse(cleaned);
+
+    // Make GFM checkboxes read-only (marked renders them as inputs)
+    document.querySelectorAll('#content input[type=checkbox]').forEach(cb => {
+      cb.setAttribute('disabled', '');
+    });
+  </script>
+</body>
+</html>

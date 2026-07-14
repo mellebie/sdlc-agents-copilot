@@ -1,0 +1,219 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>architecture</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root {
+      --bg:        #0f1117;
+      --surface:   #1a1d27;
+      --border:    #2a2d3a;
+      --text:      #e2e8f0;
+      --muted:     #94a3b8;
+      --accent:    #6366f1;
+      --accent2:   #818cf8;
+      --green:     #22c55e;
+      --yellow:    #eab308;
+      --red:       #ef4444;
+      --code-bg:   #12141e;
+      --font-mono: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 15px; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* â”€â”€ Nav bar â”€â”€ */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    nav a {
+      color: var(--accent2);
+      text-decoration: none;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      opacity: 0.8;
+      transition: opacity 0.15s;
+    }
+    nav a:hover { opacity: 1; }
+    nav .sep { color: var(--border); font-size: 0.9rem; }
+    nav .title {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    nav .badge {
+      margin-left: auto;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* â”€â”€ Main content â”€â”€ */
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem 5rem;
+    }
+
+    /* â”€â”€ Markdown styles â”€â”€ */
+    #content h1 { font-size: 1.9rem; font-weight: 700; margin: 0 0 1.5rem; color: #fff; border-bottom: 1px solid var(--border); padding-bottom: 0.6rem; }
+    #content h2 { font-size: 1.3rem; font-weight: 600; margin: 2.2rem 0 0.8rem; color: #fff; }
+    #content h3 { font-size: 1.05rem; font-weight: 600; margin: 1.8rem 0 0.6rem; color: var(--text); }
+    #content h4 { font-size: 0.95rem; font-weight: 600; margin: 1.4rem 0 0.5rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+    #content p { margin: 0.7rem 0; }
+
+    #content a { color: var(--accent2); text-decoration: underline; text-underline-offset: 2px; }
+    #content a:hover { color: #fff; }
+
+    #content strong { color: #fff; font-weight: 600; }
+    #content em { color: var(--muted); }
+
+    #content ul, #content ol { margin: 0.6rem 0 0.6rem 1.4rem; }
+    #content li { margin: 0.25rem 0; }
+    #content li > ul, #content li > ol { margin-top: 0.2rem; }
+
+    #content blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 0.5rem 1rem;
+      margin: 1rem 0;
+      background: var(--surface);
+      border-radius: 0 6px 6px 0;
+      color: var(--muted);
+    }
+
+    #content code {
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: #a5f3fc;
+    }
+
+    #content pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.1rem 1.3rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+    #content pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.83rem;
+      color: var(--text);
+    }
+
+    #content hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2rem 0;
+    }
+
+    /* â”€â”€ Tables â”€â”€ */
+    #content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.2rem 0;
+      font-size: 0.88rem;
+    }
+    #content thead th {
+      background: var(--surface);
+      color: var(--muted);
+      font-weight: 600;
+      text-align: left;
+      padding: 0.55rem 0.9rem;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    #content tbody tr { border-bottom: 1px solid var(--border); }
+    #content tbody tr:hover { background: rgba(99,102,241,0.05); }
+    #content td { padding: 0.5rem 0.9rem; vertical-align: top; }
+
+    /* â”€â”€ Status pill colouring â”€â”€ */
+    #content td:has(> *:only-child), #content td {
+      line-height: 1.5;
+    }
+
+    /* â”€â”€ Checkboxes (GFM task lists) â”€â”€ */
+    #content ul li input[type=checkbox] {
+      margin-right: 0.4rem;
+      accent-color: var(--accent);
+    }
+
+    /* â”€â”€ Artifact header comment â”€â”€ */
+    .artifact-header {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.8rem 1.2rem;
+      margin-bottom: 2rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--muted);
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../../pipeline-dashboard.html">&#8592; Dashboard</a>
+    <span class="sep">&#47;</span>
+    <span class="title">architecture.md</span>
+    <span class="badge">SDLC Artifact</span>
+  </nav>
+  <main>
+    <div id="content"></div>
+  </main>
+  <script>
+    const raw = "# TCPA Compliance API — Developer Architecture Overview\n\nThis document is for developers joining the project. It explains what the system does, how it is structured, where to find things in the codebase, and why key decisions were made. For the full architecture document with ADRs, deployment topology, and NFR fulfillment details, see `outputs/architecture.md`.\n\n---\n\n## What This System Does\n\nThe TCPA Compliance API sits between SCG\u0027s upstream applications and the Cool Text/Twilio SMS platform. Its single job is to enforce TCPA opt-out compliance:\n\n- **Outbound:** An SCG application submits an SMS to send. The API checks whether the recipient has opted out. If they have, the message is blocked and the attempt is logged. If they haven\u0027t, the message is forwarded to Cool Text.\n- **Inbound:** A customer replies to an SMS (e.g., sends \"STOP\"). Cool Text pushes the reply to this API. The API detects the opt-out keyword, records the opt-out, sends a confirmation SMS to the customer, and writes an immutable audit record.\n- **Admin:** Help Desk agents and Compliance Officers can look up a number\u0027s status and manually reverse an opt-out when the customer has re-consented.\n- **Reporting:** Compliance Officers can query forwarded and blocked message history and receive an automated weekly compliance report by email.\n\n**Fail-closed principle:** if the opt-out database is unavailable, outbound messages are blocked (503 returned). The system never forwards a message without confirming the recipient\u0027s opt-in status.\n\n---\n\n## How the Codebase Is Organized\n\n```\nsrc/\n├── TCPA.Api/                       # Main ASP.NET Core Web API (.NET 8)\n│   ├── Controllers/                # HTTP endpoints\n│   ├── Models/                     # Request/response DTOs\n│   ├── Domain/                     # EF Core entities and enums\n│   ├── Services/\n│   │   ├── OptOut/                 # Opt-out keyword detection, status writes\n│   │   ├── ReOptIn/                # Admin re-opt-in workflow\n│   │   ├── SmsProxy/               # Outbound gate and inbound routing\n│   │   ├── Reporting/              # Compliance report queries and email dispatch\n│   │   ├── AuditLog/               # Append-only audit log writes\n│   │   └── Observability/          # Correlation ID middleware\n│   └── Infrastructure/\n│       ├── Auth/                   # API key auth filter\n│       ├── Configuration/          # Application Registry (cache-backed)\n│       ├── CoolText/               # Cool Text HTTP client and webhook validator\n│       └── Data/                   # EF Core DbContext, entity configurations, migrations\n├── TCPA.Scheduler/                 # Azure Functions (weekly report scheduler)\n└── tests/\n    └── TCPA.Api.Tests/             # Unit tests\n```\n\n---\n\n## Components and Their Responsibilities\n\n### Controllers (HTTP boundary)\n\nControllers are thin. They validate input, call a service, map the result to HTTP responses, and mask PII in log statements. No business logic lives in controllers.\n\n| Controller | Route prefix | What it does |\n|------------|-------------|--------------|\n| `OutboundSmsController` | `POST /api/v1/sms/outbound` | Receives outbound SMS requests from SCG apps; calls `IOutboundSmsGate` |\n| `InboundSmsController` | `POST /api/v1/sms/inbound` | Receives Cool Text webhooks; validates HMAC; returns 200 immediately; processes async |\n| `AdminController` | `/admin/v1/opt-out/` | Re-opt-in (PUT) and status lookup (GET) for authenticated Help Desk/Compliance Officers |\n| `ReportingController` | `/api/v1/reports/` | On-demand compliance report queries; requires `ComplianceReporting` auth policy |\n| `HealthController` | `GET /health` | Unauthenticated health check; sanitizes descriptions before returning |\n\n### Services (business logic)\n\n**`SmsProxy/`** — the core compliance pipeline:\n\n- `OutboundSmsGate` (`IOutboundSmsGate`): Looks up the application in the registry, calls `IsOptedOutAsync` on the opt-out service, suppresses or forwards the message. Any exception from the opt-out check becomes `OutboundGateUnavailableException` → 503.\n- `InboundSmsHandler` (`IInboundSmsHandler`): Receives an inbound message, runs keyword detection, triggers the opt-out pipeline if needed, forwards to the application callback if not.\n\n**`OptOut/`** — opt-out business logic:\n\n- `OptOutDetector` (`IOptOutDetector`): Stateless. Matches the message body against 7 CTIA opt-out keywords (`STOP`, `CANCEL`, `UNSUBSCRIBE`, `END`, `QUIT`, `REMOVE`, `OPT-OUT`) using word-boundary regex patterns. Case-insensitive.\n- `OptOutStatusService` (`IOptOutStatusService`): Reads and writes opt-out status in the database. Idempotent on writes. Fail-closed: re-throws DB exceptions on reads so the gate can return 503.\n- `ConfirmationDispatcher` (`IConfirmationDispatcher`): Sends the opt-out confirmation SMS within the 60-second SLA. Single retry on Cool Text failure. Never reverses the opt-out if the confirmation fails.\n\n**`ReOptIn/`** — admin re-opt-in:\n\n- `ReOptInService` (`IReOptInService`): Writes OPT_IN status, writes an audit log entry, returns a result with the previous status. Returns a sentinel value (`\"NO_RECORD\"`) instead of throwing when no prior record exists — lets the controller map to 409 without exception-driven flow.\n\n**`AuditLog/`** — immutable audit:\n\n- `AuditLogService` (`IAuditLogService`): Append-only writes to `AuditLogEntries`. Calls `AddAsync` only — never `Update` or `Remove`. On write failure: logs Critical (triggers Azure Monitor alert) and throws `AuditLogWriteException`. Cell numbers are always masked to last-4 digits in logs.\n\n**`Reporting/`** — compliance reports:\n\n- `ReportingService` (`IReportingService`): Queries `SmsMessageLogs` (forwarded messages) and `AuditLogEntries` (blocked messages) via EF Core with `AsNoTracking`. Enforces a 90-day maximum query window. Detects compliance failures (forwarded messages to opted-out numbers) and logs Critical if found.\n- `ReportEmailer` (`IReportEmailer`): SMTP email dispatch. Reads credentials from config at dispatch time (never cached). Sends HTML + CSV attachment. Subjects compliance failure reports with `[COMPLIANCE FAILURE]` prefix.\n\n### Infrastructure\n\n**`Auth/ApiKeyAuthFilter`** — ASP.NET Core action filter on `OutboundSmsController`. Reads the expected key from `IConfiguration[\"Auth:ApiKey\"]` at request time (so rotation takes effect without restart). Uses constant-time comparison (`CryptographicOperations.FixedTimeEquals`) to prevent timing attacks.\n\n**`CoolText/`** — SMS platform integration:\n- `CoolTextClient`: Forwards outbound messages to Cool Text (`ICoolTextClient`) and relays inbound messages back to SCG app callback URLs (`ICoolTextForwardingClient`). 3-attempt exponential backoff (1s/2s/4s) on callback forwarding.\n- `CoolTextWebhookValidator`: HMAC-SHA256 signature validation for inbound webhooks. Fails at startup if the secret is not configured. Strips `sha256=` prefix. Constant-time comparison.\n\n**`Configuration/ApplicationRegistryService`** — cache-backed lookup of Cool Text account ID → SCG application name + callback URL. 5-minute TTL (configurable). Unregistered or inactive accounts return `null` (treated as unregistered by the gate). Primes the cache at startup via `ApplicationRegistryStartupService`.\n\n**`Data/`** — EF Core database layer:\n- `TcpaDbContext`: four `DbSet`s: `ApplicationRegistrations`, `CellNumberOptOutRecords`, `AuditLogEntries`, `SmsMessageLogs`.\n- Migrations in `Data/Migrations/`. The initial migration (`20260626000001_InitialSchema`) creates all four tables. Always Encrypted is a post-migration infrastructure step — columns are plain `nvarchar` until the platform team applies Always Encrypted via Azure Key Vault.\n\n---\n\n## Data Flow: Outbound SMS\n\n```\nSCG Application\n  │ POST /api/v1/sms/outbound (X-API-Key)\n  ▼\nOutboundSmsController\n  │ Validates input, calls gate\n  ▼\nOutboundSmsGate\n  │ ApplicationRegistryService.GetByAccountNumberAsync(accountId)\n  │ OptOutStatusService.IsOptedOutAsync(cellNumber)  ← fail-closed on exception\n  │\n  ├─[opted out]──▶ AuditLogService.WriteBlockedOutboundEventAsync()\n  │                return SUPPRESSED\n  │\n  └─[opted in]───▶ CoolTextClient.SendSmsAsync()\n                   return FORWARDED (with message_id)\n```\n\n## Data Flow: Inbound SMS (Opt-Out)\n\n```\nCool Text Platform\n  │ POST /api/v1/sms/inbound (X-CoolText-Signature)\n  ▼\nInboundSmsController\n  │ HMAC signature validated → 401 if invalid\n  │ 200 OK returned to Cool Text immediately\n  │ ProcessInboundAsync() fired as background task\n  ▼\nInboundSmsHandler (background)\n  │ OptOutDetector.Detect(messageBody)\n  │\n  ├─[opt-out keyword]──▶ OptOutStatusService.WriteOptOutAsync()\n  │                       ConfirmationDispatcher.DispatchAsync()  ← 60s SLA\n  │                       AuditLogService.WriteOptOutEventAsync()\n  │                       (message NOT forwarded to application)\n  │\n  └─[no keyword]────────▶ CoolTextClient.ForwardToApplicationAsync(callbackUrl)\n```\n\n---\n\n## Key Architectural Decisions\n\nThese are the decisions most likely to affect day-to-day development. Full ADR detail is in `outputs/architecture.md`.\n\n**Layered monolith (ADR-001):** The system is a single ASP.NET Core application, not microservices. Internal boundaries are enforced by C# interfaces and separate namespaces. Designed to allow extraction to microservices in Phase 2 without a rewrite. Do not blur these internal boundaries.\n\n**API key auth for upstream apps (ADR-006):** SCG applications authenticate with a shared `X-API-Key` header. The key is read from `IConfiguration[\"Auth:ApiKey\"]` at request time so it can be rotated without a service restart. Keys are stored in Azure Key Vault — never in source code.\n\n**HMAC-SHA256 for webhooks (ADR-007):** Cool Text signs inbound webhooks with a shared secret. The signature header is `X-CoolText-Signature` by default (configurable via `CoolText:WebhookSignatureHeader`). The shared secret is `CoolText:WebhookSecret` in Key Vault. The signing mechanism must be confirmed with the Cool Text vendor.\n\n**No opt-out status caching (NFS-002):** The outbound compliance gate reads opt-out status directly from the database on every request. There is no caching of opt-out status in the gate path. This ensures enforcement is immediate after a status write.\n\n**Immutable audit log (ADR-004):** `AuditLogEntries` records are never updated or deleted. Enforced at two layers: the application calls `AddAsync` only (no `Update`/`Remove` methods on the service interface), and a DDL trigger (`trg_AuditLogEntries_Immutability`) in the database rejects any UPDATE or DELETE. After 90 days, records are archived to Azure Blob Storage WORM (immutable) storage.\n\n**Azure Functions for the scheduler (ADR-005):** The weekly compliance report runs via an Azure Functions Timer Trigger (cron `0 6 * * 1` = Monday 06:00 UTC). This isolates the job from the application process lifecycle. Failure triggers a Critical log event, which alerts IT via Azure Monitor.\n\n---\n\n## PII Handling\n\nCell phone numbers are PII. The following rules apply throughout the codebase:\n\n- Cell numbers are **never logged in full**. Always use the last-4-digit masking pattern: `MaskCellNumber(cellNumber)` or equivalent.\n- Cell numbers are stored with **Azure SQL Always Encrypted** (AES-256, deterministic encryption). This is a post-migration infrastructure step; columns are `nvarchar(20)` until the platform team applies encryption.\n- The connection string must include `Column Encryption Setting=Enabled` for the driver to transparently encrypt/decrypt.\n- Admin API responses return `maskedCellNumber` (last 4 digits only), never the full number.\n\n---\n\n## Running Migrations\n\nIn non-Production environments, migrations run automatically at startup. In Production, apply migrations via the CI/CD pipeline:\n\n```bash\ndotnet ef database update \\\n  --project src/TCPA.Api \\\n  --connection \"\u003cproduction-connection-string\u003e\"\n```\n\nAfter the initial migration, the platform team must apply two post-migration steps:\n1. Always Encrypted column encryption on `CellPhoneNumber` columns (TASK-061).\n2. The audit log immutability DDL trigger from `src/TCPA.Api/Infrastructure/Data/Seeds/002_AuditLogImmutabilityTrigger.sql`.\n3. The application registration seed from `src/TCPA.Api/Infrastructure/Data/Seeds/001_ApplicationRegistrationSeed.sql` (after replacing the placeholder values with production Cool Text account IDs).\n";
+
+    // Strip the HTML comment artifact header before rendering
+    const cleaned = raw.replace(/^<!--[\s\S]*?-->\s*/m, '');
+
+    marked.setOptions({
+      gfm: true,
+      breaks: false
+    });
+
+    document.getElementById('content').innerHTML = marked.parse(cleaned);
+
+    // Make GFM checkboxes read-only (marked renders them as inputs)
+    document.querySelectorAll('#content input[type=checkbox]').forEach(cb => {
+      cb.setAttribute('disabled', '');
+    });
+  </script>
+</body>
+</html>

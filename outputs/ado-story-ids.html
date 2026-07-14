@@ -1,0 +1,219 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ado-story-ids</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root {
+      --bg:        #0f1117;
+      --surface:   #1a1d27;
+      --border:    #2a2d3a;
+      --text:      #e2e8f0;
+      --muted:     #94a3b8;
+      --accent:    #6366f1;
+      --accent2:   #818cf8;
+      --green:     #22c55e;
+      --yellow:    #eab308;
+      --red:       #ef4444;
+      --code-bg:   #12141e;
+      --font-mono: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 15px; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* â”€â”€ Nav bar â”€â”€ */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    nav a {
+      color: var(--accent2);
+      text-decoration: none;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      opacity: 0.8;
+      transition: opacity 0.15s;
+    }
+    nav a:hover { opacity: 1; }
+    nav .sep { color: var(--border); font-size: 0.9rem; }
+    nav .title {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    nav .badge {
+      margin-left: auto;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* â”€â”€ Main content â”€â”€ */
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem 5rem;
+    }
+
+    /* â”€â”€ Markdown styles â”€â”€ */
+    #content h1 { font-size: 1.9rem; font-weight: 700; margin: 0 0 1.5rem; color: #fff; border-bottom: 1px solid var(--border); padding-bottom: 0.6rem; }
+    #content h2 { font-size: 1.3rem; font-weight: 600; margin: 2.2rem 0 0.8rem; color: #fff; }
+    #content h3 { font-size: 1.05rem; font-weight: 600; margin: 1.8rem 0 0.6rem; color: var(--text); }
+    #content h4 { font-size: 0.95rem; font-weight: 600; margin: 1.4rem 0 0.5rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+    #content p { margin: 0.7rem 0; }
+
+    #content a { color: var(--accent2); text-decoration: underline; text-underline-offset: 2px; }
+    #content a:hover { color: #fff; }
+
+    #content strong { color: #fff; font-weight: 600; }
+    #content em { color: var(--muted); }
+
+    #content ul, #content ol { margin: 0.6rem 0 0.6rem 1.4rem; }
+    #content li { margin: 0.25rem 0; }
+    #content li > ul, #content li > ol { margin-top: 0.2rem; }
+
+    #content blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 0.5rem 1rem;
+      margin: 1rem 0;
+      background: var(--surface);
+      border-radius: 0 6px 6px 0;
+      color: var(--muted);
+    }
+
+    #content code {
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: #a5f3fc;
+    }
+
+    #content pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.1rem 1.3rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+    #content pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.83rem;
+      color: var(--text);
+    }
+
+    #content hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2rem 0;
+    }
+
+    /* â”€â”€ Tables â”€â”€ */
+    #content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.2rem 0;
+      font-size: 0.88rem;
+    }
+    #content thead th {
+      background: var(--surface);
+      color: var(--muted);
+      font-weight: 600;
+      text-align: left;
+      padding: 0.55rem 0.9rem;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    #content tbody tr { border-bottom: 1px solid var(--border); }
+    #content tbody tr:hover { background: rgba(99,102,241,0.05); }
+    #content td { padding: 0.5rem 0.9rem; vertical-align: top; }
+
+    /* â”€â”€ Status pill colouring â”€â”€ */
+    #content td:has(> *:only-child), #content td {
+      line-height: 1.5;
+    }
+
+    /* â”€â”€ Checkboxes (GFM task lists) â”€â”€ */
+    #content ul li input[type=checkbox] {
+      margin-right: 0.4rem;
+      accent-color: var(--accent);
+    }
+
+    /* â”€â”€ Artifact header comment â”€â”€ */
+    .artifact-header {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.8rem 1.2rem;
+      margin-bottom: 2rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--muted);
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../pipeline-dashboard.html">&#8592; Dashboard</a>
+    <span class="sep">&#47;</span>
+    <span class="title">ado-story-ids.md</span>
+    <span class="badge">SDLC Artifact</span>
+  </nav>
+  <main>
+    <div id="content"></div>
+  </main>
+  <script>
+    const raw = "\u003c!-- SDLC Pipeline Artifact\n     Stage: 06-story-writer (Push-ToADO)\n     Generated: 2026-07-07\n     Purpose: Maps STORY-XXX identifiers to Azure DevOps AB# work item IDs\n              Include AB# tags in git commit messages to link commits to ADO.\n--\u003e\n\n# ADO Story ID Map\n\n| Story ID  | ADO Tag | ADO URL |\n|-----------|---------|---------|\n| STORY-001 | AB#35 | https://dev.azure.com/markellebie/Soco/_workitems/edit/35 |\n| STORY-002 | AB#36 | https://dev.azure.com/markellebie/Soco/_workitems/edit/36 |\n| STORY-003 | AB#37 | https://dev.azure.com/markellebie/Soco/_workitems/edit/37 |\n| STORY-004 | AB#39 | https://dev.azure.com/markellebie/Soco/_workitems/edit/39 |\n| STORY-005 | AB#40 | https://dev.azure.com/markellebie/Soco/_workitems/edit/40 |\n| STORY-006 | AB#41 | https://dev.azure.com/markellebie/Soco/_workitems/edit/41 |\n| STORY-007 | AB#42 | https://dev.azure.com/markellebie/Soco/_workitems/edit/42 |\n| STORY-008 | AB#44 | https://dev.azure.com/markellebie/Soco/_workitems/edit/44 |\n| STORY-009 | AB#45 | https://dev.azure.com/markellebie/Soco/_workitems/edit/45 |\n| STORY-010 | AB#46 | https://dev.azure.com/markellebie/Soco/_workitems/edit/46 |\n| STORY-011 | AB#48 | https://dev.azure.com/markellebie/Soco/_workitems/edit/48 |\n| STORY-012 | AB#49 | https://dev.azure.com/markellebie/Soco/_workitems/edit/49 |\n| STORY-013 | AB#50 | https://dev.azure.com/markellebie/Soco/_workitems/edit/50 |\n| STORY-014 | AB#52 | https://dev.azure.com/markellebie/Soco/_workitems/edit/52 |\n| STORY-015 | AB#53 | https://dev.azure.com/markellebie/Soco/_workitems/edit/53 |\n| STORY-016 | AB#54 | https://dev.azure.com/markellebie/Soco/_workitems/edit/54 |\n| STORY-017 | AB#56 | https://dev.azure.com/markellebie/Soco/_workitems/edit/56 |\n| STORY-018 | AB#57 | https://dev.azure.com/markellebie/Soco/_workitems/edit/57 |\n| STORY-019 | AB#59 | https://dev.azure.com/markellebie/Soco/_workitems/edit/59 |\n| STORY-020 | AB#60 | https://dev.azure.com/markellebie/Soco/_workitems/edit/60 |\n| STORY-021 | AB#61 | https://dev.azure.com/markellebie/Soco/_workitems/edit/61 |\n| STORY-022 | AB#62 | https://dev.azure.com/markellebie/Soco/_workitems/edit/62 |\n| STORY-023 | AB#63 | https://dev.azure.com/markellebie/Soco/_workitems/edit/63 |\n";
+
+    // Strip the HTML comment artifact header before rendering
+    const cleaned = raw.replace(/^<!--[\s\S]*?-->\s*/m, '');
+
+    marked.setOptions({
+      gfm: true,
+      breaks: false
+    });
+
+    document.getElementById('content').innerHTML = marked.parse(cleaned);
+
+    // Make GFM checkboxes read-only (marked renders them as inputs)
+    document.querySelectorAll('#content input[type=checkbox]').forEach(cb => {
+      cb.setAttribute('disabled', '');
+    });
+  </script>
+</body>
+</html>

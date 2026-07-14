@@ -1,0 +1,219 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>README</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root {
+      --bg:        #0f1117;
+      --surface:   #1a1d27;
+      --border:    #2a2d3a;
+      --text:      #e2e8f0;
+      --muted:     #94a3b8;
+      --accent:    #6366f1;
+      --accent2:   #818cf8;
+      --green:     #22c55e;
+      --yellow:    #eab308;
+      --red:       #ef4444;
+      --code-bg:   #12141e;
+      --font-mono: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 15px; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* â”€â”€ Nav bar â”€â”€ */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    nav a {
+      color: var(--accent2);
+      text-decoration: none;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      opacity: 0.8;
+      transition: opacity 0.15s;
+    }
+    nav a:hover { opacity: 1; }
+    nav .sep { color: var(--border); font-size: 0.9rem; }
+    nav .title {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    nav .badge {
+      margin-left: auto;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* â”€â”€ Main content â”€â”€ */
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem 5rem;
+    }
+
+    /* â”€â”€ Markdown styles â”€â”€ */
+    #content h1 { font-size: 1.9rem; font-weight: 700; margin: 0 0 1.5rem; color: #fff; border-bottom: 1px solid var(--border); padding-bottom: 0.6rem; }
+    #content h2 { font-size: 1.3rem; font-weight: 600; margin: 2.2rem 0 0.8rem; color: #fff; }
+    #content h3 { font-size: 1.05rem; font-weight: 600; margin: 1.8rem 0 0.6rem; color: var(--text); }
+    #content h4 { font-size: 0.95rem; font-weight: 600; margin: 1.4rem 0 0.5rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+    #content p { margin: 0.7rem 0; }
+
+    #content a { color: var(--accent2); text-decoration: underline; text-underline-offset: 2px; }
+    #content a:hover { color: #fff; }
+
+    #content strong { color: #fff; font-weight: 600; }
+    #content em { color: var(--muted); }
+
+    #content ul, #content ol { margin: 0.6rem 0 0.6rem 1.4rem; }
+    #content li { margin: 0.25rem 0; }
+    #content li > ul, #content li > ol { margin-top: 0.2rem; }
+
+    #content blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 0.5rem 1rem;
+      margin: 1rem 0;
+      background: var(--surface);
+      border-radius: 0 6px 6px 0;
+      color: var(--muted);
+    }
+
+    #content code {
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: #a5f3fc;
+    }
+
+    #content pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.1rem 1.3rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+    #content pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.83rem;
+      color: var(--text);
+    }
+
+    #content hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2rem 0;
+    }
+
+    /* â”€â”€ Tables â”€â”€ */
+    #content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.2rem 0;
+      font-size: 0.88rem;
+    }
+    #content thead th {
+      background: var(--surface);
+      color: var(--muted);
+      font-weight: 600;
+      text-align: left;
+      padding: 0.55rem 0.9rem;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    #content tbody tr { border-bottom: 1px solid var(--border); }
+    #content tbody tr:hover { background: rgba(99,102,241,0.05); }
+    #content td { padding: 0.5rem 0.9rem; vertical-align: top; }
+
+    /* â”€â”€ Status pill colouring â”€â”€ */
+    #content td:has(> *:only-child), #content td {
+      line-height: 1.5;
+    }
+
+    /* â”€â”€ Checkboxes (GFM task lists) â”€â”€ */
+    #content ul li input[type=checkbox] {
+      margin-right: 0.4rem;
+      accent-color: var(--accent);
+    }
+
+    /* â”€â”€ Artifact header comment â”€â”€ */
+    .artifact-header {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.8rem 1.2rem;
+      margin-bottom: 2rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--muted);
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../../pipeline-dashboard.html">&#8592; Dashboard</a>
+    <span class="sep">&#47;</span>
+    <span class="title">README.md</span>
+    <span class="badge">SDLC Artifact</span>
+  </nav>
+  <main>
+    <div id="content"></div>
+  </main>
+  <script>
+    const raw = "# TCPA Regulatory Compliance API\n\nThe TCPA Compliance API is a middleware service that enforces the Telephone Consumer Protection Act (TCPA) opt-out requirements for all outbound SMS messages sent by Southern Company Gas (SCG) upstream applications. It sits between SCG application systems (BizTalk, GCMA, KMI Active, ARM/Construction Portal, CCB/My Account) and the Cool Text/Twilio SMS platform.\n\nEvery outbound SMS must pass through the compliance gate before delivery. The gate checks the destination cell number against the opt-out database and suppresses the message if the recipient has opted out. Inbound replies (such as \"STOP\") are received via webhook and trigger the opt-out pipeline automatically.\n\nFull documentation is in [docs/](./):\n- [api.md](api.md) — API endpoint reference\n- [architecture.md](architecture.md) — Developer architecture overview\n- [operations.md](operations.md) — Ops team configuration and runbook\n- [CHANGELOG.md](CHANGELOG.md) — Release history\n\n---\n\n## Quickstart — Run Locally\n\n**Prerequisites:** .NET 8 SDK, SQL Server LocalDB (bundled with Visual Studio), Azure Functions Core Tools v4\n\n### 1. Clone and restore\n\n```bash\ngit clone \u003crepo-url\u003e\ncd sdlc-agents\ndotnet restore src/TCPA.Api/TCPA.Api.csproj\n```\n\n### 2. Create the local database\n\nThe app auto-migrates in non-Production environments. Start it once with LocalDB configured and the migration runs automatically.\n\nThe `appsettings.Development.json` already points to LocalDB:\n\n```\nServer=(localdb)\\mssqllocaldb;Database=TcpaApi_Dev;Trusted_Connection=True;Column Encryption Setting=Enabled;\n```\n\nNo changes needed for local development.\n\n### 3. Set required secrets\n\nThe following secrets are required. For local development, use [.NET user secrets](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets):\n\n```bash\ncd src/TCPA.Api\ndotnet user-secrets set \"Auth:ApiKey\" \"dev-api-key-replace-me\"\ndotnet user-secrets set \"CoolText:WebhookSecret\" \"dev-webhook-secret-replace-me\"\n```\n\nThe Admin API endpoints require `Authentication:AdminApi:Authority` to be set. For local development without an identity provider, the admin endpoints will be unavailable (a warning is logged at startup — this is expected).\n\n### 4. Run the API\n\n```bash\ndotnet run --project src/TCPA.Api/TCPA.Api.csproj\n```\n\nThe API listens on `https://localhost:5001` and `http://localhost:5000` by default. On first startup, EF Core migrations run automatically and create the database schema.\n\n### 5. Verify it is running\n\n```bash\ncurl http://localhost:5000/health\n```\n\nExpected response:\n```json\n{\"status\":\"healthy\",\"checks\":{\"tcpa-database\":{\"status\":\"ok\",\"description\":null}},\"timestamp\":\"2026-06-26T...\"}\n```\n\n---\n\n## Running Tests\n\n```bash\ndotnet test tests/TCPA.Api.Tests/TCPA.Api.Tests.csproj\n```\n\nTests use in-memory or mocked dependencies and do not require a running database or Cool Text connection.\n\n---\n\n## Key Configuration Options\n\nAll production values are stored in Azure Key Vault and Azure App Configuration. See [operations.md](operations.md) for the full reference. The most critical settings:\n\n| Key | Purpose | Where to set |\n|-----|---------|--------------|\n| `ConnectionStrings:TcpaDatabase` | Azure SQL connection string | Azure Key Vault |\n| `Auth:ApiKey` | API key for upstream application authentication | Azure Key Vault |\n| `CoolText:WebhookSecret` | HMAC shared secret for inbound webhook validation | Azure Key Vault |\n| `Authentication:AdminApi:Authority` | SCG Identity Provider OIDC endpoint | Azure App Configuration |\n| `AzureKeyVault:Endpoint` | Key Vault URI | `appsettings.json` or environment variable |\n\nFor local development, use `appsettings.Development.json` and .NET user secrets. Never commit real credentials.\n";
+
+    // Strip the HTML comment artifact header before rendering
+    const cleaned = raw.replace(/^<!--[\s\S]*?-->\s*/m, '');
+
+    marked.setOptions({
+      gfm: true,
+      breaks: false
+    });
+
+    document.getElementById('content').innerHTML = marked.parse(cleaned);
+
+    // Make GFM checkboxes read-only (marked renders them as inputs)
+    document.querySelectorAll('#content input[type=checkbox]').forEach(cb => {
+      cb.setAttribute('disabled', '');
+    });
+  </script>
+</body>
+</html>

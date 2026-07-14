@@ -1,0 +1,219 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>api</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root {
+      --bg:        #0f1117;
+      --surface:   #1a1d27;
+      --border:    #2a2d3a;
+      --text:      #e2e8f0;
+      --muted:     #94a3b8;
+      --accent:    #6366f1;
+      --accent2:   #818cf8;
+      --green:     #22c55e;
+      --yellow:    #eab308;
+      --red:       #ef4444;
+      --code-bg:   #12141e;
+      --font-mono: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 15px; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* â”€â”€ Nav bar â”€â”€ */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    nav a {
+      color: var(--accent2);
+      text-decoration: none;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      opacity: 0.8;
+      transition: opacity 0.15s;
+    }
+    nav a:hover { opacity: 1; }
+    nav .sep { color: var(--border); font-size: 0.9rem; }
+    nav .title {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    nav .badge {
+      margin-left: auto;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* â”€â”€ Main content â”€â”€ */
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem 5rem;
+    }
+
+    /* â”€â”€ Markdown styles â”€â”€ */
+    #content h1 { font-size: 1.9rem; font-weight: 700; margin: 0 0 1.5rem; color: #fff; border-bottom: 1px solid var(--border); padding-bottom: 0.6rem; }
+    #content h2 { font-size: 1.3rem; font-weight: 600; margin: 2.2rem 0 0.8rem; color: #fff; }
+    #content h3 { font-size: 1.05rem; font-weight: 600; margin: 1.8rem 0 0.6rem; color: var(--text); }
+    #content h4 { font-size: 0.95rem; font-weight: 600; margin: 1.4rem 0 0.5rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+    #content p { margin: 0.7rem 0; }
+
+    #content a { color: var(--accent2); text-decoration: underline; text-underline-offset: 2px; }
+    #content a:hover { color: #fff; }
+
+    #content strong { color: #fff; font-weight: 600; }
+    #content em { color: var(--muted); }
+
+    #content ul, #content ol { margin: 0.6rem 0 0.6rem 1.4rem; }
+    #content li { margin: 0.25rem 0; }
+    #content li > ul, #content li > ol { margin-top: 0.2rem; }
+
+    #content blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 0.5rem 1rem;
+      margin: 1rem 0;
+      background: var(--surface);
+      border-radius: 0 6px 6px 0;
+      color: var(--muted);
+    }
+
+    #content code {
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: #a5f3fc;
+    }
+
+    #content pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.1rem 1.3rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+    #content pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.83rem;
+      color: var(--text);
+    }
+
+    #content hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2rem 0;
+    }
+
+    /* â”€â”€ Tables â”€â”€ */
+    #content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.2rem 0;
+      font-size: 0.88rem;
+    }
+    #content thead th {
+      background: var(--surface);
+      color: var(--muted);
+      font-weight: 600;
+      text-align: left;
+      padding: 0.55rem 0.9rem;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    #content tbody tr { border-bottom: 1px solid var(--border); }
+    #content tbody tr:hover { background: rgba(99,102,241,0.05); }
+    #content td { padding: 0.5rem 0.9rem; vertical-align: top; }
+
+    /* â”€â”€ Status pill colouring â”€â”€ */
+    #content td:has(> *:only-child), #content td {
+      line-height: 1.5;
+    }
+
+    /* â”€â”€ Checkboxes (GFM task lists) â”€â”€ */
+    #content ul li input[type=checkbox] {
+      margin-right: 0.4rem;
+      accent-color: var(--accent);
+    }
+
+    /* â”€â”€ Artifact header comment â”€â”€ */
+    .artifact-header {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.8rem 1.2rem;
+      margin-bottom: 2rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--muted);
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../../pipeline-dashboard.html">&#8592; Dashboard</a>
+    <span class="sep">&#47;</span>
+    <span class="title">api.md</span>
+    <span class="badge">SDLC Artifact</span>
+  </nav>
+  <main>
+    <div id="content"></div>
+  </main>
+  <script>
+    const raw = "# TCPA Compliance API — Endpoint Reference\n\nAll endpoints use HTTPS. All request and response bodies are `application/json` (UTF-8) unless otherwise noted.\n\nEvery response includes an `X-Correlation-ID` header containing the request\u0027s correlation ID. Include this header in support requests.\n\n---\n\n## Authentication Summary\n\n| Endpoint group | Auth mechanism | Header / token |\n|----------------|----------------|----------------|\n| `POST /api/v1/sms/outbound` | API key (per application) | `X-API-Key: \u003ckey\u003e` |\n| `POST /api/v1/sms/inbound` | HMAC-SHA256 webhook signature | `X-CoolText-Signature: sha256=\u003chex\u003e` |\n| `PUT /admin/v1/opt-out/re-opt-in` | Bearer JWT (SCG IdP) | `Authorization: Bearer \u003ctoken\u003e` |\n| `GET /admin/v1/opt-out/status/{cellPhoneNumber}` | Bearer JWT (SCG IdP) | `Authorization: Bearer \u003ctoken\u003e` |\n| `GET /api/v1/reports/opted-in` | Bearer JWT (SCG IdP) | `Authorization: Bearer \u003ctoken\u003e` |\n| `GET /api/v1/reports/opted-out` | Bearer JWT (SCG IdP) | `Authorization: Bearer \u003ctoken\u003e` |\n| `GET /health` | None | — |\n\n**Required JWT roles:**\n- Admin endpoints (`/admin/v1/`): `tcpa.helpdesk` or `tcpa.compliance_officer`\n- Reporting endpoints (`/api/v1/reports/`): `tcpa.compliance_officer` or `tcpa.helpdesk`\n\n---\n\n## POST /api/v1/sms/outbound\n\nReceive an outbound SMS from an upstream SCG application, check the destination number against the TCPA opt-out database, and either forward the message to Cool Text or suppress it.\n\n**Fail-closed behavior:** if the opt-out database is unavailable for any reason, this endpoint returns `503` and does not forward the message. No message is ever forwarded without a confirmed database read.\n\n### Authentication\n\nAPI key in the `X-API-Key` header. Keys are per-application and stored in Azure Key Vault. Contact IT Security to obtain or rotate a key.\n\n### Request\n\n```http\nPOST /api/v1/sms/outbound\nContent-Type: application/json\nX-API-Key: your-application-api-key\n```\n\n```json\n{\n  \"cool_text_account_id\": \"ct-acct-gcma-001\",\n  \"destination_cell_number\": \"+14045551234\",\n  \"message_body\": \"Your appointment is confirmed for Monday at 9am.\",\n  \"originating_application_reference\": \"appt-confirm-txn-98765\"\n}\n```\n\n**Request fields:**\n\n| Field | Type | Required | Constraints | Description |\n|-------|------|----------|-------------|-------------|\n| `cool_text_account_id` | string | Yes | Non-empty | Cool Text account ID identifying the originating SCG application. Must be registered in the Application Registry. |\n| `destination_cell_number` | string | Yes | E.164 format (e.g., `+14045551234`) | Destination cell phone number. Validated against the opt-out database. **PII — never log this value in full.** |\n| `message_body` | string | Yes | 1–1600 characters | SMS message content. Concatenated SMS supported up to 1600 characters. |\n| `originating_application_reference` | string | No | Optional | Caller-supplied reference ID. Passed to the audit log for traceability. Not used in compliance logic. |\n\n### Response — 200 OK\n\nA 200 response indicates the compliance gate made a decision. Check the `status` field to determine the outcome.\n\n```json\n{\n  \"status\": \"FORWARDED\",\n  \"message_id\": \"ct-msg-a1b2c3d4\",\n  \"suppression_reason\": null\n}\n```\n\n**Possible `status` values:**\n\n| Value | Meaning |\n|-------|---------|\n| `FORWARDED` | Destination number is opted in. Message was forwarded to Cool Text. `message_id` contains the Cool Text message ID. |\n| `SUPPRESSED` | Destination number has OPT_OUT status. Message was blocked. `suppression_reason` is `\"OPT_OUT\"`. |\n| `UNREGISTERED_ACCOUNT` | The `cool_text_account_id` is not in the Application Registry (or is inactive). Message was not forwarded. |\n\n### Error Responses\n\n**400 Bad Request — validation failure**\n\nReturned when a required field is missing or `destination_cell_number` is not valid E.164 format.\n\n```json\n{\n  \"error\": \"VALIDATION_ERROR\",\n  \"fields\": [\"destination_cell_number\"],\n  \"message\": null\n}\n```\n\n**401 Unauthorized**\n\nMissing or invalid `X-API-Key` header. No body beyond the HTTP status.\n\n**502 Bad Gateway**\n\nThe Cool Text platform was unreachable after the opt-in check passed. The message was not delivered. Retry after a short delay; if the problem persists, contact IT operations.\n\n```json\n{\n  \"error\": \"BAD_GATEWAY\",\n  \"message\": \"Downstream SMS platform unreachable.\"\n}\n```\n\n**503 Service Unavailable — fail-closed**\n\nThe TCPA opt-out database was unavailable. The message was NOT forwarded. This is the correct fail-closed behavior. Do not retry until the database is restored.\n\n```json\n{\n  \"error\": \"SERVICE_UNAVAILABLE\",\n  \"message\": \"Compliance check unavailable; message not forwarded.\"\n}\n```\n\n---\n\n## POST /api/v1/sms/inbound\n\nReceive an inbound SMS webhook from the Cool Text platform. Cool Text calls this endpoint when a customer replies to an SCG SMS.\n\n**Important:** This endpoint returns `200 OK` immediately upon successful signature validation, before any opt-out processing or application forwarding occurs. This prevents Cool Text from timing out and retrying delivery. Downstream processing (keyword detection, opt-out status write, application callback) runs asynchronously after the response is sent.\n\n### Authentication\n\nHMAC-SHA256 payload signature, delivered by Cool Text in the `X-CoolText-Signature` header with the prefix `sha256=`. The TCPA API validates the signature using the shared secret configured at `CoolText:WebhookSecret` in Azure Key Vault. Any request with a missing or invalid signature is rejected immediately with `401`.\n\nThis endpoint is called by the Cool Text platform, not by SCG applications. SCG applications do not call this endpoint directly.\n\n### Request\n\n```http\nPOST /api/v1/sms/inbound\nContent-Type: application/json\nX-CoolText-Signature: sha256=3b9e7f8a1c2d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f\n```\n\n```json\n{\n  \"cool_text_account_id\": \"ct-acct-gcma-001\",\n  \"sender_cell_number\": \"+14045551234\",\n  \"message_body\": \"STOP\",\n  \"cool_text_message_id\": \"ct-inbound-msg-xkcd99\"\n}\n```\n\n**Request fields:**\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `cool_text_account_id` | string | Yes | Cool Text account that received the inbound message. Used to resolve the originating SCG application. |\n| `sender_cell_number` | string | Yes | E.164 cell number of the customer who sent the reply. **PII.** |\n| `message_body` | string | Yes | Raw message text. Inspected for TCPA opt-out keywords (STOP, CANCEL, UNSUBSCRIBE, END, QUIT, REMOVE, OPT-OUT). |\n| `cool_text_message_id` | string | Yes | Platform-assigned message ID from Cool Text. Used for correlation and deduplication logging. |\n\n### Response — 200 OK\n\n```json\n{\n  \"received\": true\n}\n```\n\nThe `200 OK` with `{\"received\":true}` is the webhook acknowledgement contract with Cool Text. It confirms receipt only — not that opt-out processing has completed.\n\n**Opt-out keyword processing (asynchronous after response):** if the message body contains a recognized opt-out keyword, the system will:\n1. Write the OPT_OUT status to the database.\n2. Send a confirmation SMS to the customer within 60 seconds.\n3. Write an immutable audit log entry.\n4. Not forward the message to the originating application.\n\nIf the message is not an opt-out keyword, it is forwarded to the originating application\u0027s registered callback URL.\n\n### Error Responses\n\n**400 Bad Request** — malformed JSON payload or missing required field.\n\n**401 Unauthorized** — HMAC-SHA256 signature is missing or does not match the computed signature. The signature header name defaults to `X-CoolText-Signature` but is configurable via `CoolText:WebhookSignatureHeader`.\n\n---\n\n## PUT /admin/v1/opt-out/re-opt-in\n\nManually re-opt-in a cell phone number. Used by Help Desk agents and Compliance Officers to reverse a customer\u0027s opt-out when they have provided consent through an alternative channel.\n\nThis endpoint requires a mandatory reason (minimum 20 characters) and an optional Help Desk ticket reference. All calls are logged as security events regardless of outcome. The agent\u0027s identity is extracted from the JWT token — it cannot be supplied in the request body.\n\n### Authentication\n\nBearer JWT from the SCG Identity Provider. Required role claim: `tcpa.helpdesk` or `tcpa.compliance_officer`. The Admin API endpoints are network-restricted to the SCG internal network (VPN required from off-site).\n\n### Request\n\n```http\nPUT /admin/v1/opt-out/re-opt-in\nContent-Type: application/json\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIsInR...\n```\n\n```json\n{\n  \"cellPhoneNumber\": \"+14045551234\",\n  \"reason\": \"Customer called Help Desk and provided verbal consent to receive SMS. See ticket HD-20260626-4421.\",\n  \"ticketReference\": \"HD-20260626-4421\"\n}\n```\n\n**Request fields:**\n\n| Field | Type | Required | Constraints | Description |\n|-------|------|----------|-------------|-------------|\n| `cellPhoneNumber` | string | Yes | E.164 format | Cell phone number to re-opt-in. **PII.** |\n| `reason` | string | Yes | Minimum 20 characters | Mandatory free-text reason for the re-opt-in action. Recorded in the immutable audit log. |\n| `ticketReference` | string | No | Optional | Help Desk ticket ID or reference number. Recorded in the audit log. |\n\n### Response — 200 OK\n\nReturned on success, including when the number was already in OPT_IN status (idempotent). When the call is a no-op (already OPT_IN), `message` describes this.\n\n```json\n{\n  \"success\": true,\n  \"previousStatus\": \"OPT_OUT\",\n  \"newStatus\": \"OPT_IN\",\n  \"updatedTimestamp\": \"2026-06-26T14:32:00Z\",\n  \"recordId\": \"a1b2c3d4-e5f6-7890-abcd-ef1234567890\",\n  \"message\": \"\"\n}\n```\n\n**Response fields:**\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `success` | boolean | `true` when status was set to OPT_IN. |\n| `previousStatus` | string | Status before this call: `\"OPT_IN\"` or `\"OPT_OUT\"`. |\n| `newStatus` | string | Status after this call: always `\"OPT_IN\"` on success. |\n| `updatedTimestamp` | string | ISO 8601 UTC timestamp of the update. |\n| `recordId` | string (UUID) | Audit log record ID for this re-opt-in event. Useful for compliance investigations. |\n| `message` | string | Informational note, e.g., `\"Number was already OPT_IN; no change made.\"` |\n\n### Error Responses\n\n**400 Bad Request** — required field missing, `reason` is shorter than 20 characters, or `cellPhoneNumber` is not valid E.164 format.\n\n**401 Unauthorized** — missing or invalid Bearer token.\n\n**403 Forbidden** — valid token, but the caller does not have the `tcpa.helpdesk` or `tcpa.compliance_officer` role.\n\n**409 Conflict** — no prior opt-out record exists for this cell number. The re-opt-in endpoint is for reversing a prior opt-out only. If the number has never opted out, no action is needed.\n\n```json\n{\n  \"title\": \"Conflict\",\n  \"detail\": \"No opt-out record exists for this cell number. Re-opt-in is only applicable for numbers with a prior opt-out history.\",\n  \"status\": 409\n}\n```\n\n**503 Service Unavailable** — database unavailable. Retry after a short delay.\n\n---\n\n## GET /admin/v1/opt-out/status/{cellPhoneNumber}\n\nLook up the current TCPA opt-out status for a cell phone number. Read-only. The response returns only the last four digits of the cell number to minimize PII exposure.\n\n### Authentication\n\nSame as `PUT /admin/v1/opt-out/re-opt-in` — Bearer JWT with `tcpa.helpdesk` or `tcpa.compliance_officer` role.\n\n### Request\n\n```http\nGET /admin/v1/opt-out/status/%2B14045551234\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIsInR...\n```\n\nThe `cellPhoneNumber` path parameter must be URL-encoded. The leading `+` in E.164 numbers must be encoded as `%2B`.\n\n### Response — 200 OK\n\n```json\n{\n  \"maskedCellNumber\": \"****1234\",\n  \"optOutStatus\": \"OPT_OUT\",\n  \"lastOptOutTimestamp\": \"2026-06-20T10:00:00Z\",\n  \"lastOptInTimestamp\": null\n}\n```\n\n**Response fields:**\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `maskedCellNumber` | string | Last four digits only, prefixed with `****`. Full number never returned. |\n| `optOutStatus` | string | `\"OPT_IN\"` or `\"OPT_OUT\"`. |\n| `lastOptOutTimestamp` | string or null | ISO 8601 UTC timestamp of the most recent opt-out. Null if the number has never opted out. |\n| `lastOptInTimestamp` | string or null | ISO 8601 UTC timestamp of the most recent re-opt-in. Null if the number has never been re-opted-in. |\n\n### Error Responses\n\n**400 Bad Request** — `cellPhoneNumber` path parameter is not valid E.164 format.\n\n**401 Unauthorized** — missing or invalid token.\n\n**403 Forbidden** — valid token, insufficient role.\n\n**404 Not Found** — no record exists for this cell number. A 404 means the system has no history for this number. For TCPA compliance purposes, no history implies OPT_IN (no block on record).\n\n```json\n{\n  \"title\": \"Not Found\",\n  \"detail\": \"No opt-out record exists for this cell number.\",\n  \"status\": 404\n}\n```\n\n---\n\n## GET /api/v1/reports/opted-in\n\nOn-demand query of outbound SMS messages that were forwarded to opted-in numbers within a specified date range. Supports up to 90 days per query.\n\n### Authentication\n\nBearer JWT with `tcpa.compliance_officer` or `tcpa.helpdesk` role.\n\n### Request\n\n```http\nGET /api/v1/reports/opted-in?from=2026-06-01\u0026to=2026-06-07\u0026application=GCMA\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIsInR...\n```\n\n**Query parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `from` | ISO 8601 date | Yes | Inclusive start date (e.g., `2026-06-01`). Interpreted as UTC midnight. |\n| `to` | ISO 8601 date | Yes | Inclusive end date (e.g., `2026-06-07`). Must be on or after `from`. Maximum 90-day range from `from`. |\n| `application` | string | No | Filter by SCG application name (e.g., `GCMA`, `KMI Active`). When omitted, returns records for all applications. |\n| `cell_number` | string | No | Filter by specific cell number in E.164 format. When omitted, returns all numbers. |\n\n### Response — 200 OK\n\n```json\n{\n  \"records\": [\n    {\n      \"status\": \"FORWARDED\",\n      \"cellPhoneNumber\": \"+14045551234\",\n      \"originatingApplicationName\": \"GCMA\",\n      \"messageTimestamp\": \"2026-06-03T14:22:00Z\",\n      \"messageBody\": \"Your appointment is confirmed.\",\n      \"coolTextAccountId\": \"ct-acct-gcma-001\"\n    }\n  ],\n  \"totalCount\": 1\n}\n```\n\n**Record fields:**\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `status` | string | Always `\"FORWARDED\"` in this dataset. |\n| `cellPhoneNumber` | string | E.164 destination number. **PII** — handle accordingly. |\n| `originatingApplicationName` | string | SCG application that submitted the message (e.g., `\"GCMA\"`). |\n| `messageTimestamp` | string | ISO 8601 UTC timestamp when the message was forwarded. |\n| `messageBody` | string or null | SMS content. Present for regulatory discovery; treat as PII-adjacent. |\n| `coolTextAccountId` | string | Cool Text account ID used to submit the message. |\n\n### Error Responses\n\n**400 Bad Request** — `from` or `to` is missing, unparseable, `from` is later than `to`, or the range exceeds 90 days.\n\n**401 Unauthorized**, **403 Forbidden** — authentication or authorization failure.\n\n---\n\n## GET /api/v1/reports/opted-out\n\nOn-demand query of outbound SMS messages that were suppressed because the destination number was in OPT_OUT status at send time. Same query parameters as `GET /api/v1/reports/opted-in`.\n\n### Authentication\n\nSame as `/api/v1/reports/opted-in`.\n\n### Request\n\n```http\nGET /api/v1/reports/opted-out?from=2026-06-01\u0026to=2026-06-07\nAuthorization: Bearer eyJhbGciOiJSUzI1NiIsInR...\n```\n\n### Response — 200 OK\n\n```json\n{\n  \"records\": [\n    {\n      \"status\": \"BLOCKED\",\n      \"cellPhoneNumber\": \"+14045559876\",\n      \"originatingApplicationName\": \"KMI Active\",\n      \"attemptTimestamp\": \"2026-06-04T09:11:00Z\",\n      \"messageBody\": \"Your meter reading is ready.\",\n      \"suppressionReason\": \"OPT_OUT\"\n    }\n  ],\n  \"totalCount\": 1\n}\n```\n\n**Record fields:**\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `status` | string | Always `\"BLOCKED\"` in this dataset. |\n| `cellPhoneNumber` | string | E.164 destination number that was blocked. **PII.** |\n| `originatingApplicationName` | string | SCG application that attempted to send the message. |\n| `attemptTimestamp` | string | ISO 8601 UTC timestamp of the blocked send attempt. |\n| `messageBody` | string or null | Content of the suppressed message. Stored for regulatory discovery. |\n| `suppressionReason` | string | Always `\"OPT_OUT\"`. |\n\n### Error Responses\n\nSame as `GET /api/v1/reports/opted-in`.\n\n---\n\n## GET /health\n\nUnauthenticated health check endpoint for load balancer and external monitoring probes.\n\n### Request\n\n```http\nGET /health\n```\n\nNo authentication required.\n\n### Response — 200 OK (healthy)\n\n```json\n{\n  \"status\": \"healthy\",\n  \"checks\": {\n    \"tcpa-database\": {\n      \"status\": \"ok\",\n      \"description\": null\n    }\n  },\n  \"timestamp\": \"2026-06-26T14:30:00.0000000Z\"\n}\n```\n\n### Response — 503 Service Unavailable (degraded)\n\nReturned when any registered dependency is unhealthy. The body structure is identical to the 200 response; check `status` (will be `\"degraded\"`) and individual check entries.\n\n```json\n{\n  \"status\": \"degraded\",\n  \"checks\": {\n    \"tcpa-database\": {\n      \"status\": \"degraded\",\n      \"description\": \"Dependency check failed. Contact IT operations.\"\n    }\n  },\n  \"timestamp\": \"2026-06-26T14:30:00.0000000Z\"\n}\n```\n\n**Note:** Error descriptions are sanitized. Connection strings, IP addresses, hostnames, and stack traces are never returned in health check responses.\n\nThe health check currently registers one check: `tcpa-database` (EF Core DbContext ping). The Cool Text connectivity check is not yet registered (see [TODO note in operations.md](operations.md)).\n\n---\n\n## Error Response Format\n\nFor 4xx and 5xx responses from the outbound/inbound SMS endpoints, the body is:\n\n```json\n{\n  \"error\": \"ERROR_CODE\",\n  \"message\": \"Human-readable description.\",\n  \"fields\": [\"field_name\"]\n}\n```\n\n`fields` is present only for `VALIDATION_ERROR` responses.\n\nFor Admin and Reporting endpoints, errors use ASP.NET Core `ProblemDetails` format (RFC 7807):\n\n```json\n{\n  \"title\": \"Error category\",\n  \"detail\": \"Specific description.\",\n  \"status\": 400\n}\n```\n";
+
+    // Strip the HTML comment artifact header before rendering
+    const cleaned = raw.replace(/^<!--[\s\S]*?-->\s*/m, '');
+
+    marked.setOptions({
+      gfm: true,
+      breaks: false
+    });
+
+    document.getElementById('content').innerHTML = marked.parse(cleaned);
+
+    // Make GFM checkboxes read-only (marked renders them as inputs)
+    document.querySelectorAll('#content input[type=checkbox]').forEach(cb => {
+      cb.setAttribute('disabled', '');
+    });
+  </script>
+</body>
+</html>

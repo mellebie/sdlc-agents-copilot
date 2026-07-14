@@ -1,0 +1,219 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHANGELOG</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root {
+      --bg:        #0f1117;
+      --surface:   #1a1d27;
+      --border:    #2a2d3a;
+      --text:      #e2e8f0;
+      --muted:     #94a3b8;
+      --accent:    #6366f1;
+      --accent2:   #818cf8;
+      --green:     #22c55e;
+      --yellow:    #eab308;
+      --red:       #ef4444;
+      --code-bg:   #12141e;
+      --font-mono: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 15px; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* â”€â”€ Nav bar â”€â”€ */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    nav a {
+      color: var(--accent2);
+      text-decoration: none;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      opacity: 0.8;
+      transition: opacity 0.15s;
+    }
+    nav a:hover { opacity: 1; }
+    nav .sep { color: var(--border); font-size: 0.9rem; }
+    nav .title {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    nav .badge {
+      margin-left: auto;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* â”€â”€ Main content â”€â”€ */
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem 5rem;
+    }
+
+    /* â”€â”€ Markdown styles â”€â”€ */
+    #content h1 { font-size: 1.9rem; font-weight: 700; margin: 0 0 1.5rem; color: #fff; border-bottom: 1px solid var(--border); padding-bottom: 0.6rem; }
+    #content h2 { font-size: 1.3rem; font-weight: 600; margin: 2.2rem 0 0.8rem; color: #fff; }
+    #content h3 { font-size: 1.05rem; font-weight: 600; margin: 1.8rem 0 0.6rem; color: var(--text); }
+    #content h4 { font-size: 0.95rem; font-weight: 600; margin: 1.4rem 0 0.5rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+    #content p { margin: 0.7rem 0; }
+
+    #content a { color: var(--accent2); text-decoration: underline; text-underline-offset: 2px; }
+    #content a:hover { color: #fff; }
+
+    #content strong { color: #fff; font-weight: 600; }
+    #content em { color: var(--muted); }
+
+    #content ul, #content ol { margin: 0.6rem 0 0.6rem 1.4rem; }
+    #content li { margin: 0.25rem 0; }
+    #content li > ul, #content li > ol { margin-top: 0.2rem; }
+
+    #content blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 0.5rem 1rem;
+      margin: 1rem 0;
+      background: var(--surface);
+      border-radius: 0 6px 6px 0;
+      color: var(--muted);
+    }
+
+    #content code {
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: #a5f3fc;
+    }
+
+    #content pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.1rem 1.3rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+    #content pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.83rem;
+      color: var(--text);
+    }
+
+    #content hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2rem 0;
+    }
+
+    /* â”€â”€ Tables â”€â”€ */
+    #content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.2rem 0;
+      font-size: 0.88rem;
+    }
+    #content thead th {
+      background: var(--surface);
+      color: var(--muted);
+      font-weight: 600;
+      text-align: left;
+      padding: 0.55rem 0.9rem;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    #content tbody tr { border-bottom: 1px solid var(--border); }
+    #content tbody tr:hover { background: rgba(99,102,241,0.05); }
+    #content td { padding: 0.5rem 0.9rem; vertical-align: top; }
+
+    /* â”€â”€ Status pill colouring â”€â”€ */
+    #content td:has(> *:only-child), #content td {
+      line-height: 1.5;
+    }
+
+    /* â”€â”€ Checkboxes (GFM task lists) â”€â”€ */
+    #content ul li input[type=checkbox] {
+      margin-right: 0.4rem;
+      accent-color: var(--accent);
+    }
+
+    /* â”€â”€ Artifact header comment â”€â”€ */
+    .artifact-header {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.8rem 1.2rem;
+      margin-bottom: 2rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--muted);
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../../pipeline-dashboard.html">&#8592; Dashboard</a>
+    <span class="sep">&#47;</span>
+    <span class="title">CHANGELOG.md</span>
+    <span class="badge">SDLC Artifact</span>
+  </nav>
+  <main>
+    <div id="content"></div>
+  </main>
+  <script>
+    const raw = "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\nThe format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).\n\n---\n\n## [1.0.0] — 2026-06-26\n\nInitial delivery of the TCPA Regulatory Compliance API (Phase 1).\n\n### Added\n\n**Outbound SMS Compliance Gate**\n- `POST /api/v1/sms/outbound` — receives outbound SMS requests from upstream SCG applications (BizTalk, GCMA, KMI Active, ARM/Construction Portal, CCB/My Account) and enforces TCPA opt-out compliance before forwarding to Cool Text/Twilio.\n- Fail-closed behavior: returns 503 and blocks the message if the opt-out database is unavailable. No message is ever forwarded without a confirmed opt-in status check.\n- Per-application API key authentication (`X-API-Key` header) with constant-time key comparison.\n- Returns `FORWARDED`, `SUPPRESSED`, or `UNREGISTERED_ACCOUNT` status in the response.\n- Structured audit log entry written for every suppressed message.\n\n**Inbound SMS Processing and Opt-Out Detection**\n- `POST /api/v1/sms/inbound` — receives inbound customer SMS replies via Cool Text webhook.\n- HMAC-SHA256 webhook signature validation (ADR-007). Rejects unsigned or tampered webhook payloads with 401 before any processing.\n- Keyword detection for all 7 CTIA opt-out keywords: STOP, CANCEL, UNSUBSCRIBE, END, QUIT, REMOVE, OPT-OUT. Word-boundary regex matching — embedded occurrences (e.g., \"NONSTOP\") do not trigger opt-out.\n- Opt-out status written atomically to the database on keyword detection.\n- Opt-out confirmation SMS dispatched to the customer within 60-second SLA via Cool Text.\n- Non-opt-out messages forwarded to the originating SCG application\u0027s registered callback URL (3-attempt exponential backoff).\n- Immediate 200 OK webhook acknowledgement before asynchronous processing to prevent Cool Text retries.\n\n**Admin API — Re-Opt-In and Status Lookup**\n- `PUT /admin/v1/opt-out/re-opt-in` — allows authenticated Help Desk agents and Compliance Officers to manually reverse a customer opt-out. Requires mandatory reason (min 20 characters) and optional ticket reference. Agent identity extracted from JWT; cannot be supplied in request body.\n- `GET /admin/v1/opt-out/status/{cellPhoneNumber}` — look up current opt-out status for a cell number. Returns masked number (last 4 digits only).\n- JWT Bearer authentication via SCG Identity Provider (OAuth 2.0/OIDC). Required roles: `tcpa.helpdesk` or `tcpa.compliance_officer`.\n- Every admin call logged as a security event regardless of outcome.\n\n**Compliance Reporting**\n- `GET /api/v1/reports/opted-in` — on-demand query of forwarded SMS records. Supports date range filtering (up to 90 days), application filter, and cell number filter.\n- `GET /api/v1/reports/opted-out` — on-demand query of blocked (suppressed) SMS records with same filter options.\n- Weekly automated compliance report delivered every Monday at 06:00 UTC via the Azure Functions timer trigger (`TCPA.Scheduler`). Report includes: forwarded count, blocked count, opt-out event count, re-opt-in count, per-application breakdown, opt-out enforcement success rate, and compliance failure list.\n- HTML email body + CSV attachment. Subject prefixed with `[COMPLIANCE FAILURE]` when violations are detected.\n- Manual report re-run endpoint for regenerating any prior reporting period.\n\n**Immutable Audit Log**\n- Append-only `AuditLogEntries` table. Records for opt-out events, blocked outbound attempts, and re-opt-in actions.\n- Application-layer enforcement: `AuditLogService` exposes `AddAsync` only; no Update/Delete methods on the interface.\n- Database-layer enforcement: DDL trigger `trg_AuditLogEntries_Immutability` rejects any UPDATE or DELETE on the table.\n- 5-year retention policy. Records older than 90 days tiered to Azure Blob Storage WORM (immutable) storage.\n\n**Application Registry**\n- In-memory cached lookup of Cool Text account IDs to SCG application names, callback URLs, and active status. 5-minute TTL.\n- CCB/My Account registered with `IsActive = false`. Active flag must be set via the IT deployment pipeline after full integration testing with the CCB team.\n- Startup validation logs a warning if any of the five expected SCG applications are missing from the registry.\n\n**Observability**\n- `GET /health` — unauthenticated health check. Returns 200/503 with per-dependency status. Sanitizes descriptions to prevent internal detail disclosure.\n- Correlation ID middleware: every request assigned a UUID correlation ID, propagated through all log events and echoed in the `X-Correlation-ID` response header.\n- Structured JSON logging via Serilog with async console sink.\n- Dynamic log level toggle via Azure App Configuration (no restart required, 30-second polling interval).\n- Cell phone numbers masked to last 4 digits in all log output.\n\n**Database Schema**\n- Initial EF Core migration (`20260626000001_InitialSchema`) creates: `ApplicationRegistrations`, `CellNumberOptOutRecords`, `AuditLogEntries`, `SmsMessageLogs`.\n- Azure SQL connection with retry-on-failure (3 retries, 10-second backoff).\n\n### Security\n\n- All cell phone numbers stored with Azure SQL Always Encrypted (AES-256, deterministic encryption) — post-migration infrastructure step required before production go-live.\n- TLS 1.2+ enforced at the Azure Application Gateway layer.\n- API keys never logged; constant-time comparison used to prevent timing oracle attacks.\n- HMAC-SHA256 webhook validation with constant-time signature comparison.\n- Health check descriptions sanitized before response — no connection strings, hostnames, or stack traces returned to callers.\n- Admin endpoints network-restricted to SCG internal network.\n\n### Known Limitations and Open Items\n\n- **Always Encrypted not yet applied:** Column encryption on `CellPhoneNumber` columns is a post-migration infrastructure step (TASK-061). The migration creates plain `nvarchar` columns. Do not promote to production until encryption is confirmed applied.\n- **Cool Text webhook secret must be confirmed with vendor** (ARCH-RISK-004): The HMAC signing mechanism and header name must be verified with the Cool Text vendor before go-live.\n- **SCG Identity Provider not yet provisioned** (TASK-024): Admin API endpoints will log a startup warning and be unavailable until `Authentication:AdminApi:Authority` is configured. Confirm the Azure AD/Entra ID tenant and RBAC roles with IT Security.\n- **CCB/My Account inactive:** CCB is seeded in the Application Registry with `IsActive = false`. Activate only after end-to-end integration testing.\n- **`AuditEventType` enum reconciliation required:** `ReportingService.QueryOptedOutAsync` references `AuditEventType.SmsBlocked`; the enum defines `BlockedOutbound`. This will not compile until resolved. Use `AuditEventType.BlockedOutbound`.\n- **Archived audit query path not implemented:** Query path for audit records older than 90 days (in Blob Storage) is a Phase 2 item.\n- **Application Registry seed placeholders:** `001_ApplicationRegistrationSeed.sql` contains `[PLACEHOLDER: ...]` values for Cool Text account IDs and callback URLs. These must be replaced before the seed script is run in any environment.\n- **Report distribution list pending:** `Reporting:RecipientList` must be confirmed with the Compliance team (CQ-004 is open). The scheduler will fail if this is not set.\n- **Legal approval for opt-out confirmation SMS text pending** (ARCH-RISK-007): The confirmation SMS message text must be approved by Legal before go-live. Store the approved text at `TCPA:OptOutConfirmationSmsText` in Azure Key Vault.\n";
+
+    // Strip the HTML comment artifact header before rendering
+    const cleaned = raw.replace(/^<!--[\s\S]*?-->\s*/m, '');
+
+    marked.setOptions({
+      gfm: true,
+      breaks: false
+    });
+
+    document.getElementById('content').innerHTML = marked.parse(cleaned);
+
+    // Make GFM checkboxes read-only (marked renders them as inputs)
+    document.querySelectorAll('#content input[type=checkbox]').forEach(cb => {
+      cb.setAttribute('disabled', '');
+    });
+  </script>
+</body>
+</html>
