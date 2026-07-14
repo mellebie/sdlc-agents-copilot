@@ -59,6 +59,15 @@ Write-Host "Title  : $prTitle"
 Write-Host "Base   : $base"
 Write-Host ""
 
+# --- Check there is actually new output to push ---
+$newOutput = @(git status --porcelain -- src/ tests/ 2>$null)
+if ($newOutput.Count -eq 0) {
+    Write-Host "Nothing new in src/ or tests/ — no untracked or modified files."
+    Write-Host "This happens when generated code was already committed directly to $Base."
+    Write-Host "Skipping publish — code is already delivered. Run again after the next pipeline produces new output."
+    exit 0
+}
+
 # --- Git operations ---
 Write-Host ">> Checking out $Base and pulling..."
 git checkout $Base
