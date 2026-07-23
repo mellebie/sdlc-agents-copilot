@@ -79,6 +79,40 @@ A dual-view pipeline tracking dashboard for the SDLC agent orchestrator defined 
 
 ---
 
+## BMAD Hybrid Pipeline — Option C (added this session)
+
+A second execution mode that sits alongside the static pipeline. Purely additive — `agents/`, `CLAUDE.md`, dashboard, and scripts are untouched.
+
+### Entry point
+`@orchestrator.md` — tells the orchestrator to assess pipeline state, show the status dashboard, and load the appropriate SKILL.
+
+### How it differs from the static pipeline
+
+| | Static (Option A) | BMAD Hybrid (Option C) |
+|---|---|---|
+| Entry | `CLAUDE.md` + `agents/` | `orchestrator.md` + `skills/` |
+| Agents 00–07 | Generate artifact → human edits | Converse with human → write near-complete artifact |
+| Agents 08–13 | Autonomous | Autonomous (same behaviour) |
+| Artifacts | Identical | Identical |
+| Checkpoint gates | Text in CLAUDE.md | Phrase-locked in orchestrator — exact phrase required, no paraphrases |
+
+### Agent tiers
+
+| Tier | Agents | Mode |
+|------|--------|------|
+| Tier 1 | Alex (00), Jordan (02), Winston (04), Morgan (05), Riley (06), Casey (07) | Fully interactive — conversation first, artifact second |
+| Tier 2 | Sam (01), Taylor (03) | Mostly autonomous — asks only if a genuine blocker is found |
+| Tier 3 | Amelia–Sage (08–13) | Fully autonomous — same as static pipeline |
+
+### Checkpoint gate phrases (exact, no paraphrases)
+`Checkpoint 0 approved` → `Checkpoint 1 approved` → `Checkpoint 2 approved` → `Checkpoint 3 approved` → `Checkpoint 4 approved`
+
+### New files
+- `orchestrator.md` — the BMAD runtime; stateful conductor; enforces gates
+- `skills/00-alex.md` through `skills/13-sage.md` — 16 SKILL files
+
+---
+
 ## CLAUDE.md Skill Integrations (added this session)
 
 Two `/superpowers` skill invocation points wired into the pipeline checkpoints:
@@ -188,16 +222,29 @@ promptEl.innerHTML = `...structured HTML...`;
 
 ```
 sdlc-agents/
-├── CLAUDE.md                    # Pipeline orchestration rules (14 stages) + skill integrations
+├── CLAUDE.md                    # Static pipeline definition (Option A entry point)
 ├── CONTEXT.md                   # This file — loaded via @CONTEXT.md at top of CLAUDE.md
+├── orchestrator.md              # BMAD hybrid runtime (Option C entry point)
+├── README.md                    # User-facing docs — both options, quick start, agent summary
 ├── pipeline-dashboard.html      # The dashboard v3.0 (open in browser)
 ├── pipeline-dashboard-v2.html   # Previous version (kept for reference)
 ├── pipeline-state.json          # Last synced state (also embedded in HTML)
+├── agents/                      # Static pipeline agent instruction files (00–13) — UNTOUCHED by Option C
+├── skills/                      # BMAD hybrid SKILL files (00-alex through 13-sage)
+│   ├── 00-alex.md  (Tier 1)    # Fully interactive
+│   ├── 01-sam.md   (Tier 2)    # Mostly autonomous
+│   ├── 02-jordan.md (Tier 1)   # Fully interactive
+│   ├── 03-taylor.md (Tier 2)   # Mostly autonomous
+│   ├── 04-winston.md (Tier 1)  # Fully interactive
+│   ├── 05-morgan.md (Tier 1)   # Fully interactive
+│   ├── 06-riley.md (Tier 1)    # Fully interactive
+│   ├── 07-casey.md (Tier 1)    # Fully interactive
+│   └── 08–13 (Tier 3)          # Fully autonomous — follow source agents/ exactly
 ├── scripts/
-│   └── Sync-Dashboard.ps1       # Patches dashboard state from artifact files
-├── agents/                      # Agent instruction files (00–13)
+│   ├── Sync-Dashboard.ps1       # Patches dashboard state from artifact files
+│   └── Convert-OutputsToHtml.ps1 # Generates HTML companion for each outputs/ markdown
 ├── inputs/                      # PRD / BRD inputs
-├── outputs/                     # Pipeline artifacts
+├── outputs/                     # Pipeline artifacts (same for both options)
 ├── src/                         # Generated implementation (TCPA Regulatory Compliance API)
 └── tests/                       # Generated tests
 ```
@@ -206,11 +253,12 @@ sdlc-agents/
 
 ## Suggested Next Steps
 
-1. **Test confidence modal on a real pipeline run** — verify bullet items render correctly for agents with flagged content
-2. **Deduplication in artifact view** — `outputs/task-log.md` appears twice (owned by Steps 08 and 09); consider deduplicating by path in `renderArtifactView()`
-3. **PS1 auto-hook** — wire `Sync-Dashboard.ps1` into a Claude Code PostToolUse hook so it runs automatically after each agent write
-4. **findskills** — raise IT whitelist request, or use REST API directly if a use case comes up
+1. **Run Option C end-to-end** — load `@orchestrator.md` and run a TCPA pipeline pass using the BMAD hybrid to validate the Tier 1 conversation model in practice
+2. **Test confidence modal on a real pipeline run** — verify bullet items render correctly for agents with flagged content
+3. **Deduplication in artifact view** — `outputs/task-log.md` appears twice (owned by Steps 08 and 09); consider deduplicating by path in `renderArtifactView()`
+4. **Resolve Checkpoint 0** — `inputs/prd.md` was generated by Agent 00 this session; PD-001 through PD-005 and PD-007 are blocking; resolve before running Agent 01 / Sam
+5. **findskills** — raise IT whitelist request, or use REST API directly if a use case comes up
 
 ---
 
-*Last updated: 2026-07-07*
+*Last updated: 2026-07-23*

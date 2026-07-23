@@ -3,101 +3,198 @@
 A markdown-driven, multi-agent SDLC pipeline that transforms a BRD or PRD
 into delivered, tested, documented code using Claude Code.
 
+Two execution modes. Same agents. Same artifacts. Same checkpoint gates.
+
 ---
 
-## Pipeline Overview
+## Two Ways to Run This Pipeline
+
+| | **Static Pipeline** | **BMAD Hybrid (Option C)** |
+|---|---|---|
+| **Entry point** | `CLAUDE.md` + `agents/` | `orchestrator.md` + `skills/` |
+| **Interaction model** | Agents generate → you edit artifacts to resolve gaps | Tier 1 agents converse with you → artifacts arrive near-complete |
+| **Best for** | Known requirements, fast execution, repeat runs | Ambiguous requirements, first run of a new product, decisions need to be made live |
+| **Checkpoint enforcement** | Text stops in `CLAUDE.md` | Phrase-gated locks in `orchestrator.md` |
+| **Artifacts produced** | Identical | Identical |
+| **Existing pipeline affected?** | — | No — Option C is purely additive |
+
+---
+
+## Pipeline Flow (both modes)
 
 ```
-inputs/brd.md (if starting from a BRD)
+inputs/brd.md (optional — if starting from a BRD)
      │
      ▼
-[00] BRD to PRD Bridge    → inputs/prd.md
+[00] Alex — BRD to PRD Bridge    → inputs/prd.md
      │
      ▼ ⛔ HUMAN CHECKPOINT 0 (PRD review — BRD path only)
      │
 inputs/prd.md (start here if you already have a PRD)
      │
      ▼
-[01] PRD Analyst          → outputs/requirements.md
-[02] Clarification        → outputs/clarifications.md
+[01] Sam   — PRD Analyst         → outputs/requirements.md
+[02] Jordan — Clarification      → outputs/clarifications.md
      │
      ▼ ⛔ HUMAN CHECKPOINT 1 (requirements review)
      │
-[03] Spec Decomposer      → outputs/specs.md
-[04] Architecture         → outputs/architecture.md
-[05] Risk Assessment      → outputs/risks.md
+[03] Taylor — Spec Decomposer    → outputs/specs.md
+[04] Winston — Architecture      → outputs/architecture.md
+[05] Morgan — Risk Assessment    → outputs/risks.md
      │
      ▼ ⛔ HUMAN CHECKPOINT 2 (architecture review)
      │
-[06] Story Writer         → outputs/stories.md
-[07] Task Breakdown       → outputs/tasks.md
+[06] Riley — Story Writer        → outputs/stories.md
+[07] Casey — Task Breakdown      → outputs/tasks.md
      │
      ▼ ⛔ HUMAN CHECKPOINT 3 (backlog review)
      │
-[08] Code Generator       → src/
-[09] Unit & Integration Tests → tests/
-[09b] Functional & E2E Tests  → tests/functional/
-[09c] Test Plan Generator     → tests/[Product]-Test-Plan.xlsx
-[10] Code Reviewer        → outputs/review-findings.md
-[11] Security Agent       → outputs/security-findings.md
+[08] Amelia — Code Generator     → src/
+[09] Quinn  — Unit & Integration Tests → tests/
+[09b] Drew  — Functional & E2E Tests   → tests/functional/
+[09c] Avery — Test Plan Generator      → tests/[Product]-Test-Plan.xlsx
+[10] Blake  — Code Reviewer      → outputs/review-findings.md
+[11] Robin  — Security Agent     → outputs/security-findings.md
      │
      ▼ ⛔ HUMAN CHECKPOINT 4 (findings review)
      │
-[12] Documentation        → outputs/docs/
-[13] PR Assembler         → outputs/pr-description.md
+[12] Jamie — Documentation       → outputs/docs/
+[13] Sage  — PR Assembler        → outputs/pr-description.md
      │
      ▼ ⛔ HUMAN PR APPROVAL (no auto-merge)
 ```
 
 ---
 
-## Quick Start
+## Option A — Static Pipeline: Quick Start
 
 **Starting from a BRD:**
-1. Drop your BRD into `inputs/brd.md`
+1. Place your BRD at `inputs/brd.md`
 2. Open Claude Code in the `sdlc-agents/` directory
 3. Say: `"Run Agent 00 against inputs/brd.md"`
 4. Review `inputs/prd.md`, resolve all `[PRODUCT-DECISION-NEEDED]` items
-5. Say: `"Checkpoint 0 approved — PRD ready"`
+5. Type: `"Checkpoint 0 approved — PRD ready"`
 6. Say: `"Run the SDLC pipeline starting from Agent 01"`
 
 **Starting from a PRD:**
-1. Drop your PRD into `inputs/prd.md`
+1. Place your PRD at `inputs/prd.md`
 2. Open Claude Code in the `sdlc-agents/` directory
 3. Say: `"Run the SDLC pipeline starting from Agent 01"`
 
 **Resuming after a checkpoint:**
-- Say: `"Checkpoint [n] approved — continue the pipeline"`
+- Type: `"Checkpoint [N] approved — continue the pipeline"`
+
+**Running a specific agent:**
+- Say: `"Run Agent 04 (Winston) against outputs/specs.md"`
+- Or reference the file: `@agents/04-architecture.md`
+
+---
+
+## Option C — BMAD Hybrid: Quick Start
+
+**First run (from BRD or PRD):**
+1. Place your BRD at `inputs/brd.md` (or PRD at `inputs/prd.md`)
+2. Open Claude Code in the `sdlc-agents/` directory
+3. Say: `"@orchestrator.md"` or `"Load the SDLC pipeline orchestrator"`
+4. The orchestrator reports pipeline state and presents a menu
+5. Select **[1] Continue** to load the current stage's SKILL
+
+**How Tier 1 agents work (Alex, Jordan, Winston, Morgan, Riley, Casey):**
+- The agent reads the relevant inputs, then opens a conversation
+- It asks targeted questions — grouped by theme, not one at a time
+- You answer in the conversation; the agent captures your decisions live
+- Once all blocking questions are answered, the agent writes the artifact with your answers already incorporated
+- You review a near-complete document rather than a template full of gaps
+
+**How Tier 3 agents work (Amelia through Sage):**
+- They run autonomously, following the same source `agents/` file exactly
+- They report completion and the orchestrator advances automatically
+
+**At every checkpoint:**
+- The active agent presents a summary of what was produced
+- Review the artifact file(s) listed
+- Type the exact approval phrase to advance (no paraphrases accepted):
+
+| Checkpoint | Exact Phrase Required |
+|-----------|----------------------|
+| 0 | `Checkpoint 0 approved` |
+| 1 | `Checkpoint 1 approved` |
+| 2 | `Checkpoint 2 approved` |
+| 3 | `Checkpoint 3 approved` |
+| 4 | `Checkpoint 4 approved` |
+
+**Resuming in a new session:**
+- Say: `"@orchestrator.md"` — it re-assesses artifact state and picks up from the correct stage automatically
+
+---
+
+## Which Option Should I Use?
+
+**Use the Static Pipeline when:**
+- Requirements are well-understood and relatively stable
+- You want to run a specific agent or stage without the full orchestrator
+- You're on a repeat run and know what to expect from each stage
+- You prefer to review and edit artifacts at your own pace
+
+**Use the BMAD Hybrid when:**
+- Requirements are ambiguous or this is the first run for a new product
+- You want to resolve product decisions interactively rather than through file editing
+- You want the orchestrator to manage state and checkpoint enforcement for you
+- The team is less familiar with the pipeline and benefits from guided progression
 
 ---
 
 ## Directory Structure
 
 ```
-/sdlc-agents/
-├── CLAUDE.md                      # Orchestrator — pipeline definition
-├── README.md                      # This file
-├── agents/
-│   ├── 00-brd-to-prd.md          # BRD → PRD translation (optional)
-│   ├── 01-prd-analyst.md         # Requirements extraction
-│   ├── 02-clarification.md       # Ambiguity surfacing
-│   ├── 03-spec-decomposer.md     # Functional specifications
-│   ├── 04-architecture.md        # System design + ADRs
-│   ├── 05-risk-assessment.md     # Delivery, security, ops risks
-│   ├── 06-story-writer.md        # Epics → Stories → ACs
-│   ├── 07-task-breakdown.md      # Developer tasks + estimates
-│   ├── 08-code-generator.md      # Implementation
-│   ├── 09-test-generator.md      # Unit & integration tests
-│   ├── 09b-functional-test-agent.md # Journey, contract & smoke tests
-│   ├── 09c-test-plan-agent.md    # Artifact-traced test plan (CSV + Excel)
-│   ├── 10-code-reviewer.md       # Code review findings
-│   ├── 11-security-agent.md      # Security vulnerability review
-│   ├── 12-documentation-agent.md # API docs, README, ops guide
-│   └── 13-pr-assembler.md        # PR description + traceability
+sdlc-agents/
+│
+├── CLAUDE.md                       # Static pipeline definition (Option A entry point)
+├── CONTEXT.md                      # Session state — load at start of new session
+├── orchestrator.md                 # BMAD hybrid runtime (Option C entry point)
+├── README.md                       # This file
+│
+├── agents/                         # Static pipeline agent instruction files
+│   ├── 00-brd-to-prd.md           # Alex — BRD → PRD translation
+│   ├── 01-prd-analyst.md          # Sam  — Requirements extraction
+│   ├── 02-clarification.md        # Jordan — Ambiguity surfacing
+│   ├── 03-spec-decomposer.md      # Taylor — Functional specifications
+│   ├── 04-architecture.md         # Winston — System design + ADRs
+│   ├── 05-risk-assessment.md      # Morgan — Delivery, security, ops risks
+│   ├── 06-story-writer.md         # Riley — Epics → Stories → ACs
+│   ├── 07-task-breakdown.md       # Casey — Developer tasks + estimates
+│   ├── 08-code-generator.md       # Amelia — Implementation
+│   ├── 09-test-generator.md       # Quinn — Unit & integration tests
+│   ├── 09b-functional-test-agent.md # Drew — Journey, contract & smoke tests
+│   ├── 09c-test-plan-agent.md     # Avery — Artifact-traced test plan (CSV + Excel)
+│   ├── 10-code-reviewer.md        # Blake — Code review findings
+│   ├── 11-security-agent.md       # Robin — Security vulnerability review
+│   ├── 12-documentation-agent.md  # Jamie — API docs, README, ops guide
+│   └── 13-pr-assembler.md         # Sage  — PR description + GitHub publish
+│
+├── skills/                         # BMAD hybrid SKILL files (Option C — mirrors agents/)
+│   ├── 00-alex.md                 # Tier 1: fully interactive
+│   ├── 01-sam.md                  # Tier 2: autonomous + blocker check
+│   ├── 02-jordan.md               # Tier 1: fully interactive
+│   ├── 03-taylor.md               # Tier 2: autonomous + blocker check
+│   ├── 04-winston.md              # Tier 1: fully interactive
+│   ├── 05-morgan.md               # Tier 1: fully interactive
+│   ├── 06-riley.md                # Tier 1: fully interactive
+│   ├── 07-casey.md                # Tier 1: fully interactive
+│   ├── 08-amelia.md               # Tier 3: fully autonomous
+│   ├── 09-quinn.md                # Tier 3: fully autonomous
+│   ├── 09b-drew.md                # Tier 3: fully autonomous
+│   ├── 09c-avery.md               # Tier 3: fully autonomous
+│   ├── 10-blake.md                # Tier 3: fully autonomous
+│   ├── 11-robin.md                # Tier 3: fully autonomous (checkpoint gate)
+│   ├── 12-jamie.md                # Tier 3: fully autonomous
+│   └── 13-sage.md                 # Tier 3: fully autonomous
+│
 ├── inputs/
-│   ├── brd.md                     # Drop BRD here (if applicable)
-│   └── prd.md                     # Drop PRD here (or Agent 00 writes it)
-├── outputs/                       # All pipeline artifacts
+│   ├── brd.md                      # Drop BRD here (Agent 00 / Alex reads this)
+│   └── prd.md                      # Drop PRD here (or Agent 00 / Alex writes it)
+│
+├── outputs/                        # All pipeline artifacts (same for both options)
 │   ├── requirements.md
 │   ├── clarifications.md
 │   ├── specs.md
@@ -105,7 +202,7 @@ inputs/prd.md (start here if you already have a PRD)
 │   ├── risks.md
 │   ├── stories.md
 │   ├── tasks.md
-│   ├── task-log.md                # Running log across all dev agents
+│   ├── task-log.md
 │   ├── review-findings.md
 │   ├── security-findings.md
 │   ├── pr-description.md
@@ -115,55 +212,62 @@ inputs/prd.md (start here if you already have a PRD)
 │       ├── architecture.md
 │       ├── operations.md
 │       └── CHANGELOG.md
+│
 ├── scripts/
-│   └── Generate-TestPlan.ps1          # Excel generator (written by Agent 09c)
-├── src/                           # Generated implementation code
+│   ├── Sync-Dashboard.ps1          # Patches pipeline-dashboard.html with artifact state
+│   ├── Convert-OutputsToHtml.ps1   # Generates HTML companion for each outputs/ markdown
+│   └── Generate-TestPlan.ps1       # Excel test plan generator (written by Avery/Agent 09c)
+│
+├── pipeline-dashboard.html         # Live pipeline tracking dashboard (open in browser)
+├── src/                            # Generated implementation code
 └── tests/
-    ├── [component]/               # Unit & integration tests (Agent 09)
-    ├── [Product]-Test-Cases.csv   # Traceable test case source (Agent 09c)
-    ├── [Product]-Test-Plan.xlsx   # Excel test plan — 3 sheets (Agent 09c)
+    ├── [component]/                # Unit & integration tests (Quinn / Agent 09)
+    ├── [Product]-Test-Cases.csv    # Traceable test case source (Avery / Agent 09c)
+    ├── [Product]-Test-Plan.xlsx    # Excel test plan — 3 sheets (Avery / Agent 09c)
     └── functional/
-        ├── journeys/              # User journey tests (Agent 09b)
-        ├── integration/           # Cross-component tests (Agent 09b)
-        ├── contracts/             # API contract tests (Agent 09b)
-        └── smoke/                 # Post-deployment smoke tests (Agent 09b)
+        ├── journeys/               # User journey tests (Drew / Agent 09b)
+        ├── integration/            # Cross-component tests (Drew / Agent 09b)
+        ├── contracts/              # API contract tests (Drew / Agent 09b)
+        └── smoke/                  # Post-deployment smoke tests (Drew / Agent 09b)
 ```
 
 ---
 
 ## Agent Summary
 
-| Agent | Name                     | Input                          | Output                        |
-|-------|--------------------------|--------------------------------|-------------------------------|
-| 00    | BRD to PRD Bridge        | inputs/brd.md                  | inputs/prd.md                 |
-| 01    | PRD Analyst              | inputs/prd.md                  | outputs/requirements.md       |
-| 02    | Clarification            | outputs/requirements.md        | outputs/clarifications.md     |
-| 03    | Spec Decomposer          | outputs/requirements.md        | outputs/specs.md              |
-| 04    | Architecture             | outputs/specs.md               | outputs/architecture.md       |
-| 05    | Risk Assessment          | outputs/specs.md + architecture| outputs/risks.md              |
-| 06    | Story Writer             | outputs/specs.md + architecture| outputs/stories.md            |
-| 07    | Task Breakdown           | outputs/stories.md             | outputs/tasks.md              |
-| 08    | Code Generator           | outputs/tasks.md               | src/                          |
-| 09    | Unit & Integration Tests | outputs/tasks.md + src/        | tests/                        |
-| 09b   | Functional & E2E Tests   | outputs/stories.md + tests/    | tests/functional/             |
-| 09c   | Test Plan Generator      | outputs/specs.md + stories.md + risks.md | tests/[Product]-Test-Plan.xlsx |
-| 10    | Code Reviewer            | src/ + tests/ + tests/functional/ | outputs/review-findings.md |
-| 11    | Security Agent           | src/ + outputs/specs.md        | outputs/security-findings.md  |
-| 12    | Documentation            | src/ + outputs/architecture.md | outputs/docs/                 |
-| 13    | PR Assembler             | all outputs/                   | outputs/pr-description.md     |
+| # | Persona | Name | Input | Output |
+|---|---------|------|-------|--------|
+| 00 | 🗂️ Alex | BRD to PRD Bridge | inputs/brd.md | inputs/prd.md |
+| 01 | 🔍 Sam | PRD Analyst | inputs/prd.md | outputs/requirements.md |
+| 02 | ❓ Jordan | Clarification | outputs/requirements.md | outputs/clarifications.md |
+| 03 | 📐 Taylor | Spec Decomposer | outputs/requirements.md | outputs/specs.md |
+| 04 | 🏗️ Winston | Architecture | outputs/specs.md | outputs/architecture.md |
+| 05 | ⚠️ Morgan | Risk Assessment | outputs/specs.md + architecture | outputs/risks.md |
+| 06 | 📋 Riley | Story Writer | outputs/specs.md + architecture | outputs/stories.md |
+| 07 | 🔧 Casey | Task Breakdown | outputs/stories.md | outputs/tasks.md |
+| 08 | 💻 Amelia | Code Generator | outputs/tasks.md | src/ |
+| 09 | 🧪 Quinn | Unit & Integration Tests | outputs/tasks.md + src/ | tests/ |
+| 09b | 🔬 Drew | Functional & E2E Tests | outputs/stories.md + tests/ | tests/functional/ |
+| 09c | 📊 Avery | Test Plan Generator | outputs/specs + stories + risks | tests/[Product]-Test-Plan.xlsx |
+| 10 | 👁️ Blake | Code Reviewer | src/ + tests/ | outputs/review-findings.md |
+| 11 | 🔒 Robin | Security Agent | src/ + outputs/specs.md | outputs/security-findings.md |
+| 12 | 📝 Jamie | Documentation | src/ + outputs/architecture.md | outputs/docs/ |
+| 13 | 🚀 Sage | PR Assembler | all outputs/ | outputs/pr-description.md + GitHub PR |
 
 ---
 
 ## Human Checkpoints
 
-| Checkpoint | After Step | What to Review                              | Confirm With                          |
-|------------|------------|---------------------------------------------|---------------------------------------|
-| 0          | 00         | Generated PRD — resolve [PRODUCT-DECISION-NEEDED] | "Checkpoint 0 approved — PRD ready" |
-| 1          | 02         | Requirements + clarification answers        | "Checkpoint 1 approved"               |
-| 2          | 05         | Specs, architecture, risks                  | "Checkpoint 2 approved"               |
-| 3          | 07         | Stories, tasks, estimates                   | "Checkpoint 3 approved"               |
-| 4          | 11         | Code review + security findings             | "Checkpoint 4 approved"               |
-| Final      | 13         | PR description — human approves merge       | Approve PR in your Git platform       |
+Same for both pipeline options.
+
+| Checkpoint | After | Review | Approval Phrase |
+|-----------|-------|--------|-----------------|
+| 0 | Alex / Agent 00 | `inputs/prd.md` — resolve `[PRODUCT-DECISION-NEEDED]` | `Checkpoint 0 approved` |
+| 1 | Jordan / Agent 02 | `outputs/requirements.md` + `outputs/clarifications.md` | `Checkpoint 1 approved` |
+| 2 | Morgan / Agent 05 | `outputs/specs.md` + `outputs/architecture.md` + `outputs/risks.md` | `Checkpoint 2 approved` |
+| 3 | Casey / Agent 07 | `outputs/stories.md` + `outputs/tasks.md` | `Checkpoint 3 approved` |
+| 4 | Robin / Agent 11 | `outputs/review-findings.md` + `outputs/security-findings.md` | `Checkpoint 4 approved` |
+| Final | Sage / Agent 13 | PR description — approve merge in GitHub | Approve PR |
 
 ---
 
@@ -175,5 +279,6 @@ inputs/prd.md (start here if you already have a PRD)
 - **Sensitive file exclusions.** Agents never modify `.tf`, `.bicep`, `.yml`, `.yaml`, `.cfn`, `.env` files.
 - **Single responsibility.** Each agent does one thing well.
 - **Ambiguity halts the pipeline.** `[AMBIGUOUS]` flags stop execution and surface to human.
-- **Explicit handoffs.** Every agent declares its inputs and outputs. No agent reads another agent's source files directly.
-- **Failure isolation.** Any agent failure halts only that step — the pipeline resumes from that step once resolved.
+- **Explicit handoffs.** Every agent declares its inputs and outputs.
+- **Failure isolation.** Any agent failure halts only that step.
+- **Design influence.** Agent identity blocks are styled after the [BMAD Method](https://github.com/bmad-code-org/BMAD-METHOD) persona pattern. The orchestration model is our own.
