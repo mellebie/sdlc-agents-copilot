@@ -57,7 +57,7 @@ public class InboundWebhookController : ControllerBase
         var account = await _coolTextRepo.GetByAccountNumberAsync(request.To, ct);
         if (account is null || !account.IsActive)
         {
-            _logger.LogWarning("Inbound webhook rejected: unrecognised or inactive account {To}", request.To);
+            _logger.LogWarning("Inbound webhook rejected: unrecognised or inactive account {ToHash}", _hasher.Hash(request.To));
             return BadRequest(new { error = $"Cool Text account '{request.To}' is not registered or inactive." });
         }
 
