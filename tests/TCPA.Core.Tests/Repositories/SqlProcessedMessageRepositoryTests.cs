@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using TCPA.Core.Models;
 using TCPA.Core.Repositories;
 using TCPA.Core.Tests.Infrastructure;
@@ -72,7 +73,7 @@ public class SqlProcessedMessageRepositoryTests
         await using var ctx = _fixture.CreateContext();
         var sut = new SqlProcessedMessageRepository(ctx);
         var messageId = $"test-{Guid.NewGuid()}";
-        var entry = new ProcessedMessage
+        var first = new ProcessedMessage
         {
             MessageId = messageId,
             InternalId = Guid.NewGuid(),
@@ -80,11 +81,19 @@ public class SqlProcessedMessageRepositoryTests
             ProcessedAt = DateTime.UtcNow,
             Endpoint = "outbound"
         };
-        await sut.AddAsync(entry, CancellationToken.None);
+        await sut.AddAsync(first, CancellationToken.None);
 
-        // Second add with same PK — EF will throw DbUpdateException;
-        // callers must check FindAsync first to avoid duplicates.
-        var act = async () => await sut.AddAsync(entry, CancellationToken.None);
-        await act.Should().ThrowAsync<Exception>();
+        // Create a DIFFERENT object with the same PK — avoids EF tracking collision
+        // and ensures the DB constraint violation is what we test, not an EF error.
+        var duplicate = new ProcessedMessage
+        {
+            MessageId = messageId,        // same PK — triggers DB constraint
+            InternalId = Guid.NewGuid(),  // different — avoids EF tracking the same instance
+            ResponseStatus = "received",
+            ProcessedAt = DateTime.UtcNow,
+            Endpoint = "outbound"
+        };
+        var act = async () => await sut.AddAsync(duplicate, CancellationToken.None);
+        await act.Should().ThrowAsync<DbUpdateException>();
     }
 }
