@@ -68,6 +68,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuditLogRepository, SqlAuditLogRepository>();
         services.AddScoped<ICoolTextAccountRepository, SqlCoolTextAccountRepository>();
         services.AddScoped<ISystemConfigRepository, SqlSystemConfigRepository>();
+        services.AddScoped<IProcessedMessageRepository, SqlProcessedMessageRepository>();
 
         // Domain services
         services.AddScoped<IReOptInService, ReOptInService>();
