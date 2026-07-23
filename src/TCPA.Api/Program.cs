@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Serilog;
 using System.Threading.RateLimiting;
 using TCPA.Api.Filters;
+using TCPA.Api.Messaging;
 using TCPA.Core.Extensions;
 
 Log.Logger = new LoggerConfiguration()
@@ -33,6 +34,8 @@ try
             Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey
         });
     });
+
+    builder.Services.AddSingleton<IMessagePublisher, KafkaMessagePublisher>();
 
     // Rate limiter — configured in Task 4
     builder.Services.AddRateLimiter(options =>
