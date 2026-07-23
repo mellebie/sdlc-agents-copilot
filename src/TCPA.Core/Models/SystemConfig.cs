@@ -1,9 +1,9 @@
 namespace TCPA.Core.Models;
 
-/// <summary>
-/// Stub entity class. Full implementation added in Task 6.
-/// </summary>
 public class SystemConfig
 {
-    public long Id { get; set; }
+    public string Key { get; set; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public DateTime UpdatedAt { get; set; }
 }
