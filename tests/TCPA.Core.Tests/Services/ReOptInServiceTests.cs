@@ -40,6 +40,16 @@ public class ReOptInServiceTests
         result.ReOptInId.Should().BeGreaterThan(0);
         var status = await statusRepo.GetStatusAsync(phone, CancellationToken.None);
         status.Should().Be("opted-in");
+
+        // Verify atomicity invariant: the status row's AuditRecordId must match the
+        // re-opt-in audit entry Id. A value of 0 here indicates the CR-B01 defect
+        // (transaction wrapped the wrong DbContext instance, writing AuditRecordId = 0).
+        var statusRecord = await ctx.OptOutStatuses
+            .AsNoTracking()
+            .FirstOrDefaultAsync(o => o.PhoneNumber == phone);
+        statusRecord.Should().NotBeNull("the re-opt-in should have created or updated a status record");
+        statusRecord!.AuditRecordId.Should().Be(result.ReOptInId,
+            "the status row must reference the audit log entry written in the same transaction");
     }
 
     [Fact]
