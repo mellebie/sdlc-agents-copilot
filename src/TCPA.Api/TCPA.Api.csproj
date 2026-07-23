@@ -4,48 +4,15 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>TCPA.Api</RootNamespace>
-    <AssemblyName>TCPA.Api</AssemblyName>
-    <Platforms>AnyCPU</Platforms>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <!-- Nullable reference types enforced project-wide -->
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- EF Core for Azure SQL -->
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.6" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.6" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.6">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.6">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.21" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
 
-    <!-- Azure SQL Always Encrypted client driver -->
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.1" />
-
-    <!-- Azure App Configuration for dynamic log level toggle (TASK-057) -->
-    <PackageReference Include="Microsoft.Extensions.Configuration.AzureAppConfiguration" Version="7.3.0" />
-
-    <!-- Azure Key Vault for secrets -->
-    <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.3.1" />
-    <PackageReference Include="Azure.Identity" Version="1.12.0" />
-
-    <!-- Structured logging via Serilog -->
-    <PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
-    <PackageReference Include="Serilog.Sinks.Async" Version="2.0.0" />
-    <PackageReference Include="Serilog.Enrichers.Environment" Version="2.3.0" />
-    <PackageReference Include="Serilog.Enrichers.Thread" Version="3.1.0" />
-
-    <!-- ASP.NET Core health checks -->
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="8.0.6" />
-
-    <!-- Bearer token / JWT authentication -->
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.6" />
+  <ItemGroup>
+    <ProjectReference Include="..\TCPA.Core\TCPA.Core.csproj" />
   </ItemGroup>
 
 </Project>

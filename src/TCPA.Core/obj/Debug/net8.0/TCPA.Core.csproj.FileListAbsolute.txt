@@ -1,0 +1,15 @@
+C:\Users\mark.ellebie\Projects\Southern\Claude_projects\sdlc-agents\src\TCPA.Core\bin\Debug\net8.0\TCPA.Core.deps.json
+C:\Users\mark.ellebie\Projects\Southern\Claude_projects\sdlc-agents\src\TCPA.Core\bin\Debug\net8.0\TCPA.Core.runtimeconfig.json
+C:\Users\mark.ellebie\Projects\Southern\Claude_projects\sdlc-agents\src\TCPA.Core\bin\Debug\net8.0\TCPA.Core.dll
+C:\Users\mark.ellebie\Projects\Southern\Claude_projects\sdlc-agents\src\TCPA.Core\bin\Debug\net8.0\TCPA.Core.pdb
+C:\Users\mark.ellebie\Projects\Southern\Claude_projects\sdlc-agents\src\TCPA.Core\obj\Debug\net8.0\TCPA.Core.csproj.AssemblyReference.cache
+C:\Users\mark.ellebie\Projects\Southern\Claude_projects\sdlc-agents\src\TCPA.Core\obj\Debug\net8.0\TCPA.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\mark.ellebie\Projects\Southern\Claude_projects\sdlc-agents\src\TCPA.Core\obj\Debug\net8.0\TCPA.Core.AssemblyInfoInputs.cache
+C:\Users\mark.ellebie\Projects\Southern\Claude_projects\sdlc-agents\src\TCPA.Core\obj\Debug\net8.0\TCPA.Core.AssemblyInfo.cs
+C:\Users\mark.ellebie\Projects\Southern\Claude_projects\sdlc-agents\src\TCPA.Core\obj\Debug\net8.0\TCPA.Core.csproj.CoreCompileInputs.cache
+C:\Users\mark.ellebie\Projects\Southern\Claude_projects\sdlc-agents\src\TCPA.Core\obj\Debug\net8.0\TCPA.Core.sourcelink.json
+C:\Users\mark.ellebie\Projects\Southern\Claude_projects\sdlc-agents\src\TCPA.Core\obj\Debug\net8.0\TCPA.Core.dll
+C:\Users\mark.ellebie\Projects\Southern\Claude_projects\sdlc-agents\src\TCPA.Core\obj\Debug\net8.0\refint\TCPA.Core.dll
+C:\Users\mark.ellebie\Projects\Southern\Claude_projects\sdlc-agents\src\TCPA.Core\obj\Debug\net8.0\TCPA.Core.pdb
+C:\Users\mark.ellebie\Projects\Southern\Claude_projects\sdlc-agents\src\TCPA.Core\obj\Debug\net8.0\TCPA.Core.genruntimeconfig.cache
+C:\Users\mark.ellebie\Projects\Southern\Claude_projects\sdlc-agents\src\TCPA.Core\obj\Debug\net8.0\ref\TCPA.Core.dll

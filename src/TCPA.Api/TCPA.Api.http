@@ -1,0 +1,6 @@
+@TCPA.Api_HostAddress = http://localhost:5164
+
+GET {{TCPA.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
