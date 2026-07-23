@@ -47,7 +47,7 @@ public class ReOptInService : IReOptInService
                 PhoneNumber = phoneNumber,
                 OccurredAt = effectiveAt,
                 AgentId = agentId,
-                Details = $"{{\"reason\":\"{reason}\"}}",
+                Details = System.Text.Json.JsonSerializer.Serialize(new { reason }),
                 AnomalyFlag = hasNoPriorOptOut
             };
             _auditRepo.Write(auditEntry);
