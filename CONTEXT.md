@@ -9,6 +9,8 @@
 
 A dual-view pipeline tracking dashboard for the SDLC agent orchestrator defined in `CLAUDE.md`.
 
+> **Design influence:** Agent identity blocks (persona, icon, principles) are styled after the [BMAD Method](https://github.com/bmad-code-org/BMAD-METHOD) persona pattern. The orchestration model is not BMAD — it is a sequential, gate-driven pipeline.
+
 **Two files do all the work:**
 
 | File | Purpose |
