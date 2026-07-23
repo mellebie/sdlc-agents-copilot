@@ -1,4 +1,5 @@
 using Serilog;
+using TCPA.Api.Filters;
 using TCPA.Core.Extensions;
 
 Log.Logger = new LoggerConfiguration()
@@ -14,6 +15,9 @@ try
               .ReadFrom.Services(services));
 
     builder.Services.AddTcpaCore(builder.Configuration);
+
+    builder.Services.AddScoped<ApiKeyAuthFilter>();
+    builder.Services.AddScoped<AdminApiKeyAuthFilter>();
 
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
