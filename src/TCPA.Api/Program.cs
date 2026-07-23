@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.RateLimiting;
 using Serilog;
+using System.Threading.RateLimiting;
 using TCPA.Api.Filters;
 using TCPA.Core.Extensions;
 
@@ -33,7 +35,26 @@ try
     });
 
     // Rate limiter — configured in Task 4
-    builder.Services.AddRateLimiter(_ => { });
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.AddPolicy("AdminReOptIn", context =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: context.Request.Headers["X-Api-Key"].ToString() is { Length: > 0 } k ? k : "anonymous",
+                factory: _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 10,
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst,
+                    QueueLimit = 0
+                }));
+
+        options.OnRejected = async (ctx, _) =>
+        {
+            ctx.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+            ctx.HttpContext.Response.Headers.RetryAfter = "60";
+            await ctx.HttpContext.Response.WriteAsJsonAsync(new { error = "Rate limit exceeded. Retry after 60 seconds." });
+        };
+    });
 
     var app = builder.Build();
 
