@@ -3,6 +3,8 @@
 
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
 using TCPA.Api.Messaging;
 using Xunit;
 
@@ -17,9 +19,10 @@ public class KafkaMessagePublisherTests
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>())
             .Build();
+        var logger = Substitute.For<ILogger<KafkaMessagePublisher>>();
 
         // Act + Assert — must fall back to localhost:9092, not throw
-        var act = () => new KafkaMessagePublisher(config);
+        var act = () => new KafkaMessagePublisher(config, logger);
         act.Should().NotThrow();
     }
 
@@ -35,7 +38,8 @@ public class KafkaMessagePublisherTests
                 ["Kafka:Topics:Outbound"]  = "outbound-messages"
             })
             .Build();
-        var sut = new KafkaMessagePublisher(config);
+        var logger = Substitute.For<ILogger<KafkaMessagePublisher>>();
+        var sut = new KafkaMessagePublisher(config, logger);
 
         // Act
         var result = await sut.CheckHealthAsync(CancellationToken.None);
