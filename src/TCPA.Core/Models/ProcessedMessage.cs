@@ -5,4 +5,5 @@ namespace TCPA.Core.Models;
 /// </summary>
 public class ProcessedMessage
 {
+    public long Id { get; set; }
 }

@@ -5,4 +5,5 @@ namespace TCPA.Core.Models;
 /// </summary>
 public class AuditLog
 {
+    public long Id { get; set; }
 }
