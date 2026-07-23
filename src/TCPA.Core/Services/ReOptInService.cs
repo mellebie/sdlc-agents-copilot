@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using TCPA.Core.Data;
 using TCPA.Core.Interfaces;
 using TCPA.Core.Models;
@@ -21,7 +22,10 @@ public class ReOptInService : IReOptInService
     private readonly IOptOutStatusRepository _statusRepo;
     private readonly IAuditLogRepository _auditRepo;
 
-    public ReOptInService(TcpaDbContext writeContext, IOptOutStatusRepository statusRepo, IAuditLogRepository auditRepo)
+    public ReOptInService(
+        [FromKeyedServices("primary")] TcpaDbContext writeContext,
+        IOptOutStatusRepository statusRepo,
+        IAuditLogRepository auditRepo)
     {
         _writeCtx = writeContext;
         _statusRepo = statusRepo;
