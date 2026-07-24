@@ -77,9 +77,11 @@ public class OutboundGateServiceTests
         result.SuppressReason.Should().Be("opt_out");
 
         // Audit entry staged and saved
+        // AuditLog.PhoneNumber stores raw E.164, not the hash.
+        // Hash is only used in Serilog log parameters.
         _auditRepo.Received(1).Write(Arg.Is<AuditLog>(a =>
             a.EventType == AuditEventType.OutboundSuppressed &&
-            a.PhoneNumber == _hasher.Hash(@event.ToNumber) &&
+            a.PhoneNumber == @event.ToNumber &&
             a.MessageId == @event.MessageId));
     }
 

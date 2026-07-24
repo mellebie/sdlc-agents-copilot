@@ -83,21 +83,27 @@ public sealed class KafkaMessagePublisher : IMessagePublisher, IDisposable
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// <see cref="IAdminClient.GetMetadata"/> is a blocking call. Offloading to
+    /// <see cref="Task.Run"/> prevents thread-pool starvation when health probes
+    /// are issued concurrently (e.g. Kubernetes readiness/liveness probes under load).
+    /// </remarks>
     public Task<bool> CheckHealthAsync(CancellationToken ct)
-    {
-        try
+        => Task.Run(() =>
         {
-            using var admin = new AdminClientBuilder(
-                new AdminClientConfig { BootstrapServers = _bootstrapServers }).Build();
-            _ = admin.GetMetadata(TimeSpan.FromSeconds(2));
-            return Task.FromResult(true);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogDebug(ex, "Kafka health check failed (bootstrap={BootstrapServers})", _bootstrapServers);
-            return Task.FromResult(false);
-        }
-    }
+            try
+            {
+                using var admin = new AdminClientBuilder(
+                    new AdminClientConfig { BootstrapServers = _bootstrapServers }).Build();
+                _ = admin.GetMetadata(TimeSpan.FromSeconds(2));
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Kafka health check failed (bootstrap={BootstrapServers})", _bootstrapServers);
+                return false;
+            }
+        }, ct);
 
     /// <summary>Disposes the underlying Kafka producer.</summary>
     public void Dispose() => _producer.Dispose();

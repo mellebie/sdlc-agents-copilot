@@ -175,7 +175,7 @@ public class ConfirmationDispatchService : IConfirmationDispatchService
         _auditRepo.Write(new AuditLog
         {
             EventType = eventType,
-            PhoneNumber = _hasher.Hash(phoneNumber),
+            PhoneNumber = phoneNumber,
             OccurredAt = DateTime.UtcNow,
             Details = details
         });

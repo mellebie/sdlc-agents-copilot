@@ -13,7 +13,11 @@ public class ProcessedMessageConfiguration : IEntityTypeConfiguration<ProcessedM
     public void Configure(EntityTypeBuilder<ProcessedMessage> builder)
     {
         builder.ToTable("ProcessedMessages");
-        builder.HasKey(x => x.MessageId);
+        // Composite primary key: one record per (MessageId, Endpoint) pair.
+        // This correctly expresses the idempotency intent — the same message can be
+        // processed once by each endpoint (e.g. inbound-processor, audit-processor)
+        // without conflicting. A single-column PK on MessageId would prevent that.
+        builder.HasKey(m => new { m.MessageId, m.Endpoint });
 
         builder.Property(x => x.MessageId)
             .HasMaxLength(200)
@@ -32,13 +36,6 @@ public class ProcessedMessageConfiguration : IEntityTypeConfiguration<ProcessedM
         builder.Property(x => x.Endpoint)
             .HasMaxLength(20)
             .IsRequired();
-
-        // Composite unique index — enforces that (MessageId, Endpoint) is globally unique.
-        // FindAsync filters on both columns; this ensures database-level protection against
-        // cross-endpoint collisions that would pass the application-level FindAsync check but
-        // fail on insert, and is consistent with the DbUpdateException idempotency guard
-        // in the controllers.
-        builder.HasIndex(m => new { m.MessageId, m.Endpoint }).IsUnique();
 
         // Index on ProcessedAt for efficient time-based queries
         builder.HasIndex(x => x.ProcessedAt);

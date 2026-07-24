@@ -46,7 +46,7 @@ public class OptOutProcessingService : IOptOutProcessingService
         var auditEntry = new AuditLog
         {
             EventType = eventType,
-            PhoneNumber = _hasher.Hash(@event.From),
+            PhoneNumber = @event.From,
             OccurredAt = DateTime.UtcNow,
             ApplicationId = @event.ApplicationId,
             MessageId = @event.MessageId,

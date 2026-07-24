@@ -62,6 +62,7 @@ try
     var app = builder.Build();
 
     app.UseSerilogRequestLogging();
+    app.UseHttpsRedirection();
 
     if (app.Environment.IsDevelopment())
     {

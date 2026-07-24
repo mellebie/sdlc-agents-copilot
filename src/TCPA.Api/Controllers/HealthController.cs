@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using TCPA.Api.Messaging;
 using TCPA.Api.Models;
 using TCPA.Core.Data;
@@ -14,11 +15,16 @@ namespace TCPA.Api.Controllers;
 public class HealthController : ControllerBase
 {
     private readonly IMessagePublisher _publisher;
+    private readonly TcpaDbContext _dbContext;
     private readonly ILogger<HealthController> _logger;
 
-    public HealthController(IMessagePublisher publisher, ILogger<HealthController> logger)
+    public HealthController(
+        IMessagePublisher publisher,
+        [FromKeyedServices("primary")] TcpaDbContext dbContext,
+        ILogger<HealthController> logger)
     {
         _publisher = publisher;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
@@ -32,12 +38,10 @@ public class HealthController : ControllerBase
     [ProducesResponseType(typeof(HealthResponse), 503)]
     public async Task<IActionResult> GetHealth(CancellationToken ct)
     {
-        var dbContext = HttpContext.RequestServices.GetRequiredService<TcpaDbContext>();
-
         bool dbOk;
         try
         {
-            dbOk = await dbContext.Database.CanConnectAsync(ct);
+            dbOk = await _dbContext.Database.CanConnectAsync(ct);
         }
         catch (Exception ex)
         {
@@ -60,8 +64,10 @@ public class HealthController : ControllerBase
     }
 
     /// <summary>
-    /// Internal overload for unit testing — bypasses <see cref="HttpContext.RequestServices"/>
-    /// so tests do not need to provide a real DbContext.
+    /// Internal overload for unit testing — allows callers to supply pre-resolved health
+    /// results without triggering real dependency checks. Retained because
+    /// <see cref="TcpaDbContext.Database.CanConnectAsync"/> always returns <c>true</c> against
+    /// InMemory providers, making the DB-degraded scenario untestable via <see cref="GetHealth"/>.
     /// </summary>
     internal Task<IActionResult> GetHealthAsync_ForTesting(bool kafkaOk, bool dbOk)
         => Task.FromResult(BuildResponse(dbOk, kafkaOk));

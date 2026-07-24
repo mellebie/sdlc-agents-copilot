@@ -100,7 +100,7 @@ public class OutboundSendService : IOutboundSendService
             _auditRepo.Write(new AuditLog
             {
                 EventType = AuditEventType.OutboundDelivered,
-                PhoneNumber = phoneHash,
+                PhoneNumber = @event.ToNumber,
                 OccurredAt = DateTime.UtcNow,
                 ApplicationId = @event.ApplicationId,
                 MessageId = @event.MessageId,
@@ -126,7 +126,7 @@ public class OutboundSendService : IOutboundSendService
             _auditRepo.Write(new AuditLog
             {
                 EventType = AuditEventType.OutboundFailed,
-                PhoneNumber = phoneHash,
+                PhoneNumber = @event.ToNumber,
                 OccurredAt = DateTime.UtcNow,
                 ApplicationId = @event.ApplicationId,
                 MessageId = @event.MessageId,

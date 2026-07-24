@@ -65,9 +65,11 @@ public class ApiIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
 
     /// <summary>
     /// Creates an HttpClient pre-configured with the given API key header.
-    /// Uses the default dev key from appsettings.json unless overridden.
+    /// Uses the test-environment placeholder key from appsettings.json unless overridden.
+    /// The placeholder "REPLACE_IN_ENV" is the value in appsettings.json — production
+    /// deployments override this via environment variable or secrets management.
     /// </summary>
-    private HttpClient BuildClient(string apiKey = "dev-api-key-replace-in-prod")
+    private HttpClient BuildClient(string apiKey = "REPLACE_IN_ENV")
     {
         var client = _factory.CreateClient();
         client.DefaultRequestHeaders.Add("X-Api-Key", apiKey);

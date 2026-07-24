@@ -96,7 +96,7 @@ public class OutboundGateService : IOutboundGateService
         _auditRepo.Write(new AuditLog
         {
             EventType = AuditEventType.OutboundSuppressed,
-            PhoneNumber = _hasher.Hash(@event.ToNumber),
+            PhoneNumber = @event.ToNumber,
             OccurredAt = DateTime.UtcNow,
             ApplicationId = @event.ApplicationId,
             MessageId = @event.MessageId,

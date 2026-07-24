@@ -84,7 +84,8 @@ public class OutboundSendServiceTests
         _auditLog.Should().HaveCount(1);
         var audit = _auditLog[0];
         audit.EventType.Should().Be(AuditEventType.OutboundDelivered);
-        audit.PhoneNumber.Should().Be(_hasher.Hash(@event.ToNumber));
+        // AuditLog.PhoneNumber stores raw E.164, not the hash.
+        audit.PhoneNumber.Should().Be(@event.ToNumber);
         audit.MessageId.Should().Be(@event.MessageId);
         audit.ApplicationId.Should().Be(@event.ApplicationId);
 
@@ -136,7 +137,8 @@ public class OutboundSendServiceTests
         _auditLog.Should().HaveCount(1);
         var audit = _auditLog[0];
         audit.EventType.Should().Be(AuditEventType.OutboundFailed);
-        audit.PhoneNumber.Should().Be(_hasher.Hash(@event.ToNumber));
+        // AuditLog.PhoneNumber stores raw E.164, not the hash.
+        audit.PhoneNumber.Should().Be(@event.ToNumber);
         audit.MessageId.Should().Be(@event.MessageId);
 
         var details = JsonSerializer.Deserialize<JsonElement>(audit.Details!);

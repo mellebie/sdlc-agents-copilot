@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using TCPA.Core.Data;
 using TCPA.Core.Interfaces;
@@ -42,7 +43,13 @@ public class ReOptInService : IReOptInService
         var currentStatus = await _statusRepo.GetStatusAsync(phoneNumber, ct);
         var hasNoPriorOptOut = currentStatus == "opted-in";
 
-        await using var transaction = await _writeCtx.Database.BeginTransactionAsync(ct);
+        // Transaction guard: IsRelational() is false for InMemory (unit tests), true for SQL Server
+        // (production). This mirrors the pattern in OptOutProcessingService and allows the re-opt-in
+        // path to be unit-tested with an InMemory DbContext without throwing InvalidOperationException.
+        Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction? transaction = null;
+        if (_writeCtx.Database.IsRelational())
+            transaction = await _writeCtx.Database.BeginTransactionAsync(ct);
+        await using var tx = transaction;
         try
         {
             var auditEntry = new AuditLog
@@ -60,12 +67,16 @@ public class ReOptInService : IReOptInService
 
             await _statusRepo.SetOptedInAsync(phoneNumber, auditEntry.Id, effectiveAt, ct);
 
-            await transaction.CommitAsync(ct);
+            if (tx is not null)
+                await tx.CommitAsync(ct);
             return new ReOptInResult(auditEntry.Id, effectiveAt);
         }
         catch
         {
-            await transaction.RollbackAsync(ct);
+            if (tx is not null)
+            {
+                try { await tx.RollbackAsync(ct); } catch { /* best effort */ }
+            }
             throw;
         }
     }

@@ -75,7 +75,9 @@ public class ConfirmationDispatchServiceTests : IDisposable
         // Assert
         var audit = await _ctx.AuditLogs.SingleAsync();
         audit.EventType.Should().Be(AuditEventType.ConfirmationDispatched);
-        audit.PhoneNumber.Should().Be("hashed:+12025551234");
+        // AuditLog.PhoneNumber stores raw E.164 (nvarchar(20)) — not the hash.
+        // Hash is only used in Serilog log parameters and AuditLog.Details JSON.
+        audit.PhoneNumber.Should().Be("+12025551234");
         audit.Details.Should().Contain("cool-msg-123");
     }
 
