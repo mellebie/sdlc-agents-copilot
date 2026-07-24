@@ -1,189 +1,157 @@
 # TCPA Compliance API — Developer Architecture Overview
 
-This document is for developers joining the project. It explains what the system does, how it is structured, where to find things in the codebase, and why key decisions were made. For the full architecture document with ADRs, deployment topology, and NFR fulfillment details, see `outputs/architecture.md`.
+This document is for developers joining the project. It explains what the system does, how it is structured, where to find things in the codebase, and why key decisions were made. For the full architecture artifact with ADRs and deployment topology, see `outputs/architecture.md`.
 
 ---
 
-## What This System Does
+## What the system does
 
-The TCPA Compliance API sits between SCG's upstream applications and the Cool Text/Twilio SMS platform. Its single job is to enforce TCPA opt-out compliance:
+The TCPA system sits between SCG upstream applications (BizTalk, GCMA, KMI Active, ARM, CCB) and the Cool Text SMS platform. It has two jobs:
 
-- **Outbound:** An SCG application submits an SMS to send. The API checks whether the recipient has opted out. If they have, the message is blocked and the attempt is logged. If they haven't, the message is forwarded to Cool Text.
-- **Inbound:** A customer replies to an SMS (e.g., sends "STOP"). Cool Text pushes the reply to this API. The API detects the opt-out keyword, records the opt-out, sends a confirmation SMS to the customer, and writes an immutable audit record.
-- **Admin:** Help Desk agents and Compliance Officers can look up a number's status and manually reverse an opt-out when the customer has re-consented.
-- **Reporting:** Compliance Officers can query forwarded and blocked message history and receive an automated weekly compliance report by email.
-
-**Fail-closed principle:** if the opt-out database is unavailable, outbound messages are blocked (503 returned). The system never forwards a message without confirming the recipient's opt-in status.
+1. **Inbound:** receive SMS replies from recipients, detect opt-out keywords, record opt-out status, and send a confirmation SMS.
+2. **Outbound:** accept send requests from SCG applications, check whether the recipient has opted out (and whether the current time is within TCPA allowed hours), and dispatch approved messages to Cool Text.
 
 ---
 
-## How the Codebase Is Organized
+## Components
+
+```
+SCG Applications
+    │
+    │  POST /api/v1/messages/outbound
+    ▼
+TCPA.Api ──────────────────────────────────────────────┐
+    │  POST /webhook/inbound                            │
+    ▲                                                   │
+Cool Text / Twilio                                      │
+                                                        │ Kafka
+                                         outbound-messages topic
+                                                        │
+                                                        ▼
+                                          TCPA.OutboundDispatcher
+                                                        │
+                                                        │ Cool Text API
+                                                        ▼
+                                                    Cool Text
+
+TCPA.Api ──► inbound-messages (Kafka topic) ──► TCPA.MessageProcessor
+                                                        │
+                                                        │ Cool Text API (confirmation SMS)
+                                                        ▼
+                                                    Cool Text
+
+All components ──► SQL Server (TCPA.Core — shared data access)
+```
+
+### TCPA.Api
+
+ASP.NET Core 8 Web API. Four endpoints:
+
+- `POST /webhook/inbound` — receives inbound SMS from Cool Text; validates account; records idempotency; publishes to `inbound-messages` topic
+- `POST /api/v1/messages/outbound` — accepts outbound requests; queue-time opt-out check; publishes to `outbound-messages` topic
+- `POST /api/v1/admin/reopt-in` — help desk re-opt-in; rate-limited 10/min per key
+- `GET /api/v1/health` — dependency health check (database + Kafka)
+
+Auth: custom `X-Api-Key` filter. Admin endpoints require a second key in `ApiKeys:AdminKeys`.
+
+### TCPA.Core
+
+Class library shared by all components. Contains:
+
+- `TcpaDbContext` — EF Core 8 DbContext, keyed as `"primary"` (write) and `"replica"` (read). Registered via `AddTcpaCore()` extension method.
+- Five entity models: `OptOutStatus`, `AuditLog`, `CoolTextAccount`, `SystemConfig`, `ProcessedMessage`
+- Five repository interfaces and SQL implementations
+- Domain services: `KeywordDetectionService`, `PhoneNumberHasher`, `ReOptInService`
+- EF Core migrations (5 migrations, all applied before first run)
+
+### TCPA.MessageProcessor
+
+.NET 8 Worker Service. Kafka consumer group `tcpa-inbound-processor`.
+
+- Subscribes to `inbound-messages` topic
+- Uses `KeywordDetectionService` to classify each message
+- Opt-out path: `OptOutProcessingService` writes opt-out status + audit atomically; `ConfirmationDispatchService` sends confirmation SMS via Cool Text API (3 retries, 2s/4s/8s backoff; SLA threshold 60s)
+- Non-opt-out path: `ReplyForwardingService` looks up the Cool Text account's `CallbackUrl` and forwards the message body
+- Retry policy: 2 attempts per message; on all-attempts-failed, logs Critical and commits offset (poison-pill drain)
+- Scope-per-message: fresh `IServiceScope` per message ensures DbContext is not reused across messages
+
+### TCPA.OutboundDispatcher
+
+.NET 8 Worker Service. Kafka consumer group `tcpa-outbound-dispatcher`.
+
+- Subscribes to `outbound-messages` topic
+- Per-message: idempotency check → gate evaluation → send → record processed
+- Gate evaluation (`OutboundGateService`): opt-out check, then TCPA quiet hours check (UTC 08:00–20:59 inclusive); suppressed messages write `OutboundSuppressed` audit
+- Send (`OutboundSendService`): Cool Text API call with 3 retries (2s/4s/8s backoff); writes `OutboundDelivered` or `OutboundFailed` audit
+- Retry policy: 2 attempts per message; poison-pill drain on exhaustion
+- Scope-per-message: same pattern as MessageProcessor
+
+---
+
+## Database schema
+
+Five tables, all in `TcpaDbContext`:
+
+| Table | Purpose |
+|-------|---------|
+| `OptOutStatuses` | One row per phone number; `Status` = `opted-in` or `opted-out` |
+| `AuditLogs` | Immutable compliance event log; one row per event |
+| `CoolTextAccounts` | Registered SMS accounts; `AccountNumber` maps to applications |
+| `SystemConfigs` | Key-value config store; `OptOutMessageBody` key drives confirmation SMS text |
+| `ProcessedMessages` | Idempotency store; composite PK `(MessageId, Endpoint)` |
+
+Run migrations:
+
+```bash
+dotnet ef database update --project src/TCPA.Core --startup-project src/TCPA.Api
+```
+
+---
+
+## Key design decisions
+
+**Kafka at-least-once delivery with manual offset commit.** Both workers set `EnableAutoCommit = false` and commit the offset explicitly after processing completes (or after the poison-pill drain on exhaustion). This means a message may be delivered more than once on broker restart; idempotency via `ProcessedMessages` guards against duplicate processing.
+
+**Fail-closed opt-out check.** If the opt-out status store is unavailable at queue time (outbound submission), the API returns 503 and does not queue the message. It is better to delay a non-urgent message than to risk sending to an opted-out recipient.
+
+**Phone number hashing in all logs.** No raw phone numbers appear in any log at any severity level. `IPhoneNumberHasher` uses HMAC-SHA256 with a key from `Logging:PhoneHashKey`. The hash is deterministic, so a single number always produces the same hash token for correlation across log entries.
+
+**TCPA quiet hours applied conservatively.** When recipient timezone is unknown, the dispatcher applies UTC. The allowed window is 08:00–20:59 UTC (hour `>= 8 && < 21`). Messages arriving outside this window are suppressed and audited.
+
+**Transaction guard for InMemory compatibility.** `if (_ctx.Database.IsRelational())` gates all `BeginTransactionAsync` calls. This allows unit tests to run with an InMemory provider without throwing `InvalidOperationException`.
+
+**Keyed DbContext registrations.** `AddTcpaCore()` registers three DbContext instances: keyed `"primary"` (write), keyed `"replica"` (read-replica, falls back to primary if `ConnectionStrings:ReadReplica` is absent), and a non-keyed alias for services that inject `TcpaDbContext` directly.
+
+---
+
+## Codebase navigation
 
 ```
 src/
-├── TCPA.Api/                       # Main ASP.NET Core Web API (.NET 8)
-│   ├── Controllers/                # HTTP endpoints
-│   ├── Models/                     # Request/response DTOs
-│   ├── Domain/                     # EF Core entities and enums
-│   ├── Services/
-│   │   ├── OptOut/                 # Opt-out keyword detection, status writes
-│   │   ├── ReOptIn/                # Admin re-opt-in workflow
-│   │   ├── SmsProxy/               # Outbound gate and inbound routing
-│   │   ├── Reporting/              # Compliance report queries and email dispatch
-│   │   ├── AuditLog/               # Append-only audit log writes
-│   │   └── Observability/          # Correlation ID middleware
-│   └── Infrastructure/
-│       ├── Auth/                   # API key auth filter
-│       ├── Configuration/          # Application Registry (cache-backed)
-│       ├── CoolText/               # Cool Text HTTP client and webhook validator
-│       └── Data/                   # EF Core DbContext, entity configurations, migrations
-├── TCPA.Scheduler/                 # Azure Functions (weekly report scheduler)
-└── tests/
-    └── TCPA.Api.Tests/             # Unit tests
+├── TCPA.Api/
+│   ├── Controllers/          — AdminController, HealthController, InboundWebhookController, OutboundMessagesController
+│   ├── Filters/              — ApiKeyAuthFilter, AdminApiKeyAuthFilter
+│   ├── Messaging/            — IMessagePublisher, KafkaMessagePublisher, InboundMessageEvent, OutboundMessageEvent
+│   ├── Models/               — Request and response records
+│   └── Program.cs            — DI registration, rate limiter, Serilog setup
+├── TCPA.Core/
+│   ├── Data/                 — TcpaDbContext, TcpaDesignTimeFactory
+│   ├── Extensions/           — ServiceCollectionExtensions (AddTcpaCore)
+│   ├── Interfaces/           — Repository interfaces
+│   ├── Migrations/           — EF Core migration files
+│   ├── Models/               — Entity models and EF Core configurations
+│   ├── Repositories/         — SQL implementations
+│   └── Services/             — KeywordDetectionService, PhoneNumberHasher, ReOptInService, LogEventTypes
+├── TCPA.MessageProcessor/
+│   ├── Infrastructure/       — CoolTextApiClient
+│   ├── Messaging/            — InboundMessageEvent (local copy)
+│   ├── Services/             — OptOutProcessingService, ConfirmationDispatchService, ReplyForwardingService
+│   ├── Workers/              — InboundMessageWorker
+│   └── Program.cs
+└── TCPA.OutboundDispatcher/
+    ├── Infrastructure/       — CoolTextApiClient
+    ├── Messaging/            — OutboundMessageEvent (local copy)
+    ├── Services/             — OutboundGateService, OutboundSendService
+    ├── Workers/              — OutboundMessageWorker
+    └── Program.cs
 ```
-
----
-
-## Components and Their Responsibilities
-
-### Controllers (HTTP boundary)
-
-Controllers are thin. They validate input, call a service, map the result to HTTP responses, and mask PII in log statements. No business logic lives in controllers.
-
-| Controller | Route prefix | What it does |
-|------------|-------------|--------------|
-| `OutboundSmsController` | `POST /api/v1/sms/outbound` | Receives outbound SMS requests from SCG apps; calls `IOutboundSmsGate` |
-| `InboundSmsController` | `POST /api/v1/sms/inbound` | Receives Cool Text webhooks; validates HMAC; returns 200 immediately; processes async |
-| `AdminController` | `/admin/v1/opt-out/` | Re-opt-in (PUT) and status lookup (GET) for authenticated Help Desk/Compliance Officers |
-| `ReportingController` | `/api/v1/reports/` | On-demand compliance report queries; requires `ComplianceReporting` auth policy |
-| `HealthController` | `GET /health` | Unauthenticated health check; sanitizes descriptions before returning |
-
-### Services (business logic)
-
-**`SmsProxy/`** — the core compliance pipeline:
-
-- `OutboundSmsGate` (`IOutboundSmsGate`): Looks up the application in the registry, calls `IsOptedOutAsync` on the opt-out service, suppresses or forwards the message. Any exception from the opt-out check becomes `OutboundGateUnavailableException` → 503.
-- `InboundSmsHandler` (`IInboundSmsHandler`): Receives an inbound message, runs keyword detection, triggers the opt-out pipeline if needed, forwards to the application callback if not.
-
-**`OptOut/`** — opt-out business logic:
-
-- `OptOutDetector` (`IOptOutDetector`): Stateless. Matches the message body against 7 CTIA opt-out keywords (`STOP`, `CANCEL`, `UNSUBSCRIBE`, `END`, `QUIT`, `REMOVE`, `OPT-OUT`) using word-boundary regex patterns. Case-insensitive.
-- `OptOutStatusService` (`IOptOutStatusService`): Reads and writes opt-out status in the database. Idempotent on writes. Fail-closed: re-throws DB exceptions on reads so the gate can return 503.
-- `ConfirmationDispatcher` (`IConfirmationDispatcher`): Sends the opt-out confirmation SMS within the 60-second SLA. Single retry on Cool Text failure. Never reverses the opt-out if the confirmation fails.
-
-**`ReOptIn/`** — admin re-opt-in:
-
-- `ReOptInService` (`IReOptInService`): Writes OPT_IN status, writes an audit log entry, returns a result with the previous status. Returns a sentinel value (`"NO_RECORD"`) instead of throwing when no prior record exists — lets the controller map to 409 without exception-driven flow.
-
-**`AuditLog/`** — immutable audit:
-
-- `AuditLogService` (`IAuditLogService`): Append-only writes to `AuditLogEntries`. Calls `AddAsync` only — never `Update` or `Remove`. On write failure: logs Critical (triggers Azure Monitor alert) and throws `AuditLogWriteException`. Cell numbers are always masked to last-4 digits in logs.
-
-**`Reporting/`** — compliance reports:
-
-- `ReportingService` (`IReportingService`): Queries `SmsMessageLogs` (forwarded messages) and `AuditLogEntries` (blocked messages) via EF Core with `AsNoTracking`. Enforces a 90-day maximum query window. Detects compliance failures (forwarded messages to opted-out numbers) and logs Critical if found.
-- `ReportEmailer` (`IReportEmailer`): SMTP email dispatch. Reads credentials from config at dispatch time (never cached). Sends HTML + CSV attachment. Subjects compliance failure reports with `[COMPLIANCE FAILURE]` prefix.
-
-### Infrastructure
-
-**`Auth/ApiKeyAuthFilter`** — ASP.NET Core action filter on `OutboundSmsController`. Reads the expected key from `IConfiguration["Auth:ApiKey"]` at request time (so rotation takes effect without restart). Uses constant-time comparison (`CryptographicOperations.FixedTimeEquals`) to prevent timing attacks.
-
-**`CoolText/`** — SMS platform integration:
-- `CoolTextClient`: Forwards outbound messages to Cool Text (`ICoolTextClient`) and relays inbound messages back to SCG app callback URLs (`ICoolTextForwardingClient`). 3-attempt exponential backoff (1s/2s/4s) on callback forwarding.
-- `CoolTextWebhookValidator`: HMAC-SHA256 signature validation for inbound webhooks. Fails at startup if the secret is not configured. Strips `sha256=` prefix. Constant-time comparison.
-
-**`Configuration/ApplicationRegistryService`** — cache-backed lookup of Cool Text account ID → SCG application name + callback URL. 5-minute TTL (configurable). Unregistered or inactive accounts return `null` (treated as unregistered by the gate). Primes the cache at startup via `ApplicationRegistryStartupService`.
-
-**`Data/`** — EF Core database layer:
-- `TcpaDbContext`: four `DbSet`s: `ApplicationRegistrations`, `CellNumberOptOutRecords`, `AuditLogEntries`, `SmsMessageLogs`.
-- Migrations in `Data/Migrations/`. The initial migration (`20260626000001_InitialSchema`) creates all four tables. Always Encrypted is a post-migration infrastructure step — columns are plain `nvarchar` until the platform team applies Always Encrypted via Azure Key Vault.
-
----
-
-## Data Flow: Outbound SMS
-
-```
-SCG Application
-  │ POST /api/v1/sms/outbound (X-API-Key)
-  ▼
-OutboundSmsController
-  │ Validates input, calls gate
-  ▼
-OutboundSmsGate
-  │ ApplicationRegistryService.GetByAccountNumberAsync(accountId)
-  │ OptOutStatusService.IsOptedOutAsync(cellNumber)  ← fail-closed on exception
-  │
-  ├─[opted out]──▶ AuditLogService.WriteBlockedOutboundEventAsync()
-  │                return SUPPRESSED
-  │
-  └─[opted in]───▶ CoolTextClient.SendSmsAsync()
-                   return FORWARDED (with message_id)
-```
-
-## Data Flow: Inbound SMS (Opt-Out)
-
-```
-Cool Text Platform
-  │ POST /api/v1/sms/inbound (X-CoolText-Signature)
-  ▼
-InboundSmsController
-  │ HMAC signature validated → 401 if invalid
-  │ 200 OK returned to Cool Text immediately
-  │ ProcessInboundAsync() fired as background task
-  ▼
-InboundSmsHandler (background)
-  │ OptOutDetector.Detect(messageBody)
-  │
-  ├─[opt-out keyword]──▶ OptOutStatusService.WriteOptOutAsync()
-  │                       ConfirmationDispatcher.DispatchAsync()  ← 60s SLA
-  │                       AuditLogService.WriteOptOutEventAsync()
-  │                       (message NOT forwarded to application)
-  │
-  └─[no keyword]────────▶ CoolTextClient.ForwardToApplicationAsync(callbackUrl)
-```
-
----
-
-## Key Architectural Decisions
-
-These are the decisions most likely to affect day-to-day development. Full ADR detail is in `outputs/architecture.md`.
-
-**Layered monolith (ADR-001):** The system is a single ASP.NET Core application, not microservices. Internal boundaries are enforced by C# interfaces and separate namespaces. Designed to allow extraction to microservices in Phase 2 without a rewrite. Do not blur these internal boundaries.
-
-**API key auth for upstream apps (ADR-006):** SCG applications authenticate with a shared `X-API-Key` header. The key is read from `IConfiguration["Auth:ApiKey"]` at request time so it can be rotated without a service restart. Keys are stored in Azure Key Vault — never in source code.
-
-**HMAC-SHA256 for webhooks (ADR-007):** Cool Text signs inbound webhooks with a shared secret. The signature header is `X-CoolText-Signature` by default (configurable via `CoolText:WebhookSignatureHeader`). The shared secret is `CoolText:WebhookSecret` in Key Vault. The signing mechanism must be confirmed with the Cool Text vendor.
-
-**No opt-out status caching (NFS-002):** The outbound compliance gate reads opt-out status directly from the database on every request. There is no caching of opt-out status in the gate path. This ensures enforcement is immediate after a status write.
-
-**Immutable audit log (ADR-004):** `AuditLogEntries` records are never updated or deleted. Enforced at two layers: the application calls `AddAsync` only (no `Update`/`Remove` methods on the service interface), and a DDL trigger (`trg_AuditLogEntries_Immutability`) in the database rejects any UPDATE or DELETE. After 90 days, records are archived to Azure Blob Storage WORM (immutable) storage.
-
-**Azure Functions for the scheduler (ADR-005):** The weekly compliance report runs via an Azure Functions Timer Trigger (cron `0 6 * * 1` = Monday 06:00 UTC). This isolates the job from the application process lifecycle. Failure triggers a Critical log event, which alerts IT via Azure Monitor.
-
----
-
-## PII Handling
-
-Cell phone numbers are PII. The following rules apply throughout the codebase:
-
-- Cell numbers are **never logged in full**. Always use the last-4-digit masking pattern: `MaskCellNumber(cellNumber)` or equivalent.
-- Cell numbers are stored with **Azure SQL Always Encrypted** (AES-256, deterministic encryption). This is a post-migration infrastructure step; columns are `nvarchar(20)` until the platform team applies encryption.
-- The connection string must include `Column Encryption Setting=Enabled` for the driver to transparently encrypt/decrypt.
-- Admin API responses return `maskedCellNumber` (last 4 digits only), never the full number.
-
----
-
-## Running Migrations
-
-In non-Production environments, migrations run automatically at startup. In Production, apply migrations via the CI/CD pipeline:
-
-```bash
-dotnet ef database update \
-  --project src/TCPA.Api \
-  --connection "<production-connection-string>"
-```
-
-After the initial migration, the platform team must apply two post-migration steps:
-1. Always Encrypted column encryption on `CellPhoneNumber` columns (TASK-061).
-2. The audit log immutability DDL trigger from `src/TCPA.Api/Infrastructure/Data/Seeds/002_AuditLogImmutabilityTrigger.sql`.
-3. The application registration seed from `src/TCPA.Api/Infrastructure/Data/Seeds/001_ApplicationRegistrationSeed.sql` (after replacing the placeholder values with production Cool Text account IDs).

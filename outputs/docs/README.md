@@ -1,52 +1,58 @@
 # TCPA Regulatory Compliance API
 
-The TCPA Compliance API is a middleware service that enforces the Telephone Consumer Protection Act (TCPA) opt-out requirements for all outbound SMS messages sent by Southern Company Gas (SCG) upstream applications. It sits between SCG application systems (BizTalk, GCMA, KMI Active, ARM/Construction Portal, CCB/My Account) and the Cool Text/Twilio SMS platform.
+The TCPA Compliance system enforces the Telephone Consumer Protection Act opt-out requirements for all outbound SMS messages sent by Southern Company Gas (SCG) upstream applications. It sits between SCG application systems and the Cool Text SMS platform, ensuring no message reaches an opted-out recipient.
 
-Every outbound SMS must pass through the compliance gate before delivery. The gate checks the destination cell number against the opt-out database and suppresses the message if the recipient has opted out. Inbound replies (such as "STOP") are received via webhook and trigger the opt-out pipeline automatically.
+Every outbound SMS passes through a compliance gate that checks opt-out status and TCPA quiet hours before delivery. Inbound replies containing opt-out keywords (STOP, QUIT, END, etc.) are received via webhook and trigger the opt-out pipeline automatically.
 
-Full documentation is in [docs/](./):
-- [api.md](api.md) — API endpoint reference
+Full documentation:
+- [api.md](api.md) — API endpoint reference with request/response examples
 - [architecture.md](architecture.md) — Developer architecture overview
-- [operations.md](operations.md) — Ops team configuration and runbook
+- [operations.md](operations.md) — Configuration reference, health checks, runbook
 - [CHANGELOG.md](CHANGELOG.md) — Release history
 
 ---
 
 ## Quickstart — Run Locally
 
-**Prerequisites:** .NET 8 SDK, SQL Server LocalDB (bundled with Visual Studio), Azure Functions Core Tools v4
+**Prerequisites:** .NET 8 SDK, SQL Server LocalDB (included with Visual Studio 2022), Kafka (local or Docker)
 
 ### 1. Clone and restore
 
 ```bash
 git clone <repo-url>
 cd sdlc-agents
-dotnet restore src/TCPA.Api/TCPA.Api.csproj
+dotnet restore src/TCPA.sln
 ```
 
-### 2. Create the local database
+### 2. Set required secrets
 
-The app auto-migrates in non-Production environments. Start it once with LocalDB configured and the migration runs automatically.
-
-The `appsettings.Development.json` already points to LocalDB:
-
-```
-Server=(localdb)\mssqllocaldb;Database=TcpaApi_Dev;Trusted_Connection=True;Column Encryption Setting=Enabled;
-```
-
-No changes needed for local development.
-
-### 3. Set required secrets
-
-The following secrets are required. For local development, use [.NET user secrets](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets):
+Use .NET user secrets for local development. Never commit real credentials.
 
 ```bash
+# TCPA.Api
 cd src/TCPA.Api
-dotnet user-secrets set "Auth:ApiKey" "dev-api-key-replace-me"
-dotnet user-secrets set "CoolText:WebhookSecret" "dev-webhook-secret-replace-me"
+dotnet user-secrets set "ApiKeys:ValidKeys" "dev-api-key-local"
+dotnet user-secrets set "ApiKeys:AdminKeys" "dev-admin-key-local"
+dotnet user-secrets set "Logging:PhoneHashKey" "dev-hash-key-at-least-32-chars!!"
+
+# TCPA.MessageProcessor
+cd ../TCPA.MessageProcessor
+dotnet user-secrets set "CoolText:ApiKey" "dev-cooltext-key"
+dotnet user-secrets set "Logging:PhoneHashKey" "dev-hash-key-at-least-32-chars!!"
+
+# TCPA.OutboundDispatcher
+cd ../TCPA.OutboundDispatcher
+dotnet user-secrets set "CoolText:ApiKey" "dev-cooltext-key"
+dotnet user-secrets set "Logging:PhoneHashKey" "dev-hash-key-at-least-32-chars!!"
 ```
 
-The Admin API endpoints require `Authentication:AdminApi:Authority` to be set. For local development without an identity provider, the admin endpoints will be unavailable (a warning is logged at startup — this is expected).
+### 3. Run database migrations
+
+```bash
+dotnet ef database update --project src/TCPA.Core --startup-project src/TCPA.Api
+```
+
+This creates all five tables: `OptOutStatuses`, `AuditLogs`, `CoolTextAccounts`, `SystemConfigs`, `ProcessedMessages`.
 
 ### 4. Run the API
 
@@ -54,17 +60,24 @@ The Admin API endpoints require `Authentication:AdminApi:Authority` to be set. F
 dotnet run --project src/TCPA.Api/TCPA.Api.csproj
 ```
 
-The API listens on `https://localhost:5001` and `http://localhost:5000` by default. On first startup, EF Core migrations run automatically and create the database schema.
+The API starts on `https://localhost:5001` / `http://localhost:5000` by default.
 
-### 5. Verify it is running
+### 5. Verify the API is running
 
 ```bash
-curl http://localhost:5000/health
+curl http://localhost:5000/api/v1/health
 ```
 
-Expected response:
+Expected response (200 OK):
 ```json
-{"status":"healthy","checks":{"tcpa-database":{"status":"ok","description":null}},"timestamp":"2026-06-26T..."}
+{
+  "status": "healthy",
+  "checks": {
+    "database": "ok",
+    "kafka": "ok"
+  },
+  "timestamp": "2026-07-24T10:00:00+00:00"
+}
 ```
 
 ---
@@ -72,23 +85,31 @@ Expected response:
 ## Running Tests
 
 ```bash
+# All tests
+dotnet test src/TCPA.sln
+
+# Specific project
 dotnet test tests/TCPA.Api.Tests/TCPA.Api.Tests.csproj
+dotnet test tests/TCPA.MessageProcessor.Tests/
+dotnet test tests/TCPA.OutboundDispatcher.Tests/
 ```
 
-Tests use in-memory or mocked dependencies and do not require a running database or Cool Text connection.
+Unit tests use in-memory dependencies and require no running services. Integration tests require SQL Server and are skipped automatically if Testcontainers/Docker is unavailable.
+
+Current test counts: 41 API · 22 MessageProcessor · 24 OutboundDispatcher.
 
 ---
 
 ## Key Configuration Options
 
-All production values are stored in Azure Key Vault and Azure App Configuration. See [operations.md](operations.md) for the full reference. The most critical settings:
+All production values are injected as environment variables or via a secrets manager. See [operations.md](operations.md) for the complete reference.
 
-| Key | Purpose | Where to set |
-|-----|---------|--------------|
-| `ConnectionStrings:TcpaDatabase` | Azure SQL connection string | Azure Key Vault |
-| `Auth:ApiKey` | API key for upstream application authentication | Azure Key Vault |
-| `CoolText:WebhookSecret` | HMAC shared secret for inbound webhook validation | Azure Key Vault |
-| `Authentication:AdminApi:Authority` | SCG Identity Provider OIDC endpoint | Azure App Configuration |
-| `AzureKeyVault:Endpoint` | Key Vault URI | `appsettings.json` or environment variable |
-
-For local development, use `appsettings.Development.json` and .NET user secrets. Never commit real credentials.
+| Key | Purpose | Required by |
+|-----|---------|-------------|
+| `ConnectionStrings:Primary` | SQL Server write endpoint | All components |
+| `ApiKeys:ValidKeys` | Comma-separated valid API keys | TCPA.Api |
+| `ApiKeys:AdminKeys` | Comma-separated admin API keys | TCPA.Api |
+| `Kafka:BootstrapServers` | Kafka broker list | All components |
+| `CoolText:ApiUrl` | Cool Text gateway base URL | MessageProcessor, OutboundDispatcher |
+| `CoolText:ApiKey` | Cool Text API key | MessageProcessor, OutboundDispatcher |
+| `Logging:PhoneHashKey` | HMAC-SHA256 key for phone number hashing in logs | All components |

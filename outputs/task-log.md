@@ -500,3 +500,23 @@
 - `TCPA_API_BASE_URL` environment variable required for smoke tests in CI/CD pipeline
 - Smoke tests do NOT require a valid API key or HMAC secret — all smoke requests are intentionally unauthenticated and safe for production
 - Tests use `IClassFixture<TcpaFunctionalTestFactory>` — one shared factory per test class; separate phone numbers used per test to avoid InMemory DB state conflicts
+
+---
+
+## Documentation Agent Output (Agent 12 — Jamie)
+
+- **Status:** Complete
+- **Files produced:**
+  - `outputs/docs/README.md` — quickstart, test instructions, key config reference
+  - `outputs/docs/api.md` — all 4 endpoints with accurate request/response examples
+  - `outputs/docs/architecture.md` — component overview, data flow, schema, design decisions, codebase navigation
+  - `outputs/docs/operations.md` — full config reference per component, migrations, health check, log events, failure modes and diagnosis
+  - `outputs/docs/CHANGELOG.md` — v1.0.0 entry covering all delivered features and security controls
+- **Endpoints documented:** 4 (POST /webhook/inbound, POST /api/v1/messages/outbound, POST /api/v1/admin/reopt-in, GET /api/v1/health)
+- **Spec/code divergences found:**
+  - Prior docs (`outputs/docs/README.md` v0): referenced Azure Functions Core Tools v4 — no Azure Functions exist; both workers are .NET 8 Worker Services. **Corrected.**
+  - Prior docs: `Auth:ApiKey` config key — actual keys are `ApiKeys:ValidKeys` and `ApiKeys:AdminKeys`. **Corrected.**
+  - Prior docs: `ConnectionStrings:TcpaDatabase` — actual key is `ConnectionStrings:Primary`. **Corrected.**
+  - Prior docs: health check at `/health` — actual path is `/api/v1/health`. **Corrected.**
+  - Prior docs: health response shape referenced `tcpa-database` check name — actual field names are `database` and `kafka`. **Corrected.**
+- **Known documentation gaps:** None. All implemented endpoints documented. All config keys covered. Operations runbook covers all diagnosed failure modes.
