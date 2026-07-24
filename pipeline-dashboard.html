@@ -536,6 +536,7 @@
     .av-table tbody tr:hover td { background: var(--surface-1); }
     .av-file  { font-family: monospace; font-size: 11px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
     .av-agent { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+    .av-agent-persona { font-size: 10px; color: var(--text-muted); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; opacity: 0.75; }
     .av-mono  { font-family: monospace; font-size: 11px; color: var(--text-muted); }
     .col-file  { width: 38%; } .col-agent { width: 22%; }
     .col-st    { width: 14%; } .col-sz    { width: 10%; } .col-mt { width: 16%; }
@@ -711,6 +712,7 @@ function renderArtifactView() {
         rows.push({
           path:      out,
           agentName: 'Step ' + a.id + ' — ' + a.name,
+          agentPersona: a.persona || null,
           st,
           size:  enriched ? enriched.size  : null,
           mtime: enriched ? enriched.mtime : null,
@@ -758,7 +760,10 @@ function renderArtifactView() {
     rows.forEach(r => {
       html += `<tr>
         <td class="col-file"><span class="av-file" title="${r.path}">${r.path}</span></td>
-        <td class="col-agent"><span class="av-agent">${r.agentName}</span></td>
+        <td class="col-agent">
+          <span class="av-agent">${r.agentName}</span>
+          ${r.agentPersona ? `<span class="av-agent-persona">${r.agentPersona}</span>` : ''}
+        </td>
         <td class="col-st"><span class="pill ${r.st.cls}"><i class="ti ${r.st.icon}" style="font-size:9px;vertical-align:1px"></i> ${r.st.label}</span></td>
         <td class="col-sz"><span class="av-mono">${r.size || '&mdash;'}</span></td>
         <td class="col-mt"><span class="av-mono">${r.mtime || '&mdash;'}</span></td>
