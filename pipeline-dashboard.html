@@ -1496,23 +1496,23 @@ function startPipeline() {
     if (inp.prd) {
       title  = 'Start BMAD pipeline — from PRD';
       prompt =
-`A PRD already exists at inputs/prd.md. Start the BMAD hybrid pipeline.
+`@orchestrator.md
 
-Read @orchestrator.md and begin. The orchestrator will assess the current pipeline state and resume from the appropriate agent.`;
+inputs/prd.md is ready. Assess the current pipeline state, identify the next incomplete stage, and engage the appropriate agent in interactive mode.`;
       sub = 'PRD detected — BMAD orchestrator will resume from the correct step. Paste into your Claude Code terminal.';
     } else if (inp.brd) {
       title  = 'Start BMAD pipeline — from BRD';
       prompt =
-`A BRD has been placed at inputs/brd.md. Start the BMAD hybrid pipeline.
+`@orchestrator.md
 
-Read @orchestrator.md and begin. Alex (Agent 00) will guide you through translating the BRD to a PRD interactively before the pipeline continues.`;
+inputs/brd.md is ready. Start from Agent 00 — Alex will translate the BRD to a PRD interactively before the pipeline continues.`;
       sub = 'BRD detected — Alex will bridge to PRD interactively. Paste into your Claude Code terminal.';
     } else {
       title  = 'Start BMAD pipeline';
       prompt =
-`Read @orchestrator.md and begin the BMAD hybrid pipeline session.
+`@orchestrator.md
 
-The orchestrator will assess the current pipeline state and guide you to the appropriate starting point.`;
+No inputs detected yet. Assess the current pipeline state and guide me to the appropriate starting point.`;
       sub = 'No inputs detected — orchestrator will determine entry point. Paste into your Claude Code terminal.';
     }
     showModal(title, prompt);
