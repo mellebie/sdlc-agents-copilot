@@ -14,5 +14,9 @@ public enum AuditEventType
     ReOptIn,
     ReplyForwarded,
     ReplyForwardFailed,
-    MessageDispatched
+    MessageDispatched,
+    // Outbound dispatcher audit events
+    OutboundSuppressed,
+    OutboundDelivered,
+    OutboundFailed
 }

@@ -1,7 +1,5 @@
-using TCPA.OutboundDispatcher;
-
 var builder = Host.CreateApplicationBuilder(args);
-builder.Services.AddHostedService<Worker>();
 
+// Hosted services will be added in subsequent tasks
 var host = builder.Build();
 host.Run();
