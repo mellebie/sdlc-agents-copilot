@@ -366,9 +366,11 @@ function Get-AgentConfidence($id) {
             $c = ReadContent 'outputs/pr-description.md'
             $sr = Check-SelfReported $c; if ($sr) { return $sr }
             if (-not $c) { return [ordered]@{ level='low'; reason='pr-description.md not found' } }
-            $conditions = Count-Flags $c 'WITH CONDITIONS'
+            # Match only verdict-announcing lines — avoids false positives from section headers
+            # that repeat the verdict text (e.g. "Open conditions (PASS WITH CONDITIONS):")
+            $conditions = Count-Flags $c '\*\*Verdict:.*WITH CONDITIONS'
             if ($conditions -eq 0) { return [ordered]@{ level='high';   reason='PR ready - no conditions outstanding' } }
-            if ($conditions -le 2) { return [ordered]@{ level='medium'; reason="$conditions condition(s) require acknowledgement" } }
+            if ($conditions -le 2) { return [ordered]@{ level='medium'; reason="$conditions review(s) approved WITH CONDITIONS - acknowledge before merge" } }
             return [ordered]@{ level='low'; reason="$conditions open conditions before merge" }
         }
         default { return [ordered]@{ level='medium'; reason='Confidence not assessed' } }
