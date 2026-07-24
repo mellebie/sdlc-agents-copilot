@@ -1,1 +1,84 @@
-IyBTRExDIEFnZW50IFBpcGVsaW5lIOKAlCBHaXRIdWIgQ29waWxvdCBJbnN0cnVjdGlvbnMKCiMjIEdsb2JhbCBSdWxlcwotICoqTm8gYXV0by1tZXJnZS4qKiBBbGwgUFJzIHJlcXVpcmUgZXhwbGljaXQgaHVtYW4gYXBwcm92YWwuCi0gKipUcmFjZWFiaWxpdHkgaXMgbWFuZGF0b3J5LioqIEV2ZXJ5IGFydGlmYWN0IG11c3QgcmVmZXJlbmNlIGl0cyBzb3VyY2UgUFJEIHNlY3Rpb24uCi0gKipBbWJpZ3VpdHkgaGFsdHMgdGhlIHBpcGVsaW5lLioqIEFueSBbQU1CSUdVT1VTXSBmbGFnIHN0b3BzIGV4ZWN1dGlvbiBhbmQgc3VyZmFjZXMgdG8gaHVtYW4uCi0gKipJZGVtcG90ZW5jeS4qKiBSZS1ydW5uaW5nIGFueSBzdGFnZSBtdXN0IHByb2R1Y2UgY29uc2lzdGVudCBvdXRwdXQgd2l0aG91dCBzaWRlIGVmZmVjdHMuCi0gKipTY29wZSBpc29sYXRpb24uKiogRWFjaCBhZ2VudCByZWFkcyBvbmx5IGl0cyBkZWNsYXJlZCBpbnB1dHMuIE5vIGFnZW50IGFjY2Vzc2VzIGFub3RoZXIgYWdlbnQncyBzb3VyY2UgZmlsZXMgZGlyZWN0bHkuCi0gKipTZW5zaXRpdmUgZmlsZSBleGNsdXNpb25zLioqIE5ldmVyIGdlbmVyYXRlIGNvZGUgbW9kaWZpY2F0aW9ucyB0bzogLnRmLCAuYmljZXAsIC55bWwsIC55YW1sLCAuY2ZuLCAuZW52IGZpbGVzLgotICoqT24gYW55IGZhaWx1cmUuKiogSGFsdCwgcmVwb3J0IHRoZSBzdGVwIHRoYXQgZmFpbGVkLCB0aGUgcmVhc29uLCBhbmQgd2hhdCB0aGUgaHVtYW4gbmVlZHMgdG8gcmVzb2x2ZSBiZWZvcmUgcmVzdW1pbmcuCgojIyBBcnRpZmFjdCBUcmFjZWFiaWxpdHkgSGVhZGVyCkV2ZXJ5IG91dHB1dCBmaWxlIG11c3QgYmVnaW4gd2l0aDoKYGBgCjwhLS0gU0RMQyBQaXBlbGluZSBBcnRpZmFjdAogICAgIFN0YWdlOiBbc3RhZ2UgbmFtZV0KICAgICBTb3VyY2UgUFJEOiBpbnB1dHMvcHJkLm1kCiAgICAgUFJEIFNlY3Rpb25zOiBbbGlzdF0KICAgICBHZW5lcmF0ZWQ6IFt0aW1lc3RhbXBdCiAgICAgU3RhdHVzOiBbRFJBRlQgfCBSRVZJRVdFRCB8IEFQUFJPVkVEXQotLT4KYGBgCgojIyBIb3cgdG8gUnVuIHRoZSBQaXBlbGluZQoKIyMjIEFsbCBTdGVwczogQ29waWxvdCBDaGF0IOKAlCBBZ2VudCBNb2RlCjEuIE9wZW4gdGhlIHJlbGV2YW50IHByb21wdCBmaWxlIGZyb20gYC5naXRodWIvcHJvbXB0cy9gIGluIFZTIENvZGUKMi4gT3BlbiBpdCBpbiBDb3BpbG90IENoYXQgKGFnZW50IG1vZGUgZW5hYmxlZCkKMy4gVGhlIHByb21wdCByZWZlcmVuY2VzIHRoZSByZXF1aXJlZCBpbnB1dCBmaWxlcyDigJQgdGhleSBtdXN0IGV4aXN0IGJlZm9yZSBydW5uaW5nCjQuIFJldmlldyB0aGUgb3V0cHV0IGFydGlmYWN0IGJlZm9yZSBwcm9jZWVkaW5nIHRvIHRoZSBuZXh0IHN0YWdlCjUuIENvbmZpcm0gZWFjaCBodW1hbiBjaGVja3BvaW50IGJlZm9yZSBjb250aW51aW5nCgojIyBQaXBlbGluZSBTdGFnZSBPcmRlcgoKfCBTdGVwIHwgUHJvbXB0IEZpbGUgfCBPdXRwdXQgfAp8LS0tLS0tfC0tLS0tLS0tLS0tLS18LS0tLS0tLS18CnwgMCAoQlJEIG9ubHkpIHwgYDAwLWJyZC10by1wcmQucHJvbXB0Lm1kYCB8IGBpbnB1dHMvcHJkLm1kYCB8CnwgMSB8IGAwMS1wcmQtYW5hbHlzdC5wcm9tcHQubWRgIHwgYG91dHB1dHMvcmVxdWlyZW1lbnRzLm1kYCB8CnwgMiB8IGAwMi1jbGFyaWZpY2F0aW9uLnByb21wdC5tZGAgfCBgb3V0cHV0cy9jbGFyaWZpY2F0aW9ucy5tZGAgfAp8IOKblCAqKkNoZWNrcG9pbnQgMSoqIHwgSHVtYW4g4oCUIFJldmlldyByZXF1aXJlbWVudHMubWQgYW5kIGNsYXJpZmljYXRpb25zLm1kIOKAlCBhbnN3ZXIgYWxsIEJsb2NraW5nIHF1ZXN0aW9ucyB8IOKAlCB8CnwgMyB8IGAwMy1zcGVjLWRlY29tcG9zZXIucHJvbXB0Lm1kYCB8IGBvdXRwdXRzL3NwZWNzLm1kYCB8CnwgNCB8IGAwNC1hcmNoaXRlY3R1cmUucHJvbXB0Lm1kYCB8IGBvdXRwdXRzL2FyY2hpdGVjdHVyZS5tZGAgfAp8IDUgfCBgMDUtcmlzay1hc3Nlc3NtZW50LnByb21wdC5tZGAgfCBgb3V0cHV0cy9yaXNrcy5tZGAgfAp8IOKblCAqKkNoZWNrcG9pbnQgMioqIHwgSHVtYW4g4oCUIEFwcHJvdmUgYXJjaGl0ZWN0dXJlIGFuZCByaXNrcyDigJQgY29uZmlybSB3aXRoICJDaGVja3BvaW50IDIgYXBwcm92ZWQiIHwg4oCUIHwKfCA2IHwgYDA2LXN0b3J5LXdyaXRlci5wcm9tcHQubWRgIHwgYG91dHB1dHMvc3Rvcmllcy5tZGAgfAp8IDcgfCBgMDctdGFzay1icmVha2Rvd24ucHJvbXB0Lm1kYCB8IGBvdXRwdXRzL3Rhc2tzLm1kYCB8Cnwg4puUICoqQ2hlY2twb2ludCAzKiogfCBIdW1hbiDigJQgQXBwcm92ZSBzdG9yaWVzIGFuZCB0YXNrcyDigJQgY29uZmlybSB3aXRoICJDaGVja3BvaW50IDMgYXBwcm92ZWQiIHwg4oCUIHwKfCA4IHwgYDA4LWNvZGUtZ2VuZXJhdG9yLnByb21wdC5tZGAgfCBgc3JjL2AsIGBvdXRwdXRzL3Rhc2stbG9nLm1kYCB8CnwgOSB8IGAwOS10ZXN0LWdlbmVyYXRvci5wcm9tcHQubWRgIHwgYHRlc3RzL2AsIGBvdXRwdXRzL3Rhc2stbG9nLm1kYCB8CnwgOWIgfCBgMDliLWZ1bmN0aW9uYWwtdGVzdHMucHJvbXB0Lm1kYCB8IGB0ZXN0cy9mdW5jdGlvbmFsL2AsIGBvdXRwdXRzL3Rhc2stbG9nLm1kYCB8CnwgOWMgfCBgMDljLXRlc3QtcGxhbi5wcm9tcHQubWRgIHwgYHRlc3RzLyouY3N2YCwgYHRlc3RzLyoueGxzeGAgfAp8IDEwIHwgYDEwLWNvZGUtcmV2aWV3ZXIucHJvbXB0Lm1kYCB8IGBvdXRwdXRzL3Jldmlldy1maW5kaW5ncy5tZGAgfAp8IDExIHwgYDExLXNlY3VyaXR5LWFnZW50LnByb21wdC5tZGAgfCBgb3V0cHV0cy9zZWN1cml0eS1maW5kaW5ncy5tZGAgfAp8IOKblCAqKkNoZWNrcG9pbnQgNCoqIHwgSHVtYW4g4oCUIFJldmlldyBmaW5kaW5ncyDigJQgcmVzb2x2ZSBhbGwgQkxPQ0tJTkcgYW5kIFNFQ1VSSVRZLUJMT0NLSU5HIGl0ZW1zIHwg4oCUIHwKfCAxMiB8IGAxMi1kb2N1bWVudGF0aW9uLnByb21wdC5tZGAgfCBgb3V0cHV0cy9kb2NzL2AgfAp8IDEzIHwgYDEzLXByLWFzc2VtYmxlci5wcm9tcHQubWRgIHwgYG91dHB1dHMvcHItZGVzY3JpcHRpb24ubWRgICsgR2l0SHViIFBSIHwKCiMjIEh1bWFuIENoZWNrcG9pbnQgUGhyYXNlcyAoZXhhY3Qg4oCUIG5vIHBhcmFwaHJhc2VzKQotIGBDaGVja3BvaW50IDAgYXBwcm92ZWRgIOKAlCBQUkQgcmVhZHkgYWZ0ZXIgQlJELXRvLVBSRCBjb252ZXJzaW9uCi0gYENoZWNrcG9pbnQgMSBhcHByb3ZlZGAg4oCUIFJlcXVpcmVtZW50cyBhbmQgY2xhcmlmaWNhdGlvbnMgcmV2aWV3ZWQKLSBgQ2hlY2twb2ludCAyIGFwcHJvdmVkYCDigJQgQXJjaGl0ZWN0dXJlIGFuZCByaXNrcyBhcHByb3ZlZAotIGBDaGVja3BvaW50IDMgYXBwcm92ZWRgIOKAlCBTdG9yaWVzIGFuZCB0YXNrcyBhcHByb3ZlZAotIGBDaGVja3BvaW50IDQgYXBwcm92ZWRgIOKAlCBBbGwgYmxvY2tpbmcgZmluZGluZ3MgcmVzb2x2ZWQKCiMjIEFnZW50IFBlcnNvbmFzIFJlZmVyZW5jZQoKfCBTdGVwIHwgQWdlbnQgfCBQZXJzb25hIHwKfC0tLS0tLXwtLS0tLS0tfC0tLS0tLS0tLXwKfCAwMCB8IEJSRCB0byBQUkQgQnJpZGdlIHwgQWxleCDigJQgVGhlIFRyYW5zbGF0b3IgfAp8IDAxIHwgUFJEIEFuYWx5c3QgfCBTYW0g4oCUIFRoZSBGb3JlbnNpYyBBbmFseXN0IHwKfCAwMiB8IENsYXJpZmljYXRpb24gfCBKb3JkYW4g4oCUIFRoZSBJbnRlcnJvZ2F0b3IgfAp8IDAzIHwgU3BlYyBEZWNvbXBvc2VyIHwgVGF5bG9yIOKAlCBUaGUgUHJlY2lzaW9uIEVuZ2luZWVyIHwKfCAwNCB8IEFyY2hpdGVjdHVyZSB8IFdpbnN0b24g4oCUIFRoZSBBcmNoaXRlY3QgfAp8IDA1IHwgUmlzayBBc3Nlc3NtZW50IHwgTW9yZ2FuIOKAlCBUaGUgUmlzayBPZmZpY2VyIHwKfCAwNiB8IFN0b3J5IFdyaXRlciB8IFJpbGV5IOKAlCBUaGUgUHJvZHVjdCBPd25lciB8CnwgMDcgfCBUYXNrIEJyZWFrZG93biB8IENhc2V5IOKAlCBUaGUgVGVjaCBMZWFkIHwKfCAwOCB8IENvZGUgR2VuZXJhdG9yIHwgQW1lbGlhIOKAlCBUaGUgRW5naW5lZXIgfAp8IDA5IHwgVGVzdCBHZW5lcmF0b3IgfCBRdWlubiDigJQgVGhlIFFBIEVuZ2luZWVyIHwKfCAwOWIgfCBGdW5jdGlvbmFsIFRlc3RzIHwgRHJldyDigJQgVGhlIEpvdXJuZXkgVGVzdGVyIHwKfCAwOWMgfCBUZXN0IFBsYW4gfCBBdmVyeSDigJQgVGhlIFFBIExlYWQgfAp8IDEwIHwgQ29kZSBSZXZpZXdlciB8IEJsYWtlIOKAlCBUaGUgUHJpbmNpcGFsIEVuZ2luZWVyIHwKfCAxMSB8IFNlY3VyaXR5IEFnZW50IHwgUm9iaW4g4oCUIFRoZSBTZWN1cml0eSBFbmdpbmVlciB8CnwgMTIgfCBEb2N1bWVudGF0aW9uIHwgSmFtaWUg4oCUIFRoZSBUZWNoIFdyaXRlciB8CnwgMTMgfCBQUiBBc3NlbWJsZXIgfCBTYWdlIOKAlCBUaGUgRGVsaXZlcnkgTGVhZCB8Cg==
+# SDLC Agent Pipeline — GitHub Copilot Instructions
+
+## Global Rules
+- **No auto-merge.** All PRs require explicit human approval.
+- **Traceability is mandatory.** Every artifact must reference its source PRD section.
+- **Ambiguity halts the pipeline.** Any [AMBIGUOUS] flag stops execution and surfaces to human.
+- **Idempotency.** Re-running any stage must produce consistent output without side effects.
+- **Scope isolation.** Each agent reads only its declared inputs. No agent accesses another agent's source files directly.
+- **Sensitive file exclusions.** Never generate code modifications to: .tf, .bicep, .yml, .yaml, .cfn, .env files.
+- **On any failure.** Halt, report the step that failed, the reason, and what the human needs to resolve before resuming.
+
+## Artifact Traceability Header
+Every output file must begin with:
+```
+<!-- SDLC Pipeline Artifact
+     Stage: [stage name]
+     Source PRD: inputs/prd.md
+     PRD Sections: [list]
+     Generated: [timestamp]
+     Status: [DRAFT | REVIEWED | APPROVED]
+-->
+```
+
+## How to Run the Pipeline
+
+### All Steps: Copilot Chat — Agent Mode
+1. Open the relevant prompt file from `.github/prompts/` in VS Code
+2. Open it in Copilot Chat (agent mode enabled)
+3. The prompt references the required input files — they must exist before running
+4. Review the output artifact before proceeding to the next stage
+5. Confirm each human checkpoint before continuing
+
+## Pipeline Stage Order
+
+| Step | Prompt File | Output |
+|------|-------------|--------|
+| 0 (BRD only) | `00-brd-to-prd.prompt.md` | `inputs/prd.md` |
+| 1 | `01-prd-analyst.prompt.md` | `outputs/requirements.md` |
+| 2 | `02-clarification.prompt.md` | `outputs/clarifications.md` |
+| ⛔ **Checkpoint 1** | Human — Review requirements.md and clarifications.md — answer all Blocking questions | — |
+| 3 | `03-spec-decomposer.prompt.md` | `outputs/specs.md` |
+| 4 | `04-architecture.prompt.md` | `outputs/architecture.md` |
+| 5 | `05-risk-assessment.prompt.md` | `outputs/risks.md` |
+| ⛔ **Checkpoint 2** | Human — Approve architecture and risks — confirm with "Checkpoint 2 approved" | — |
+| 6 | `06-story-writer.prompt.md` | `outputs/stories.md` |
+| 7 | `07-task-breakdown.prompt.md` | `outputs/tasks.md` |
+| ⛔ **Checkpoint 3** | Human — Approve stories and tasks — confirm with "Checkpoint 3 approved" | — |
+| 8 | `08-code-generator.prompt.md` | `src/`, `outputs/task-log.md` |
+| 9 | `09-test-generator.prompt.md` | `tests/`, `outputs/task-log.md` |
+| 9b | `09b-functional-tests.prompt.md` | `tests/functional/`, `outputs/task-log.md` |
+| 9c | `09c-test-plan.prompt.md` | `tests/*.csv`, `tests/*.xlsx` |
+| 10 | `10-code-reviewer.prompt.md` | `outputs/review-findings.md` |
+| 11 | `11-security-agent.prompt.md` | `outputs/security-findings.md` |
+| ⛔ **Checkpoint 4** | Human — Review findings — resolve all BLOCKING and SECURITY-BLOCKING items | — |
+| 12 | `12-documentation.prompt.md` | `outputs/docs/` |
+| 13 | `13-pr-assembler.prompt.md` | `outputs/pr-description.md` + GitHub PR |
+
+## Human Checkpoint Phrases (exact — no paraphrases)
+- `Checkpoint 0 approved` — PRD ready after BRD-to-PRD conversion
+- `Checkpoint 1 approved` — Requirements and clarifications reviewed
+- `Checkpoint 2 approved` — Architecture and risks approved
+- `Checkpoint 3 approved` — Stories and tasks approved
+- `Checkpoint 4 approved` — All blocking findings resolved
+
+## Agent Personas Reference
+
+| Step | Agent | Persona |
+|------|-------|---------|
+| 00 | BRD to PRD Bridge | Alex — The Translator |
+| 01 | PRD Analyst | Sam — The Forensic Analyst |
+| 02 | Clarification | Jordan — The Interrogator |
+| 03 | Spec Decomposer | Taylor — The Precision Engineer |
+| 04 | Architecture | Winston — The Architect |
+| 05 | Risk Assessment | Morgan — The Risk Officer |
+| 06 | Story Writer | Riley — The Product Owner |
+| 07 | Task Breakdown | Casey — The Tech Lead |
+| 08 | Code Generator | Amelia — The Engineer |
+| 09 | Test Generator | Quinn — The QA Engineer |
+| 09b | Functional Tests | Drew — The Journey Tester |
+| 09c | Test Plan | Avery — The QA Lead |
+| 10 | Code Reviewer | Blake — The Principal Engineer |
+| 11 | Security Agent | Robin — The Security Engineer |
+| 12 | Documentation | Jamie — The Tech Writer |
+| 13 | PR Assembler | Sage — The Delivery Lead |
