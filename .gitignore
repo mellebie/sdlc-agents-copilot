@@ -1,0 +1,46 @@
+# .NET build outputs
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.vscode/
+
+# Test results
+TestResults/
+*.trx
+*.coverage
+
+# NuGet packages (restore on build; do not commit binaries)
+*.nupkg
+packages/
+.nuget/
+
+# Secrets and sensitive files
+*.env
+GitHub\ PAT.txt
+.mcp.json
+
+# Temp and backup files
+*.orig
+*_orig.md
+*.zip
+pipeline-state.json
+
+# Client input documents (may contain sensitive content — commit deliberately)
+# inputs/
+
+# Old/archived dashboard versions
+pipeline-dashboard - *.html
+pipeline-dashboard-v2.html
+
+# Excel test artefacts
+*.xls
+*.xlsx
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db

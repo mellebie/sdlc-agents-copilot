@@ -1,0 +1,10 @@
+# Normalise line endings to LF in the repo, CRLF on Windows checkout
+* text=auto eol=lf
+*.cs text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.ps1 text eol=lf
+*.html text eol=lf
+*.sql text eol=lf
+*.csv text eol=lf
+*.csproj text eol=lf
