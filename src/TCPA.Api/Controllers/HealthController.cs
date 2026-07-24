@@ -45,7 +45,16 @@ public class HealthController : ControllerBase
             dbOk = false;
         }
 
-        bool kafkaOk = await _publisher.CheckHealthAsync(ct);
+        bool kafkaOk;
+        try
+        {
+            kafkaOk = await _publisher.CheckHealthAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Kafka health check failed");
+            kafkaOk = false;
+        }
 
         return BuildResponse(dbOk, kafkaOk);
     }
