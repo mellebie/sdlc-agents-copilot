@@ -193,6 +193,9 @@
     .start-btn-wrap .tooltip-box { min-width: 220px; left: 50%; transform: translateX(-50%); bottom: calc(100% + 6px); top: auto; }
     .import-bar-sep { flex: 1; }
     .import-hint { font-size: 11px; color: var(--text-muted); }
+    .mode-toggle { display: inline-flex; border: 0.5px solid var(--border-strong); border-radius: 6px; overflow: hidden; margin-right: 2px; }
+    .mode-btn { font-size: 11px; font-weight: 500; padding: 4px 11px; background: transparent; border: none; cursor: pointer; color: var(--text-muted); transition: background .15s, color .15s; white-space: nowrap; }
+    .mode-btn.active { background: var(--fill-accent); color: #fff; }
 
     /* Run button on agent cards */
     .run-btn {
@@ -553,11 +556,16 @@
   </div>
 
   <div class="import-bar">
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="mode-static" onclick="setMode('static')">Static</button>
+      <button class="mode-btn" id="mode-bmad" onclick="setMode('bmad')">BMAD</button>
+    </div>
+    <span class="import-bar-divider"></span>
     <span class="import-bar-label">Import</span>
-    <button class="import-btn" onclick="triggerUpload('brd')">
+    <button class="import-btn" id="import-brd-btn" onclick="triggerUpload('brd')">
       <i class="ti ti-file-upload"></i> Upload BRD
     </button>
-    <button class="import-btn" onclick="triggerUpload('prd')">
+    <button class="import-btn" id="import-prd-btn" onclick="triggerUpload('prd')">
       <i class="ti ti-file-upload"></i> Upload PRD
     </button>
     <input type="file" id="file-input-brd" style="display:none" accept=".md,.txt,.doc,.docx,.pdf" onchange="handleUpload(event,'brd')">
@@ -1468,14 +1476,52 @@ function runAgent(id) {
   showModal('Run: ' + name, prompt);
 }
 
+// ── Mode toggle ────────────────────────────────────────────────────────────────
+let pipelineMode = 'static';
+
+function setMode(m) {
+  pipelineMode = m;
+  document.getElementById('mode-static').classList.toggle('active', m === 'static');
+  document.getElementById('mode-bmad').classList.toggle('active', m === 'bmad');
+  // BMAD: Alex bridges BRD→PRD interactively — PRD upload not needed
+  document.getElementById('import-prd-btn').style.display = m === 'bmad' ? 'none' : '';
+}
+
 // ── Start pipeline ─────────────────────────────────────────────────────────────
 function startPipeline() {
   const inp = state.inputs || {};
-
   let title, prompt, sub;
 
+  if (pipelineMode === 'bmad') {
+    if (inp.prd) {
+      title  = 'Start BMAD pipeline — from PRD';
+      prompt =
+`A PRD already exists at inputs/prd.md. Start the BMAD hybrid pipeline.
+
+Read @orchestrator.md and begin. The orchestrator will assess the current pipeline state and resume from the appropriate agent.`;
+      sub = 'PRD detected — BMAD orchestrator will resume from the correct step. Paste into your Claude Code terminal.';
+    } else if (inp.brd) {
+      title  = 'Start BMAD pipeline — from BRD';
+      prompt =
+`A BRD has been placed at inputs/brd.md. Start the BMAD hybrid pipeline.
+
+Read @orchestrator.md and begin. Alex (Agent 00) will guide you through translating the BRD to a PRD interactively before the pipeline continues.`;
+      sub = 'BRD detected — Alex will bridge to PRD interactively. Paste into your Claude Code terminal.';
+    } else {
+      title  = 'Start BMAD pipeline';
+      prompt =
+`Read @orchestrator.md and begin the BMAD hybrid pipeline session.
+
+The orchestrator will assess the current pipeline state and guide you to the appropriate starting point.`;
+      sub = 'No inputs detected — orchestrator will determine entry point. Paste into your Claude Code terminal.';
+    }
+    showModal(title, prompt);
+    document.getElementById('modal-sub').textContent = sub;
+    return;
+  }
+
+  // Static pipeline
   if (inp.prd) {
-    // PRD already exists — skip Agent 00, start from Agent 01
     title  = 'Start pipeline — from PRD';
     prompt =
 `A PRD already exists at inputs/prd.md. Start the SDLC pipeline from Agent 01.
@@ -1488,7 +1534,6 @@ Execute each step in sequence:
     sub = 'PRD detected at inputs/prd.md — pipeline starts from Agent 01. Paste into your Claude Code terminal.';
 
   } else if (inp.brd) {
-    // BRD exists, no PRD yet — start from Agent 00
     title  = 'Start pipeline — from BRD';
     prompt =
 `A BRD has been placed at inputs/brd.md. Start the SDLC pipeline from Agent 00.
@@ -1500,7 +1545,6 @@ Execute each step in sequence:
     sub = 'BRD detected at inputs/brd.md — pipeline starts from Agent 00. Paste into your Claude Code terminal.';
 
   } else {
-    // Pipeline already running — resume from next incomplete agent
     const nextAgent = (state.phases || [])
       .flatMap(ph => ph.agents || [])
       .find(a => !a.checkpoint && a.status === 'pending');
