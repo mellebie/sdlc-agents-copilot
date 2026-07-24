@@ -779,7 +779,7 @@ function renderArtifactView() {
 const pillLabel = { done: "Complete", warn: "Conditions open", err: "Incomplete", pend: "Pending" };
 const pillTip   = {
   done: "All agents ran and artifacts are approved. No action needed.",
-  warn: "Pipeline ran but one or more artifacts are still in DRAFT status. Promote to APPROVED in the output file to clear this.",
+  warn: "Needs attention — artifact is in DRAFT status, or a review returned open conditions. Check the agent output for details.",
   err:  "Expected output artifacts are missing. Check the agent detail to see what needs to run.",
   pend: "Upstream inputs don't exist yet — this phase or agent hasn't started."
 };
