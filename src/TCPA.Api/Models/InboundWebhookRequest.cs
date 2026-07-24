@@ -8,8 +8,9 @@ public class InboundWebhookRequest
     [RegularExpression(@"^\+[1-9]\d{1,14}$", ErrorMessage = "From must be E.164 format (e.g. +14045551234).")]
     public string From { get; set; } = string.Empty;
 
+    /// <summary>Cool Text account number (e.g. "CT-001") that received the inbound message.</summary>
     [Required]
-    [RegularExpression(@"^\+[1-9]\d{1,14}$", ErrorMessage = "To must be E.164 format.")]
+    [MinLength(1)]
     public string To { get; set; } = string.Empty;
 
     [Required]
