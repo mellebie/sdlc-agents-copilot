@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using TCPA.Core.Data;
 using TCPA.Core.Interfaces;
@@ -80,7 +81,7 @@ public class ConfirmationDispatchService : IConfirmationDispatchService
             await WriteAuditAsync(
                 AuditEventType.ConfirmationFailed,
                 phoneNumber,
-                $"{{\"reason\":\"OptOutMessageBody config missing\",\"auditRecordId\":{auditRecordId}}}",
+                JsonSerializer.Serialize(new { reason = "OptOutMessageBody config missing", auditRecordId }),
                 ct);
             return;
         }
@@ -126,7 +127,12 @@ public class ConfirmationDispatchService : IConfirmationDispatchService
             await WriteAuditAsync(
                 AuditEventType.ConfirmationDispatched,
                 phoneNumber,
-                $"{{\"providerMessageId\":\"{lastResult.MessageId}\",\"latencySeconds\":{latencySeconds:F1},\"auditRecordId\":{auditRecordId}}}",
+                JsonSerializer.Serialize(new
+                {
+                    providerMessageId = lastResult.MessageId,
+                    latencySeconds = Math.Round(latencySeconds, 1),
+                    auditRecordId
+                }),
                 ct);
 
             if (dispatchedAt - receivedAt > SlaThreshold)
@@ -137,7 +143,11 @@ public class ConfirmationDispatchService : IConfirmationDispatchService
                 await WriteAuditAsync(
                     AuditEventType.SlaBreach,
                     phoneNumber,
-                    $"{{\"latencySeconds\":{latencySeconds:F1},\"thresholdSeconds\":{SlaThreshold.TotalSeconds}}}",
+                    JsonSerializer.Serialize(new
+                    {
+                        latencySeconds = Math.Round(latencySeconds, 1),
+                        thresholdSeconds = SlaThreshold.TotalSeconds
+                    }),
                     ct);
             }
         }
@@ -150,7 +160,7 @@ public class ConfirmationDispatchService : IConfirmationDispatchService
             await WriteAuditAsync(
                 AuditEventType.ConfirmationFailed,
                 phoneNumber,
-                $"{{\"reason\":\"{reason}\",\"auditRecordId\":{auditRecordId}}}",
+                JsonSerializer.Serialize(new { reason, auditRecordId }),
                 ct);
         }
     }

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -49,7 +50,11 @@ public class OptOutProcessingService : IOptOutProcessingService
             OccurredAt = DateTime.UtcNow,
             ApplicationId = @event.ApplicationId,
             MessageId = @event.MessageId,
-            Details = $"{{\"keyword\":\"{@event.Body.Trim()}\",\"provider\":\"{@event.Provider}\"}}"
+            Details = JsonSerializer.Serialize(new
+            {
+                keyword = @event.Body.Trim(),
+                provider = @event.Provider
+            })
         };
 
         // Transaction guard: IsRelational() is false for InMemory (unit tests), true for SQL Server (production).
