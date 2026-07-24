@@ -1,0 +1,239 @@
+<svg viewBox="0 0 900 1110" xmlns="http://www.w3.org/2000/svg" role="img" font-family="system-ui,-apple-system,sans-serif">
+  <title>SDLC Agent Pipeline — GitHub Copilot in VS Code</title>
+  <desc>All 16 pipeline steps run via Copilot Chat Agent Mode using .github/prompts/*.prompt.md files in VS Code. Four human checkpoint gates separate the analysis, planning, build, and delivery phases.</desc>
+
+  <!-- Background -->
+  <rect width="900" height="1110" fill="#0d1117" rx="12"/>
+
+  <!-- TITLE -->
+  <text x="450" y="34" text-anchor="middle" font-size="17" font-weight="700" fill="#e6edf3" letter-spacing="0.3">SDLC Agent Pipeline — GitHub Copilot in VS Code</text>
+  <text x="450" y="53" text-anchor="middle" font-size="12" fill="#7d8590">PRD to PR · All steps via Copilot Chat Agent Mode · Four human checkpoints</text>
+
+  <!-- LEGEND -->
+  <rect x="30" y="66" width="12" height="12" rx="3" fill="#1f6feb"/>
+  <text x="47" y="77" font-size="11" fill="#7d8590">Copilot Chat — Agent Mode</text>
+  <rect x="218" y="66" width="12" height="12" rx="3" fill="#b45309"/>
+  <text x="235" y="77" font-size="11" fill="#7d8590">Human Checkpoint</text>
+  <rect x="380" y="66" width="12" height="12" rx="3" fill="#1a7f37"/>
+  <text x="397" y="77" font-size="11" fill="#7d8590">Output / Artifact</text>
+  <rect x="520" y="66" width="12" height="12" rx="3" fill="#6e40c9"/>
+  <text x="537" y="77" font-size="11" fill="#7d8590">MCP Tools</text>
+
+  <!-- INPUT -->
+  <rect x="295" y="90" width="310" height="54" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+  <text x="450" y="112" text-anchor="middle" font-size="12" font-weight="600" fill="#e6edf3">INPUT</text>
+  <text x="450" y="129" text-anchor="middle" font-size="11" fill="#7d8590">inputs/prd.md  ·  inputs/brd.md</text>
+
+  <!-- Arrow INPUT → Zone -->
+  <line x1="450" y1="144" x2="450" y2="166" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- VS CODE ZONE  (y=168 → y=988) -->
+  <rect x="20" y="168" width="860" height="822" rx="8" fill="#1f6feb" fill-opacity="0.06" stroke="#1f6feb" stroke-width="1.5" stroke-opacity="0.35"/>
+
+  <!-- Zone header bar -->
+  <rect x="20" y="168" width="860" height="26" rx="8" fill="#1f6feb" fill-opacity="0.18"/>
+  <rect x="20" y="184" width="860" height="10" fill="#1f6feb" fill-opacity="0.18"/>
+  <text x="440" y="185" text-anchor="middle" font-size="11" font-weight="600" fill="#58a6ff" letter-spacing="0.8">VS CODE  ·  COPILOT CHAT AGENT MODE  ·  .github/prompts/*.prompt.md  ·  MCP: GitHub + Azure DevOps</text>
+
+  <!-- MCP sidebar strip (left edge) -->
+  <rect x="20" y="194" width="5" height="796" rx="2" fill="#6e40c9" fill-opacity="0.45"/>
+
+  <!-- ROW 1: Steps 0, 1, 2  (y=200) -->
+  <!-- Step 0 (dashed = optional) -->
+  <rect x="40" y="200" width="248" height="80" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <rect x="40" y="200" width="248" height="22" rx="7" fill="#1f6feb" fill-opacity="0.22"/>
+  <rect x="40" y="216" width="248" height="6" fill="#1f6feb" fill-opacity="0.22"/>
+  <text x="164" y="216" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 0 — Alex  (BRD only)</text>
+  <text x="164" y="232" text-anchor="middle" font-size="10" fill="#c9d1d9">BRD to PRD Bridge</text>
+  <text x="164" y="248" text-anchor="middle" font-size="9.5" fill="#7d8590">Skip if PRD already exists</text>
+  <text x="164" y="263" text-anchor="middle" font-size="9.5" fill="#7d8590">→ inputs/prd.md</text>
+
+  <!-- Step 1 -->
+  <rect x="326" y="200" width="248" height="80" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="326" y="200" width="248" height="22" rx="7" fill="#1f6feb" fill-opacity="0.22"/>
+  <rect x="326" y="216" width="248" height="6" fill="#1f6feb" fill-opacity="0.22"/>
+  <text x="450" y="216" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 1 — Sam</text>
+  <text x="450" y="232" text-anchor="middle" font-size="10" fill="#c9d1d9">PRD Analyst</text>
+  <text x="450" y="263" text-anchor="middle" font-size="9.5" fill="#7d8590">→ outputs/requirements.md</text>
+
+  <!-- Step 2 -->
+  <rect x="612" y="200" width="248" height="80" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="612" y="200" width="248" height="22" rx="7" fill="#1f6feb" fill-opacity="0.22"/>
+  <rect x="612" y="216" width="248" height="6" fill="#1f6feb" fill-opacity="0.22"/>
+  <text x="736" y="216" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 2 — Jordan</text>
+  <text x="736" y="232" text-anchor="middle" font-size="10" fill="#c9d1d9">Clarification</text>
+  <text x="736" y="263" text-anchor="middle" font-size="9.5" fill="#7d8590">→ outputs/clarifications.md</text>
+
+  <!-- Arrow → CP1 -->
+  <line x1="450" y1="280" x2="450" y2="294" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- CHECKPOINT 1 -->
+  <rect x="150" y="294" width="600" height="42" rx="7" fill="#b45309" fill-opacity="0.17" stroke="#d97706" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="350" y="311" text-anchor="middle" font-size="10" font-weight="700" fill="#d97706">⛔  CHECKPOINT 1</text>
+  <text x="350" y="327" text-anchor="middle" font-size="10" fill="#7d8590">Review requirements · Answer all blocking clarifications</text>
+  <text x="668" y="320" text-anchor="middle" font-size="9" fill="#d97706" font-style="italic">"Checkpoint 1 approved"</text>
+
+  <!-- Arrow → Row 2 -->
+  <line x1="450" y1="336" x2="450" y2="350" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ROW 2: Steps 3, 4, 5  (y=351) -->
+  <!-- Step 3 -->
+  <rect x="40" y="351" width="248" height="80" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="40" y="351" width="248" height="22" rx="7" fill="#1f6feb" fill-opacity="0.22"/>
+  <rect x="40" y="367" width="248" height="6" fill="#1f6feb" fill-opacity="0.22"/>
+  <text x="164" y="367" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 3 — Taylor</text>
+  <text x="164" y="383" text-anchor="middle" font-size="10" fill="#c9d1d9">Spec Decomposer</text>
+  <text x="164" y="414" text-anchor="middle" font-size="9.5" fill="#7d8590">→ outputs/specs.md</text>
+
+  <!-- Step 4 -->
+  <rect x="326" y="351" width="248" height="80" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="326" y="351" width="248" height="22" rx="7" fill="#1f6feb" fill-opacity="0.22"/>
+  <rect x="326" y="367" width="248" height="6" fill="#1f6feb" fill-opacity="0.22"/>
+  <text x="450" y="367" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 4 — Winston</text>
+  <text x="450" y="383" text-anchor="middle" font-size="10" fill="#c9d1d9">Architecture</text>
+  <text x="450" y="414" text-anchor="middle" font-size="9.5" fill="#7d8590">→ outputs/architecture.md</text>
+
+  <!-- Step 5 -->
+  <rect x="612" y="351" width="248" height="80" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="612" y="351" width="248" height="22" rx="7" fill="#1f6feb" fill-opacity="0.22"/>
+  <rect x="612" y="367" width="248" height="6" fill="#1f6feb" fill-opacity="0.22"/>
+  <text x="736" y="367" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 5 — Morgan</text>
+  <text x="736" y="383" text-anchor="middle" font-size="10" fill="#c9d1d9">Risk Assessment</text>
+  <text x="736" y="414" text-anchor="middle" font-size="9.5" fill="#7d8590">→ outputs/risks.md</text>
+
+  <!-- Arrow → CP2 -->
+  <line x1="450" y1="431" x2="450" y2="445" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- CHECKPOINT 2 -->
+  <rect x="150" y="445" width="600" height="42" rx="7" fill="#b45309" fill-opacity="0.17" stroke="#d97706" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="350" y="462" text-anchor="middle" font-size="10" font-weight="700" fill="#d97706">⛔  CHECKPOINT 2</text>
+  <text x="350" y="478" text-anchor="middle" font-size="10" fill="#7d8590">Approve architecture · Accept or dismiss risks</text>
+  <text x="668" y="471" text-anchor="middle" font-size="9" fill="#d97706" font-style="italic">"Checkpoint 2 approved"</text>
+
+  <!-- Arrow → Row 3 -->
+  <line x1="450" y1="487" x2="450" y2="501" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ROW 3: Steps 6, 7  (y=502, 2-col) -->
+  <!-- Step 6 -->
+  <rect x="40" y="502" width="396" height="80" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="40" y="502" width="396" height="22" rx="7" fill="#1f6feb" fill-opacity="0.22"/>
+  <rect x="40" y="518" width="396" height="6" fill="#1f6feb" fill-opacity="0.22"/>
+  <text x="238" y="518" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 6 — Riley</text>
+  <text x="238" y="534" text-anchor="middle" font-size="10" fill="#c9d1d9">Story Writer</text>
+  <text x="238" y="565" text-anchor="middle" font-size="9.5" fill="#7d8590">→ outputs/stories.md</text>
+
+  <!-- Step 7 -->
+  <rect x="464" y="502" width="396" height="80" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="464" y="502" width="396" height="22" rx="7" fill="#1f6feb" fill-opacity="0.22"/>
+  <rect x="464" y="518" width="396" height="6" fill="#1f6feb" fill-opacity="0.22"/>
+  <text x="662" y="518" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 7 — Casey</text>
+  <text x="662" y="534" text-anchor="middle" font-size="10" fill="#c9d1d9">Task Breakdown</text>
+  <text x="662" y="565" text-anchor="middle" font-size="9.5" fill="#7d8590">→ outputs/tasks.md</text>
+
+  <!-- Arrow → CP3 -->
+  <line x1="450" y1="582" x2="450" y2="596" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- CHECKPOINT 3 -->
+  <rect x="150" y="596" width="600" height="42" rx="7" fill="#b45309" fill-opacity="0.17" stroke="#d97706" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="350" y="613" text-anchor="middle" font-size="10" font-weight="700" fill="#d97706">⛔  CHECKPOINT 3</text>
+  <text x="350" y="629" text-anchor="middle" font-size="10" fill="#7d8590">Approve stories and tasks · Adjust scope / priority</text>
+  <text x="668" y="622" text-anchor="middle" font-size="9" fill="#d97706" font-style="italic">"Checkpoint 3 approved"</text>
+
+  <!-- Arrow → Row 4 -->
+  <line x1="450" y1="638" x2="450" y2="652" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ROW 4: Steps 8, 9, 9b  (y=653) -->
+  <!-- Step 8 -->
+  <rect x="40" y="653" width="248" height="80" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="40" y="653" width="248" height="22" rx="7" fill="#1f6feb" fill-opacity="0.22"/>
+  <rect x="40" y="669" width="248" height="6" fill="#1f6feb" fill-opacity="0.22"/>
+  <text x="164" y="669" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 8 — Amelia</text>
+  <text x="164" y="685" text-anchor="middle" font-size="10" fill="#c9d1d9">Code Generator</text>
+  <text x="164" y="716" text-anchor="middle" font-size="9.5" fill="#7d8590">→ src/  ·  task-log.md</text>
+
+  <!-- Step 9 -->
+  <rect x="326" y="653" width="248" height="80" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="326" y="653" width="248" height="22" rx="7" fill="#1f6feb" fill-opacity="0.22"/>
+  <rect x="326" y="669" width="248" height="6" fill="#1f6feb" fill-opacity="0.22"/>
+  <text x="450" y="669" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 9 — Quinn</text>
+  <text x="450" y="685" text-anchor="middle" font-size="10" fill="#c9d1d9">Unit &amp; Integration Tests</text>
+  <text x="450" y="716" text-anchor="middle" font-size="9.5" fill="#7d8590">→ tests/</text>
+
+  <!-- Step 9b -->
+  <rect x="612" y="653" width="248" height="80" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="612" y="653" width="248" height="22" rx="7" fill="#1f6feb" fill-opacity="0.22"/>
+  <rect x="612" y="669" width="248" height="6" fill="#1f6feb" fill-opacity="0.22"/>
+  <text x="736" y="669" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 9b — Drew</text>
+  <text x="736" y="685" text-anchor="middle" font-size="10" fill="#c9d1d9">Functional &amp; E2E Tests</text>
+  <text x="736" y="716" text-anchor="middle" font-size="9.5" fill="#7d8590">→ tests/functional/</text>
+
+  <!-- ROW 5: Steps 9c, 10, 11  (y=748) -->
+  <!-- Step 9c -->
+  <rect x="40" y="748" width="248" height="80" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="40" y="748" width="248" height="22" rx="7" fill="#1f6feb" fill-opacity="0.22"/>
+  <rect x="40" y="764" width="248" height="6" fill="#1f6feb" fill-opacity="0.22"/>
+  <text x="164" y="764" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 9c — Avery</text>
+  <text x="164" y="780" text-anchor="middle" font-size="10" fill="#c9d1d9">Test Plan</text>
+  <text x="164" y="811" text-anchor="middle" font-size="9.5" fill="#7d8590">→ *.csv  ·  *.xlsx</text>
+
+  <!-- Step 10 -->
+  <rect x="326" y="748" width="248" height="80" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="326" y="748" width="248" height="22" rx="7" fill="#1f6feb" fill-opacity="0.22"/>
+  <rect x="326" y="764" width="248" height="6" fill="#1f6feb" fill-opacity="0.22"/>
+  <text x="450" y="764" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 10 — Blake</text>
+  <text x="450" y="780" text-anchor="middle" font-size="10" fill="#c9d1d9">Code Reviewer</text>
+  <text x="450" y="811" text-anchor="middle" font-size="9.5" fill="#7d8590">→ review-findings.md</text>
+
+  <!-- Step 11 -->
+  <rect x="612" y="748" width="248" height="80" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="612" y="748" width="248" height="22" rx="7" fill="#1f6feb" fill-opacity="0.22"/>
+  <rect x="612" y="764" width="248" height="6" fill="#1f6feb" fill-opacity="0.22"/>
+  <text x="736" y="764" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 11 — Robin</text>
+  <text x="736" y="780" text-anchor="middle" font-size="10" fill="#c9d1d9">Security Agent</text>
+  <text x="736" y="811" text-anchor="middle" font-size="9.5" fill="#7d8590">→ security-findings.md</text>
+
+  <!-- Arrow → CP4 -->
+  <line x1="450" y1="828" x2="450" y2="842" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- CHECKPOINT 4 -->
+  <rect x="150" y="842" width="600" height="42" rx="7" fill="#b45309" fill-opacity="0.17" stroke="#d97706" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="350" y="859" text-anchor="middle" font-size="10" font-weight="700" fill="#d97706">⛔  CHECKPOINT 4</text>
+  <text x="350" y="875" text-anchor="middle" font-size="10" fill="#7d8590">Resolve all BLOCKING + SECURITY-BLOCKING findings</text>
+  <text x="668" y="868" text-anchor="middle" font-size="9" fill="#d97706" font-style="italic">"Checkpoint 4 approved"</text>
+
+  <!-- Arrow → Row 6 -->
+  <line x1="450" y1="884" x2="450" y2="898" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ROW 6: Steps 12, 13  (y=899, 2-col) -->
+  <!-- Step 12 -->
+  <rect x="40" y="899" width="396" height="80" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="40" y="899" width="396" height="22" rx="7" fill="#1f6feb" fill-opacity="0.22"/>
+  <rect x="40" y="915" width="396" height="6" fill="#1f6feb" fill-opacity="0.22"/>
+  <text x="238" y="915" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 12 — Jamie</text>
+  <text x="238" y="931" text-anchor="middle" font-size="10" fill="#c9d1d9">Documentation</text>
+  <text x="238" y="962" text-anchor="middle" font-size="9.5" fill="#7d8590">→ outputs/docs/</text>
+
+  <!-- Step 13 -->
+  <rect x="464" y="899" width="396" height="80" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="464" y="899" width="396" height="22" rx="7" fill="#1f6feb" fill-opacity="0.22"/>
+  <rect x="464" y="915" width="396" height="6" fill="#1f6feb" fill-opacity="0.22"/>
+  <text x="662" y="915" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 13 — Sage</text>
+  <text x="662" y="931" text-anchor="middle" font-size="10" fill="#c9d1d9">PR Assembler</text>
+  <text x="662" y="962" text-anchor="middle" font-size="9.5" fill="#7d8590">→ pr-description.md + gh pr create</text>
+
+  <!-- Arrow Zone → Output -->
+  <line x1="450" y1="990" x2="450" y2="1006" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- OUTPUT -->
+  <rect x="215" y="1008" width="470" height="64" rx="8" fill="#1a7f37" fill-opacity="0.18" stroke="#2ea043" stroke-width="1.5"/>
+  <text x="450" y="1031" text-anchor="middle" font-size="13" font-weight="700" fill="#3fb950">OUTPUT — GitHub Pull Request</text>
+  <text x="450" y="1050" text-anchor="middle" font-size="10" fill="#7d8590">Full traceability: PRD → stories → specs → code → tests → PR</text>
+  <text x="450" y="1065" text-anchor="middle" font-size="10" fill="#7d8590">⚠  Human approval required before merge — no auto-merge</text>
+
+  <!-- DEFS -->
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#30363d"/>
+    </marker>
+  </defs>
+</svg>
