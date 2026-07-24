@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TCPA.Api.Filters;
 using TCPA.Api.Messaging;
 using TCPA.Api.Models;
@@ -101,14 +102,22 @@ public class OutboundMessagesController : ControllerBase
                 LogEventTypes.MessageSuppressed, _hasher.Hash(request.ToNumber));
 
             var suppressionKey = request.CorrelationId ?? Guid.NewGuid().ToString();
-            await _processedRepo.AddAsync(new ProcessedMessage
+            try
             {
-                MessageId = suppressionKey,
-                InternalId = Guid.NewGuid(),
-                ResponseStatus = "suppressed",
-                ProcessedAt = DateTime.UtcNow,
-                Endpoint = "outbound"
-            }, ct);
+                await _processedRepo.AddAsync(new ProcessedMessage
+                {
+                    MessageId = suppressionKey,
+                    InternalId = Guid.NewGuid(),
+                    ResponseStatus = "suppressed",
+                    ProcessedAt = DateTime.UtcNow,
+                    Endpoint = "outbound"
+                }, ct);
+            }
+            catch (DbUpdateException)
+            {
+                // A concurrent request already wrote the idempotency record for the same correlationId.
+                _logger.LogDebug("Concurrent duplicate correlationId {CorrelationId} on suppressed path — idempotency record already written", suppressionKey);
+            }
 
             return Ok(new OutboundMessageResponse("suppressed", null, null, "opted-out"));
         }
@@ -135,16 +144,26 @@ public class OutboundMessagesController : ControllerBase
                 new { error = "Messaging service unavailable. Retry after a moment." });
         }
 
-        // Record for idempotency; prefer correlationId as key when present
+        // Record for idempotency; prefer correlationId as key when present.
+        // Guard against a concurrent duplicate that also passed FindAsync before either wrote the record.
         var idempotencyKey = request.CorrelationId ?? messageId.ToString();
-        await _processedRepo.AddAsync(new ProcessedMessage
+        try
         {
-            MessageId = idempotencyKey,
-            InternalId = messageId,
-            ResponseStatus = "queued",
-            ProcessedAt = queuedAt.UtcDateTime,
-            Endpoint = "outbound"
-        }, ct);
+            await _processedRepo.AddAsync(new ProcessedMessage
+            {
+                MessageId = idempotencyKey,
+                InternalId = messageId,
+                ResponseStatus = "queued",
+                ProcessedAt = queuedAt.UtcDateTime,
+                Endpoint = "outbound"
+            }, ct);
+        }
+        catch (DbUpdateException)
+        {
+            // A concurrent request for the same correlationId already wrote the idempotency record.
+            // The Kafka publish already succeeded, so return 200 as normal.
+            _logger.LogDebug("Concurrent duplicate correlationId {CorrelationId} on queued path — idempotency record already written", idempotencyKey);
+        }
 
         // Structured log — phone number hashed per PII policy (never log raw number at INFO/WARN/ERROR)
         _logger.LogInformation("{EventType} outbound message {MessageId} for {PhoneHash}",

@@ -33,6 +33,13 @@ public class ProcessedMessageConfiguration : IEntityTypeConfiguration<ProcessedM
             .HasMaxLength(20)
             .IsRequired();
 
+        // Composite unique index — enforces that (MessageId, Endpoint) is globally unique.
+        // FindAsync filters on both columns; this ensures database-level protection against
+        // cross-endpoint collisions that would pass the application-level FindAsync check but
+        // fail on insert, and is consistent with the DbUpdateException idempotency guard
+        // in the controllers.
+        builder.HasIndex(m => new { m.MessageId, m.Endpoint }).IsUnique();
+
         // Index on ProcessedAt for efficient time-based queries
         builder.HasIndex(x => x.ProcessedAt);
     }

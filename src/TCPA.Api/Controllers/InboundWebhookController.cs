@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TCPA.Api.Filters;
 using TCPA.Api.Messaging;
 using TCPA.Api.Models;
@@ -91,15 +92,25 @@ public class InboundWebhookController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Failed to queue message for processing." });
         }
 
-        // Record the message so any retry of the same messageId gets the idempotent response
-        await _processedRepo.AddAsync(new ProcessedMessage
+        // Record the message so any retry of the same messageId gets the idempotent response.
+        // Guard against a concurrent duplicate that also passed FindAsync before either wrote the record.
+        try
         {
-            MessageId = request.MessageId,
-            InternalId = internalId,
-            ResponseStatus = "received",
-            ProcessedAt = DateTime.UtcNow,
-            Endpoint = "webhook"
-        }, ct);
+            await _processedRepo.AddAsync(new ProcessedMessage
+            {
+                MessageId = request.MessageId,
+                InternalId = internalId,
+                ResponseStatus = "received",
+                ProcessedAt = DateTime.UtcNow,
+                Endpoint = "webhook"
+            }, ct);
+        }
+        catch (DbUpdateException)
+        {
+            // A concurrent request for the same messageId already wrote the idempotency record.
+            // The Kafka publish already succeeded, so return 200 as normal.
+            _logger.LogDebug("Concurrent duplicate messageId {MessageId} — idempotency record already written", request.MessageId);
+        }
 
         // Structured log — phone number hashed per policy (never log raw PII)
         _logger.LogInformation("{EventType} inbound message {MessageId} from {PhoneHash}",

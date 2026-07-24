@@ -1,6 +1,7 @@
 using Confluent.Kafka;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using TCPA.Core.Services;
 
 namespace TCPA.Api.Messaging;
 
@@ -13,6 +14,7 @@ public sealed class KafkaMessagePublisher : IMessagePublisher, IDisposable
 {
     private readonly IProducer<string, string> _producer;
     private readonly ILogger<KafkaMessagePublisher> _logger;
+    private readonly IPhoneNumberHasher _hasher;
     private readonly string _inboundTopic;
     private readonly string _outboundTopic;
     private readonly string _bootstrapServers;
@@ -24,9 +26,11 @@ public sealed class KafkaMessagePublisher : IMessagePublisher, IDisposable
     /// <param name="configuration">Application configuration — reads
     /// <c>Kafka:BootstrapServers</c>, <c>Kafka:Topics:Inbound</c>, <c>Kafka:Topics:Outbound</c>.</param>
     /// <param name="logger">Logger for Kafka delivery and health check events.</param>
-    public KafkaMessagePublisher(IConfiguration configuration, ILogger<KafkaMessagePublisher> logger)
+    /// <param name="hasher">Phone number hasher — ensures raw E.164 numbers are never written to logs.</param>
+    public KafkaMessagePublisher(IConfiguration configuration, ILogger<KafkaMessagePublisher> logger, IPhoneNumberHasher hasher)
     {
         _logger = logger;
+        _hasher = hasher;
         _bootstrapServers = configuration["Kafka:BootstrapServers"] ?? "localhost:9092";
         _inboundTopic     = configuration["Kafka:Topics:Inbound"]   ?? "inbound-messages";
         _outboundTopic    = configuration["Kafka:Topics:Outbound"]  ?? "outbound-messages";
@@ -52,7 +56,7 @@ public sealed class KafkaMessagePublisher : IMessagePublisher, IDisposable
         catch (ProduceException<string, string> ex)
         {
             _logger.LogError(ex, "Kafka delivery failed for inbound message: topic={Topic} key={Key} errorCode={ErrorCode}",
-                _inboundTopic, @event.From, ex.Error.Code);
+                _inboundTopic, _hasher.Hash(@event.From), ex.Error.Code);
             throw;
         }
     }
@@ -73,7 +77,7 @@ public sealed class KafkaMessagePublisher : IMessagePublisher, IDisposable
         catch (ProduceException<string, string> ex)
         {
             _logger.LogError(ex, "Kafka delivery failed for outbound message: topic={Topic} key={Key} errorCode={ErrorCode}",
-                _outboundTopic, @event.ToNumber, ex.Error.Code);
+                _outboundTopic, _hasher.Hash(@event.ToNumber), ex.Error.Code);
             throw;
         }
     }
