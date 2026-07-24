@@ -2,15 +2,14 @@
      Stage: 00-brd-to-prd
      Source BRD: inputs/brd_extracted.txt (extracted from inputs/brd.doc v1.0)
      Generated: 2026-07-14
-     Status: DRAFT — REQUIRES HUMAN REVIEW BEFORE PIPELINE CONTINUES
+     Decisions resolved: 2026-07-23 (Option C — Alex, interactive session with Mark Ellebie)
+     Status: APPROVED
 -->
 
 # Product Requirements Document — TCPA Regulatory Compliance API
 
-> ⚠️ This PRD was generated from a BRD by Agent 00.
-> Review all [ASSUMED] and [PRODUCT-DECISION-NEEDED] flags before
-> running the SDLC pipeline. Do not proceed to Agent 01 until this
-> document is approved.
+> ✅ All product decisions resolved in interactive session (2026-07-23) with Mark Ellebie.
+> Status: APPROVED. Sam (Agent 01) may proceed.
 
 ---
 
@@ -47,7 +46,7 @@ Southern Company Gas currently handles SMS opt-out requests independently within
 | PER-004 | Compliance / Audit Team          | Internal Auditing, Legal                                  | Access audit logs; run compliance reports; demonstrate TCPA adherence   | Review audit logs; run/receive weekly compliance reports                          | BRD §OOBR01, RPBR01–03 |
 | PER-005 | IT / Developer                   | Gas Technology Solutions Delivery, DTS                    | Monitor API health; debug message flows; respond to failures            | Review production logs; diagnose failures; manage deployments                    | BRD §Appendix        |
 
-[PRODUCT-DECISION-NEEDED: PD-001 — Are there separate compliance requirements per LDC (VNG, CGC, Nicor, AGL), or is the opt-out model uniform across all four?]
+[CONFIRMED IN SESSION: PD-001 — The opt-out and TCPA compliance model is uniform across all four LDCs (VNG, CGC, Nicor, AGL). One opt-out record, one confirmation message, one enforcement mechanism — no per-LDC configuration required.]
 
 ---
 
@@ -75,7 +74,7 @@ Southern Company Gas currently handles SMS opt-out requests independently within
 #### REQ-003: Keyword Identification
 **Behavior:** The system must detect any of the following seven keywords in an inbound SMS (case-insensitive): STOP, QUIT, END, REVOKE, OPT-OUT, CANCEL, UNSUBSCRIBE. Receipt of any keyword triggers opt-out processing identically.
 **Business Rule Source:** BRD §OOBR03
-**Flags:** [PRODUCT-DECISION-NEEDED: PD-002 — Should keyword matching be exact-word match only, or substring? E.g., does "Please STOP texting me" trigger opt-out? BRD says "receipt of any of these keywords" — ambiguous.]
+**Matching Rule:** [CONFIRMED IN SESSION: PD-002] Exact-word match only. The inbound SMS body (trimmed, case-insensitive) must equal one of the seven keywords exactly. A message such as "Please STOP texting me" does NOT trigger opt-out. This simplifies implementation and eliminates false-positive risk.
 
 #### REQ-005: 60-Second Acknowledgement
 **Behavior:** From the moment the TCPA API receives a STOP request, it must send the global opt-out confirmation text to the customer within 60 seconds.
@@ -85,12 +84,12 @@ Southern Company Gas currently handles SMS opt-out requests independently within
 #### REQ-007: Manual Re-Opt-In
 **Behavior:** The system must expose a mechanism that allows a Help Desk agent to update a cell phone number's status from opted-out to opted-in without requiring application-level code changes.
 **Business Rule Source:** BRD §OOBR07 — "This to be a manual process (to be defined) and may require a Help Desk ticket."
-**Flags:** [PRODUCT-DECISION-NEEDED: PD-003 — Is the re-opt-in interface an authenticated admin API endpoint, an internal web UI, or a one-time script? BRD defers this decision entirely.]
+**Interface:** [CONFIRMED IN SESSION: PD-003] Authenticated admin REST API endpoint. The endpoint is token-gated (API key or bearer token). A full audit record is written on every re-opt-in action. No web UI or script — audit trail requirement makes the API the only compliant option.
 
 #### REQ-008: Global Opt-Out Confirmation Message
 **Behavior:** The TCPA API sends a single standardised opt-out confirmation message. It must state the customer has opted out of ALL Southern Company Gas applications and include a phone number for re-opt-in enquiries. One message for all LDCs, regardless of which application the original STOP was sent to.
 **Business Rule Source:** BRD §OOBR09
-**Flags:** [PRODUCT-DECISION-NEEDED: PD-004 — Approved legal wording for the global opt-out message not provided. Legal / Compliance must sign off before implementation.]
+**Message Wording:** [PENDING LEGAL APPROVAL: PD-004] Legal wording not yet approved. Placeholder for development purposes: "You have been unsubscribed from Southern Company Gas text messages. Reply START or call 1-800-XXX-XXXX to re-subscribe." Final wording must be reviewed and approved by Legal / Compliance before go-live. Implementation must use a configuration value — not a hardcoded string — so the wording can be updated without a code deployment.
 
 ---
 
@@ -102,10 +101,10 @@ Southern Company Gas currently handles SMS opt-out requests independently within
 | NFR-002 | Performance  | Opt-out status updated within regulatory window                      | 100% of STOP requests reflected in opted-out status ≤ 10 days     | OOBR04          | [ASSUMED: 10 days is regulatory outer bound; system processes in near-real-time] |
 | NFR-003 | Compliance   | Audit log retained for 5 years                                       | All opt-out records queryable for 5 years post-event               | OOBR01          |       |
 | NFR-004 | Reliability  | No text messages delivered to opted-out numbers                      | 0% delivery rate to opted-out cell phone numbers                   | OOBR06          |       |
-| NFR-005 | Reporting    | Weekly compliance report generated automatically                     | Report delivered within 24 hours of week-end cutoff                | RPBR03          | [ASSUMED: delivery mechanism not specified in BRD — see PD-006] |
+| NFR-005 | Reporting    | Weekly compliance report generated automatically and emailed         | Report delivered by email within 24 hours of week-end cutoff       | RPBR03          | [CONFIRMED IN SESSION: PD-006 — delivery via email distribution list] |
 | NFR-006 | Security     | All API communication must be authenticated                          | All endpoints require authentication; zero unauthenticated access  | [ASSUMED]       | [ASSUMED: implied by regulatory sensitivity] |
 | NFR-007 | Auditability | Production and debug logs available to IT                            | Logs capture success, failure, and full message flow               | BRD §Appendix   |       |
-| NFR-008 | Scalability  | System handles all in-scope application message volumes              | [PRODUCT-DECISION-NEEDED: PD-005 — No volume figures in BRD]       | [ASSUMED]       | [PRODUCT-DECISION-NEEDED] |
+| NFR-008 | Scalability  | System handles all in-scope application message volumes              | Steady state: ~1,000 msgs/day. Peak burst: up to 5,000 msgs/hour (major outage notification event). P99 throughput must not degrade below NFR-001 SLA at peak. | [CONFIRMED IN SESSION: PD-005 — rough order-of-magnitude estimate] | |
 
 ---
 
@@ -164,7 +163,7 @@ Southern Company Gas currently handles SMS opt-out requests independently within
 | ASM-004 | "10 days" processing SLA is a regulatory outer bound; actual processing is near-real-time                  | [ASSUMED by Agent] | BRD §OOBR04      |
 | ASM-005 | The system requires API authentication — not specified in BRD but implied by regulatory sensitivity         | [ASSUMED by Agent] |                  |
 | ASM-006 | Weekly reporting = Monday–Sunday week, report generated on Monday for prior week                            | [ASSUMED by Agent] | BRD §RPBR03      |
-| ASM-007 | CCB/My Account is a future integration and will NOT be in Phase 1 scope                                    | [ASSUMED by Agent] | BRD §Appendix    |
+| ASM-007 | CCB/My Account is definitively out of Phase 1 scope                                                        | [CONFIRMED IN SESSION: PD-007] | BRD §Appendix    |
 
 ---
 
@@ -184,17 +183,19 @@ Southern Company Gas currently handles SMS opt-out requests independently within
 
 ---
 
-## 10. Product Decisions Required
+## 10. Product Decisions — Resolved
 
-| ID     | Question                                                                                                      | BRD Context                                                          | Blocking? |
-|--------|---------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------|-----------|
-| PD-001 | Are there LDC-specific compliance requirements, or is the opt-out model uniform across VNG, CGC, Nicor, AGL? | BRD lists 4 LDCs in scope but specifies one global opt-out message   | Yes       |
-| PD-002 | Is keyword matching exact-word or substring? Does "Please STOP texting" trigger opt-out?                     | BRD says "receipt of any of these keywords" — ambiguous              | Yes       |
-| PD-003 | What is the re-opt-in interface for Help Desk — admin API, internal web UI, or script?                       | BRD defers: "manual process to be defined"                           | Yes       |
-| PD-004 | What is the approved legal wording of the global opt-out confirmation message?                                | BRD says "global opt out text message to be written" — not written yet | Yes     |
-| PD-005 | What is the expected peak SMS throughput across all in-scope applications?                                    | No volume figures provided in BRD                                    | Yes       |
-| PD-006 | How is the weekly compliance report delivered — email, dashboard, file share?                                 | BRD specifies weekly generation but not delivery mechanism           | No        |
-| PD-007 | Is CCB/My Account definitively out of Phase 1 scope?                                                         | BRD labels it "Future" but notes possible Q2 2026 go-live            | Yes       |
+All decisions resolved in interactive session on 2026-07-23 with Mark Ellebie (Senior Manager, Software & Platform Engineering, Accenture).
+
+| ID     | Decision                                                                       | Resolution                                                            | Status    |
+|--------|--------------------------------------------------------------------------------|-----------------------------------------------------------------------|-----------|
+| PD-001 | LDC-specific vs. uniform opt-out model                                         | Uniform — one model across VNG, CGC, Nicor, AGL                      | ✅ Resolved |
+| PD-002 | Keyword matching: exact-word or substring                                      | Exact-word match only (trimmed, case-insensitive equality)            | ✅ Resolved |
+| PD-003 | Re-opt-in interface: admin API, web UI, or script                              | Authenticated admin REST API with full audit trail                   | ✅ Resolved |
+| PD-004 | Approved legal wording of global opt-out confirmation message                  | Pending Legal approval — placeholder wording in REQ-008; must be configuration-driven | ✅ Resolved (pending legal sign-off) |
+| PD-005 | Expected peak SMS throughput                                                   | Rough estimate: ~1,000/day steady state; up to 5,000/hour burst (outage events) | ✅ Resolved |
+| PD-006 | Weekly compliance report delivery mechanism                                    | Email distribution to a defined recipient list                        | ✅ Resolved |
+| PD-007 | CCB/My Account Phase 1 scope                                                   | Definitively out of Phase 1 scope                                     | ✅ Resolved |
 
 ---
 
@@ -202,5 +203,6 @@ Southern Company Gas currently handles SMS opt-out requests independently within
 - Functional requirements extracted: 14
 - NFRs translated from BRD policy: 8
 - Assumptions applied: 7
-- Product decisions required: 7 (5 blocking)
-- **Ready to proceed to Agent 01:** No — resolve PD-001 through PD-005 and PD-007 first
+- Product decisions resolved: 7 / 7
+- Open items: PD-004 wording pending Legal approval (non-blocking — placeholder in place)
+- **Ready to proceed to Agent 01:** Yes

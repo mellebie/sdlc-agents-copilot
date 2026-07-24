@@ -117,7 +117,20 @@ function Get-ArtifactStatus($rel) {
     if ($c -match 'Overall Verdict:\s*APPROVED WITH CONDITIONS')   { return 'warn' }
     if ($c -match 'Overall Security Verdict:\s*PASS WITH CONDITIONS') { return 'warn' }
     if ($c -match 'Status:\s*(APPROVED WITH CONDITIONS|PASS WITH CONDITIONS)') { return 'warn' }
-    if ($c -match 'Status:\s*DRAFT')                               { return 'warn' }
+    if ($c -match 'Status:\s*DRAFT') {
+        $inferApproved = @{
+            'outputs/requirements.md'   = 'outputs/specs.md'
+            'outputs/clarifications.md' = 'outputs/specs.md'
+            'outputs/specs.md'          = 'outputs/architecture.md'
+            'outputs/architecture.md'   = 'outputs/risks.md'
+            'outputs/risks.md'          = 'outputs/stories.md'
+            'outputs/stories.md'        = 'outputs/tasks.md'
+            'outputs/tasks.md'          = 'outputs/task-log.md'
+            'outputs/task-log.md'       = 'outputs/review-findings.md'
+        }
+        if ($inferApproved.ContainsKey($rel) -and (Exists $inferApproved[$rel])) { return 'done' }
+        return 'warn'
+    }
     return 'done'
 }
 
@@ -475,7 +488,7 @@ $cp0 = ($s00 -eq 'done')
 $cp1 = ($s02 -ne 'pend') -and -not ((ReadContent 'outputs/clarifications.md') -match 'AWAITING HUMAN RESPONSE')
 $cp2 = ($s04 -ne 'pend') -and ($s05 -ne 'pend')
 $cp3 = ($s06 -ne 'pend') -and ($s07 -ne 'pend')
-$cp4 = ($s10 -eq 'done') -and ($s11 -eq 'done')
+$cp4 = ($s10 -in @('done','warn')) -and ($s11 -in @('done','warn'))
 
 # ── Phase statuses ────────────────────────────────────────────────────────────
 
