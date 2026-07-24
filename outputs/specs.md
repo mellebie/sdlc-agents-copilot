@@ -1,903 +1,744 @@
 <!-- SDLC Pipeline Artifact
      Stage: 03-spec-decomposer
      Source PRD: inputs/prd.md
-     PRD Sections: §1 Overview, §2 Personas, §3 Functional Requirements, §4 Non-Functional Requirements, §5 Constraints, §6 Out of Scope, §7 Success Metrics, §8 Assumptions, §9 Dependencies, §10 Product Decisions Required
-     Generated: 2026-06-26
-     Status: APPROVED — human approved proceeding despite open clarifications (2026-07-07)
+     PRD Sections: All
+     Generated: 2026-07-23
+     Status: APPROVED
 -->
 
-# Functional Specifications — TCPA Regulatory Compliance for Text Messages
+# Functional Specifications — TCPA Regulatory Compliance API
 
 ## Bounded Contexts
-
-- **[BC-1] SMS Proxy & Routing** — Intercepts all outbound SMS from in-scope applications, routes inbound SMS replies back to the originating application, and enforces the compliance check gate before any message reaches Cool Text/Twilio.
-- **[BC-2] Opt-Out Management** — Detects opt-out keywords in inbound messages, writes opt-out status, sends the standardized opt-out confirmation SMS, and enforces the block on future outbound messages to opted-out numbers.
-- **[BC-3] Re-Opt-In Management** — Provides an authenticated privileged API endpoint that allows authorized Help Desk agents to manually reset a cell number's status from OPT-OUT back to OPT-IN.
-- **[BC-4] Audit Logging** — Records every compliance-relevant event (opt-out events and blocked outbound attempts) into a tamper-evident, long-retention audit log.
-- **[BC-5] Compliance Reporting** — Produces on-demand queryable data and automated weekly scheduled compliance reports for Compliance Officers.
-- **[BC-6] Application Registration & Configuration** — Stores and manages the mapping between Cool Text account identifiers and the in-scope SCG applications; controls which applications are subject to TCPA enforcement.
-- **[BC-7] Observability** — Produces structured operational and debug logs for IT/Platform Engineering use.
+- [BC-1]: Inbound Message Processing — receiving, parsing, and responding to customer SMS
+- [BC-2]: Outbound Message Gateway — intercepting, checking, and dispatching application-originated SMS
+- [BC-3]: Opt-Out & Compliance Management — opt-out status store, re-opt-in, and audit trail
+- [BC-4]: Reporting — three weekly report outputs
+- [BC-5]: Configuration & Administration — Cool Text account registry, message wording, log infrastructure
 
 ---
 
-## BC-1: SMS Proxy & Routing
+## BC-1: Inbound Message Processing
 
-### SPEC-001: Outbound SMS Proxy — Receive and Gate
-- **Source Requirements:** REQ-001, REQ-008, REQ-018
-- **PRD Reference:** PRD §3
-- **Priority:** Must Have
-- **Dependencies:** SPEC-020 (Application Registration must exist so the system can resolve the Cool Text account)
-- **Flags:** [COMPLEX: The proxy must be the authoritative interception point for all in-scope applications; any integration gap results in TCPA non-compliance. BizTalk integration protocol requires verification — see ASSUMED note below.]
-
-**Behavior:**
-The TCPA API exposes an inbound REST/JSON endpoint that accepts outbound SMS requests from in-scope applications. Upon receiving a request, the system:
-1. Resolves the originating application from the Cool Text account identifier embedded in the request.
-2. Checks whether the destination cell number has OPT-OUT status in the TCPA database.
-3. If the number is OPT-IN (or has no status record, which defaults to OPT-IN per ASM-002): forwards the message to Cool Text/Twilio unchanged.
-4. If the number is OPT-OUT: suppresses the message (does not forward to Cool Text/Twilio), logs the blocked attempt per SPEC-012, and returns an appropriate response to the calling application indicating suppression.
-5. If the Cool Text account identifier in the request does not match any registered application: passes the request through to Cool Text/Twilio without compliance enforcement and without logging a blocked attempt (per REQ-018 — unregistered applications are unaffected).
-
-[ASSUMED: All in-scope applications (BizTalk, GCMA, KMI, ARM, CCB/My Account) communicate with the TCPA API via REST/JSON. BizTalk's native integration capability requires verification by the integration team — if BizTalk cannot call REST natively, an adapter layer will be needed. This is flagged as an integration risk but is not modeled as a separate protocol variant in this spec.]
-
-**Inputs:**
-| Field | Type | Constraints | Required |
-|-------|------|-------------|----------|
-| cool_text_account_id | String | Must be a registered Cool Text account identifier; non-empty | Yes |
-| destination_cell_number | String | Valid E.164 format (e.g., +12025551234); non-empty | Yes |
-| message_body | String | Non-empty; max length per Twilio/Cool Text platform limits (typically 1600 chars for concatenated SMS) | Yes |
-| originating_application_reference | String | Optional caller reference for logging; free text | No |
-
-**Outputs:**
-| Field | Type | Format/Constraints |
-|-------|------|--------------------|
-| status | Enum | FORWARDED \| SUPPRESSED \| UNREGISTERED_ACCOUNT (pass-through) |
-| message_id | String | Cool Text message ID returned when FORWARDED; null otherwise |
-| suppression_reason | String | "OPT_OUT" when SUPPRESSED; null otherwise |
-
-**Business Rules:**
-- BR-001: All cell numbers default to OPT-IN status if no record exists in the TCPA database (ASM-002).
-- BR-002: The compliance gate decision (OPT-IN / OPT-OUT) is made at request time against the current database state; there is no caching of opt-out status that could cause stale enforcement.
-- BR-003: The TCPA API does not modify the opt-out status at the application level; it manages only its own centralized database (CON-004).
-- BR-004: If the Cool Text account identifier is not registered in the TCPA system, the message is forwarded without enforcement and the request is not logged as a compliance event (REQ-018).
-- BR-005: Vendor SMS (ACI SpeedPay, Google Notifications), IVR Dialer SMS, MFA SMS, and emergency SMS are outside the scope of this proxy (CON-006, CON-007, CON-008, OOS-005).
-
-**Edge Cases:**
-| Scenario | Expected System Behavior |
-|----------|--------------------------|
-| Cell number not in TCPA database | Treat as OPT-IN (ASM-002); forward message |
-| Cool Text account ID present but not registered in TCPA config | Forward without compliance check; do not log as compliance event |
-| Message body is empty | Return 400 Bad Request; do not forward |
-| destination_cell_number is not valid E.164 | Return 400 Bad Request; do not forward |
-| TCPA API database is unavailable at time of request | Fail-closed: do not forward the message; return 503 Service Unavailable to calling application (see SPEC-021) |
-| Application sends duplicate message to same opted-out number | Suppress each attempt independently; each generates a separate blocked-attempt audit log entry |
-
-**Error Conditions:**
-| Error | Trigger | System Response |
-|-------|---------|-----------------|
-| Missing required field | Request body missing cool_text_account_id, destination_cell_number, or message_body | 400 Bad Request with field-level error detail |
-| Database unavailable | TCPA opt-out database unreachable | 503 Service Unavailable; message not forwarded (fail-closed) |
-| Cool Text / Twilio unreachable | Downstream platform unavailable after opt-in check | 502 Bad Gateway; log failure in operational log |
-| Invalid cell number format | destination_cell_number does not match E.164 | 400 Bad Request |
-
----
-
-### SPEC-002: Inbound SMS Routing — Forward to Originating Application
-- **Source Requirements:** REQ-001, REQ-002
-- **PRD Reference:** PRD §3
-- **Priority:** Must Have
-- **Dependencies:** SPEC-020 (Application Registration must exist to resolve inbound account routing), SPEC-003 (Opt-Out Keyword Detection is processed before non-keyword messages are routed)
-
-**Behavior:**
-The TCPA API receives inbound SMS replies from customers via the Cool Text platform webhook. Upon receipt, the system:
-1. Inspects the message body for opt-out keywords (handled by SPEC-003).
-2. If no opt-out keyword is detected: identifies the destination application using the Cool Text account identifier included in the inbound webhook payload, then forwards the message body unchanged to the registered callback endpoint for that application.
-3. If the Cool Text account ID in the inbound payload does not map to a registered application: logs a warning in the operational log and discards the message (no delivery target available).
-4. Does not modify, filter, or enrich the message body before forwarding to the application.
-
-[ASSUMED: The Cool Text platform delivers inbound messages to the TCPA API via a webhook push (HTTP POST). The inbound webhook payload contains the Cool Text account identifier, which maps to the originating application in the TCPA API configuration. The TCPA API stores a callback URL per registered application to forward inbound non-opt-out replies. This is consistent with the routing model described in the clarification defaults (CQ-010 context: "inbound messages carry a Cool Text account identifier which maps to the originating application in the TCPA API config").]
-
-**Inputs (from Cool Text webhook):**
-| Field | Type | Constraints | Required |
-|-------|------|-------------|----------|
-| cool_text_account_id | String | Account ID from Cool Text webhook payload | Yes |
-| sender_cell_number | String | E.164 cell number of the customer who sent the reply | Yes |
-| message_body | String | Raw message body; forwarded unchanged | Yes |
-| cool_text_message_id | String | Platform-assigned message identifier for logging | Yes |
-
-**Outputs (to originating application callback):**
-| Field | Type | Format/Constraints |
-|-------|------|--------------------|
-| sender_cell_number | String | Forwarded unchanged from inbound |
-| message_body | String | Forwarded unchanged from inbound |
-| cool_text_account_id | String | Forwarded for application context |
-| received_timestamp | String | ISO 8601 UTC timestamp of TCPA API receipt |
-
-**Business Rules:**
-- BR-006: Inbound messages that are opt-out keywords are processed by SPEC-003 and are NOT forwarded to the originating application as general replies.
-- BR-007: Non-opt-out inbound replies are forwarded to the single application registered for the Cool Text account ID in the inbound payload.
-- BR-008: The message body is forwarded without modification.
-- BR-009: If no application callback is registered for the inbound Cool Text account ID, the message is dropped and a warning is logged.
-
-**Edge Cases:**
-| Scenario | Expected System Behavior |
-|----------|--------------------------|
-| Inbound message contains opt-out keyword | Trigger SPEC-003; do not forward to application |
-| Cool Text account ID not in TCPA config | Log warning; discard message; do not forward |
-| Originating application callback URL unreachable | Log delivery failure in operational log; do not retry indefinitely (retry up to 3 times with exponential backoff, then log permanent failure) |
-| Message body is empty | Forward empty body unchanged; log warning |
-
-**Error Conditions:**
-| Error | Trigger | System Response |
-|-------|---------|-----------------|
-| Webhook payload missing required fields | cool_text_account_id or sender_cell_number absent | Return 400; log malformed webhook event |
-| Application callback unreachable after retries | HTTP error or timeout on all retry attempts | Log permanent delivery failure; no further action |
-
----
-
-## BC-2: Opt-Out Management
-
-### SPEC-003: Opt-Out Keyword Detection
-- **Source Requirements:** REQ-003
-- **PRD Reference:** PRD §3
-- **Priority:** Must Have
-- **Dependencies:** SPEC-002 (Inbound SMS is received before keyword detection runs)
-
-**Behavior:**
-When an inbound SMS message is received from a customer via Cool Text, the system inspects the message body for the presence of any of the 7 TCPA-mandated opt-out keywords. Detection uses exact word-boundary matching: the keyword must appear as a complete word (case-insensitive) in the message body. Substring matches that are part of a larger word do not trigger opt-out (e.g., "CANCEL" matches, "CANCELLATION" does not; "STOP" matches, "NONSTOP" does not).
-
-[ASSUMED: Exact word-boundary match (case-insensitive) per the clarification default provided for CQ-001. The 7 keywords are: STOP, QUIT, END, REVOKE, OPT-OUT, CANCEL, UNSUBSCRIBE. "OPT-OUT" (hyphenated) is treated as a single token. Matching is applied to the full message body; if any of the 7 keywords appears as a complete word anywhere in the body, the message is classified as an opt-out request.]
-
-**Inputs:**
-| Field | Type | Constraints | Required |
-|-------|------|-------------|----------|
-| message_body | String | Raw inbound SMS body; may be any length | Yes |
-| sender_cell_number | String | E.164 format | Yes |
-| cool_text_account_id | String | From inbound webhook | Yes |
-| received_timestamp | String | ISO 8601 UTC | Yes |
-
-**Outputs:**
-| Field | Type | Format/Constraints |
-|-------|------|--------------------|
-| is_opt_out_keyword | Boolean | true if any of the 7 keywords matched as a complete word |
-| matched_keyword | String | The specific keyword matched (e.g., "STOP"); null if no match |
-
-**Business Rules:**
-- BR-010: The 7 opt-out keywords are: STOP, QUIT, END, REVOKE, OPT-OUT, CANCEL, UNSUBSCRIBE.
-- BR-011: Matching is case-insensitive ("stop", "STOP", "Stop" all match).
-- BR-012: Matching is word-boundary exact: a keyword must not be embedded within a longer word (e.g., "STOPPED" does not match "STOP"; "UNSUBSCRIBED" does not match "UNSUBSCRIBE").
-- BR-013: "OPT-OUT" is matched as a hyphenated token; "OPT" alone without "-OUT" does not trigger opt-out.
-- BR-014: If a message matches any of the 7 keywords, it is classified as an opt-out request regardless of other content in the message body.
-- BR-015: If a cell number is already OPT-OUT and sends another opt-out keyword, the TCPA API logs the event but does not re-send the confirmation SMS (idempotent opt-out per CQ-021 default: log only, no re-confirmation).
-
-**Edge Cases:**
-| Scenario | Expected System Behavior |
-|----------|--------------------------|
-| Message is exactly "STOP" | Match — opt-out |
-| Message is "Please stop sending me texts" | Match — "stop" is a complete word with word boundaries |
-| Message is "NONSTOP service" | No match — "NONSTOP" embeds STOP without word boundary |
-| Message is "CANCELLATION" | No match — not a word-boundary match on "CANCEL" |
-| Message is "CANCEL everything" | Match — "CANCEL" appears as a complete word |
-| Message contains "OPT-OUT" | Match |
-| Message contains "OPT" but not "OPT-OUT" | No match |
-| Cell number already OPT-OUT sends "STOP" again | Log event; take no further action (no re-confirmation SMS) |
-| Message is empty | No match; forward as non-opt-out inbound reply |
-
-**Error Conditions:**
-| Error | Trigger | System Response |
-|-------|---------|-----------------|
-| Null or missing message_body | Webhook payload missing body | Log warning; treat as non-opt-out |
-
----
-
-### SPEC-004: Opt-Out Status Write
-- **Source Requirements:** REQ-004
-- **PRD Reference:** PRD §3
-- **Priority:** Must Have
-- **Dependencies:** SPEC-003 (Keyword detection must confirm opt-out before status write)
-
-**Behavior:**
-Upon confirmation from SPEC-003 that an inbound message contains an opt-out keyword, the system immediately writes an OPT-OUT status record for the sender's cell phone number in the TCPA database. The status write sets the cell number to OPT-OUT globally — the opt-out is not scoped to a single application; it applies across all in-scope SCG applications.
-
-**Inputs:**
-| Field | Type | Constraints | Required |
-|-------|------|-------------|----------|
-| cell_number | String | E.164 format | Yes |
-| opt_out_timestamp | String | ISO 8601 UTC; the timestamp of inbound message receipt | Yes |
-| opt_out_keyword | String | The specific keyword that triggered opt-out | Yes |
-| cool_text_account_id | String | Account ID that received the opt-out | Yes |
-
-**Outputs:**
-| Field | Type | Format/Constraints |
-|-------|------|--------------------|
-| status_write_success | Boolean | true if the record was written successfully |
-| previous_status | Enum | OPT_IN \| OPT_OUT (the status before this write) |
-| record_id | String | Unique identifier of the opt-out record |
-
-**Business Rules:**
-- BR-016: An OPT-OUT status is global across all in-scope SCG applications; it is not scoped per application.
-- BR-017: The opt-out status write is atomic; if the write fails, the opt-out confirmation SMS must not be sent (the confirmation would be misleading if status was not actually persisted).
-- BR-018: The status write timestamp is the timestamp of the inbound message receipt, not the time of the database write.
-- BR-019: If the cell number is already OPT-OUT, the write is a no-op (idempotent); previous_status returns OPT_OUT and status_write_success returns true.
-- BR-020: The TCPA API does not propagate opt-out status changes back to individual applications (OOS-010).
-
-**Edge Cases:**
-| Scenario | Expected System Behavior |
-|----------|--------------------------|
-| Cell number already OPT-OUT | Idempotent — no duplicate record; return true with previous_status = OPT_OUT |
-| Database write fails | status_write_success = false; do not send confirmation SMS; log error; trigger alert |
-| Cell number has no prior record | Create new OPT-OUT record; previous_status = OPT_IN (default per ASM-002) |
-
-**Error Conditions:**
-| Error | Trigger | System Response |
-|-------|---------|-----------------|
-| Database unavailable | Cannot write opt-out record | Log critical error; do not send confirmation SMS; alert operations team |
-| Constraint violation | Duplicate key or schema error | Log error; investigate; do not send confirmation SMS |
-
----
-
-### SPEC-005: Opt-Out Confirmation SMS
-- **Source Requirements:** REQ-005, REQ-007
-- **PRD Reference:** PRD §3
-- **Priority:** Must Have
-- **Dependencies:** SPEC-004 (Opt-out status must be successfully written before confirmation is sent)
-
-**Behavior:**
-Within 60 seconds of a successful opt-out status write (SPEC-004), the system sends a single standardized global opt-out confirmation SMS to the customer's cell number via Cool Text/Twilio. The confirmation message informs the customer they are opted out of ALL SCG text communications and provides the re-opt-in phone number. The message text is fixed and configured as a system constant; it is not dynamically assembled.
-
-[ASSUMED: The exact message text is a legal/compliance-approved constant stored in system configuration. A placeholder template is used here:
-"You have been unsubscribed from all Southern Company Gas text messages. To re-opt in, call [RE-OPT-IN-PHONE-NUMBER]. Msg&Data rates may apply."
-The actual approved text must be provided by the Legal/Compliance team (CQ-002) and substituted before deployment. The re-opt-in phone number is a configuration value.]
-
-[ASSUMED: If the confirmation SMS cannot be delivered (carrier rejection, invalid number, Cool Text error), the system logs the failure and does not retry more than once. The opt-out status remains OPT-OUT regardless of confirmation delivery failure.]
-
-**Inputs:**
-| Field | Type | Constraints | Required |
-|-------|------|-------------|----------|
-| destination_cell_number | String | E.164 format; the opted-out customer's number | Yes |
-| opt_out_record_id | String | Reference to the opt-out record from SPEC-004 | Yes |
-| opt_out_timestamp | String | ISO 8601 UTC; used for SLA tracking | Yes |
-
-**Outputs:**
-| Field | Type | Format/Constraints |
-|-------|------|--------------------|
-| confirmation_sent | Boolean | true if Cool Text accepted the message |
-| cool_text_message_id | String | Platform message ID; null on failure |
-| send_timestamp | String | ISO 8601 UTC timestamp when the confirmation was dispatched |
-| sla_elapsed_seconds | Integer | Seconds from opt_out_timestamp to send_timestamp |
-
-**Business Rules:**
-- BR-021: The confirmation SMS must be sent within 60 seconds of the opt-out status write timestamp (NFR-001).
-- BR-022: The confirmation message text is a single standardized global message (REQ-007); it is not application-specific.
-- BR-023: The confirmation is sent only once per opt-out event; re-triggering an opt-out on an already-opted-out number does not resend the confirmation (BR-015).
-- BR-024: The confirmation SMS is sent from the Cool Text account that received the opt-out keyword, so the customer's device associates the reply with the same sender.
-- BR-025: A confirmation SMS delivery failure does not reverse the opt-out status. The customer is opted out regardless.
-- BR-026: The SLA clock starts at the timestamp of inbound message receipt (not at the time of database write).
-
-**Edge Cases:**
-| Scenario | Expected System Behavior |
-|----------|--------------------------|
-| Cool Text rejects the confirmation SMS | Log delivery failure; do not retry more than once; opt-out status remains OPT-OUT |
-| Confirmation sent but SLA would be breached (>60s from receipt) | Send anyway; log SLA breach event for compliance review |
-| Customer's number is invalid or unreachable (carrier-level failure) | Log delivery failure; opt-out status remains OPT-OUT |
-| Status write completed but confirmation dispatch exceeds 60s due to system load | Log SLA breach; alert operations; compliance review |
-
-**Error Conditions:**
-| Error | Trigger | System Response |
-|-------|---------|-----------------|
-| Cool Text API unavailable | Cannot dispatch confirmation | Log failure; single retry after brief delay; log permanent failure if retry fails |
-| opt_out_record_id not found | Orphaned call without a valid opt-out record | Log error; do not send confirmation |
-
----
-
-### SPEC-006: Outbound SMS Block Enforcement
-- **Source Requirements:** REQ-006, REQ-008
-- **PRD Reference:** PRD §3
-- **Priority:** Must Have
-- **Dependencies:** SPEC-004 (Opt-out status must exist in the database), SPEC-001 (Block decision is made within the outbound proxy gate)
-
-**Behavior:**
-This spec defines the enforcement behavior within SPEC-001. When an outbound SMS request is received and the destination cell number has OPT-OUT status in the TCPA database, the message is blocked immediately — it is never forwarded to Cool Text/Twilio. The block takes effect immediately upon the opt-out status write (not after a delay). The TCPA "within 10 calendar days" requirement is a regulatory ceiling; the system must enforce the block immediately.
-
-**Inputs:**
-| Field | Type | Constraints | Required |
-|-------|------|-------------|----------|
-| destination_cell_number | String | E.164 format | Yes |
-| current_opt_out_status | Enum | OPT_IN \| OPT_OUT (from TCPA database lookup) | Yes |
-
-**Outputs:**
-| Field | Type | Format/Constraints |
-|-------|------|--------------------|
-| block_applied | Boolean | true if message was suppressed due to OPT-OUT status |
-| block_timestamp | String | ISO 8601 UTC |
-
-**Business Rules:**
-- BR-027: A cell number with OPT-OUT status receives no outbound SMS from any in-scope application via the TCPA API.
-- BR-028: The opt-out block is enforced immediately upon status write; there is no grace period or delay.
-- BR-029: The 10 calendar day window (REQ-006) is a TCPA regulatory maximum ceiling, not a permitted delay. Implementation must be immediate.
-- BR-030: A blocked message is never delivered to Cool Text/Twilio. There is no delayed delivery or queuing for later delivery.
-
-**Edge Cases:**
-| Scenario | Expected System Behavior |
-|----------|--------------------------|
-| Cell number opts out and application sends another message milliseconds later | Block applied if OPT-OUT status is in database at time of lookup; no race condition window permitted |
-| Application retries a blocked message multiple times | Each retry is independently blocked and independently logged |
-
-**Error Conditions:**
-| Error | Trigger | System Response |
-|-------|---------|-----------------|
-| Database unavailable during block check | Cannot confirm OPT-OUT status | Fail-closed: block the message (SPEC-021) |
-
----
-
-## BC-3: Re-Opt-In Management
-
-### SPEC-007: Re-Opt-In via Privileged Admin API Endpoint
-- **Source Requirements:** REQ-012
-- **PRD Reference:** PRD §3
-- **Priority:** Must Have
-- **Dependencies:** SPEC-004 (Opt-out status records must exist before re-opt-in can reverse them)
-- **Flags:** [COMPLEX: Authentication and authorization model for the admin endpoint must be tightly controlled — unauthorized re-opt-ins create compliance risk in the opposite direction.]
-
-**Behavior:**
-The TCPA API exposes a privileged REST/JSON admin endpoint that allows authorized Help Desk agents to manually update a cell number's opt-out status from OPT-OUT back to OPT-IN. The endpoint requires authentication. Only users with the Help Desk / Compliance Officer role may call this endpoint. The re-opt-in is global — the cell number is re-opted-in across all SCG applications simultaneously.
-
-The endpoint also supports a read-only status lookup (GET) to allow a Help Desk agent to verify a cell number's current opt-out status before making the update.
-
-[ASSUMED: Implementation is a privileged admin REST API endpoint with no UI in Phase 1 (per clarification default for CQ-003). Authentication uses the same identity provider as other SCG internal systems (specific mechanism to be confirmed by IT Security). The status lookup GET endpoint is included as a prerequisite workflow step for Help Desk agents (per CQ-014 default).]
-
-**Inputs (Re-Opt-In Update — POST/PUT):**
-| Field | Type | Constraints | Required |
-|-------|------|-------------|----------|
-| cell_number | String | E.164 format | Yes |
-| agent_user_id | String | Authenticated agent identifier from auth token | Yes (from auth context) |
-| reason | String | Free-text reason for re-opt-in (e.g., "Customer called in to request re-opt-in, ticket #12345") | Yes |
-| ticket_reference | String | Help Desk ticket number or reference | No |
-
-**Inputs (Status Lookup — GET):**
-| Field | Type | Constraints | Required |
-|-------|------|-------------|----------|
-| cell_number | String | E.164 format; URL path parameter | Yes |
-
-**Outputs (Re-Opt-In Update):**
-| Field | Type | Format/Constraints |
-|-------|------|--------------------|
-| success | Boolean | true if status was updated to OPT_IN |
-| previous_status | Enum | OPT_OUT \| OPT_IN |
-| new_status | Enum | OPT_IN |
-| updated_timestamp | String | ISO 8601 UTC |
-| record_id | String | Audit record ID of the re-opt-in event |
-
-**Outputs (Status Lookup):**
-| Field | Type | Format/Constraints |
-|-------|------|--------------------|
-| cell_number | String | Echoed back (masked — last 4 digits visible only for display) |
-| opt_out_status | Enum | OPT_IN \| OPT_OUT |
-| last_opt_out_timestamp | String | ISO 8601 UTC of most recent opt-out; null if never opted out |
-| last_opt_in_timestamp | String | ISO 8601 UTC of most recent re-opt-in; null if never re-opted-in |
-
-**Business Rules:**
-- BR-031: Only authenticated users with the Help Desk or Compliance Officer role may call the re-opt-in update endpoint.
-- BR-032: Unauthenticated or unauthorized requests return 401/403 and are logged as security events.
-- BR-033: Re-opt-in is global — it applies across all in-scope SCG applications simultaneously. There is no per-application re-opt-in.
-- BR-034: Re-opt-in is a manual-only process; no automated system action triggers a re-opt-in (CON-010).
-- BR-035: If the cell number is already OPT-IN, the re-opt-in update is accepted (idempotent) but logs the action.
-- BR-036: The re-opt-in does not send a confirmation SMS to the customer in Phase 1 (per CQ-023 default: notification is handled by the Help Desk agent via phone/other channel).
-- BR-037: The status lookup endpoint (GET) is read-only and returns masked cell number data (last 4 digits only) to minimize PII exposure in logs.
-- BR-038: Initial customer opt-in (a customer who has never sent a STOP keyword) cannot be written via this endpoint — this endpoint is only for re-opt-in after a prior opt-out (CON-005, OOS-001, CONF-002 resolution).
-
-**Edge Cases:**
-| Scenario | Expected System Behavior |
-|----------|--------------------------|
-| Cell number has no opt-out record (never opted out) | Reject with 409 Conflict — re-opt-in endpoint is only for reversing a prior opt-out |
-| Cell number is already OPT-IN (was previously re-opted-in) | Accept idempotently; log the action; return success |
-| Unauthenticated request | Return 401 Unauthorized; log security event |
-| Agent lacks required role | Return 403 Forbidden; log security event |
-| reason field is missing | Return 400 Bad Request; re-opt-in not performed |
-
-**Error Conditions:**
-| Error | Trigger | System Response |
-|-------|---------|-----------------|
-| Invalid authentication token | Expired or malformed token | 401 Unauthorized |
-| Insufficient permissions | Caller role not Help Desk or Compliance Officer | 403 Forbidden |
-| Cell number not found | No record exists for this cell number | 404 Not Found |
-| Cell number never opted out | Attempting re-opt-in when no opt-out record exists | 409 Conflict |
-| Database unavailable | Cannot write re-opt-in record | 503 Service Unavailable |
-
----
-
-## BC-4: Audit Logging
-
-### SPEC-008: Opt-Out Event Audit Log Entry
-- **Source Requirements:** REQ-009, REQ-011
-- **PRD Reference:** PRD §3
-- **Priority:** Must Have
-- **Dependencies:** SPEC-004 (Opt-out status write triggers the audit log entry)
-
-**Behavior:**
-Every time an opt-out event is successfully processed (opt-out keyword detected and OPT-OUT status written), the system writes an immutable audit log entry. The audit log entry must be written atomically with the status write — an opt-out that fails to produce an audit log entry is a compliance failure. The audit log must be retained for a minimum of 5 years from the event date.
-
-[ASSUMED: The audit log required fields (CQ-008 default) are taken as those explicitly listed in REQ-009. The field "TCPA-required fields" is interpreted as including: the CTIA-standard fields of date/time, cell number, opt-out keyword, and system response. The full field set is defined below. Any additional fields identified during Legal review must be added before go-live.]
-
-**Inputs (from opt-out processing pipeline):**
-| Field | Type | Constraints | Required |
-|-------|------|-------------|----------|
-| event_type | Enum | OPT_OUT | Yes |
-| event_timestamp | String | ISO 8601 UTC; timestamp of inbound message receipt | Yes |
-| cell_number | String | E.164 format | Yes |
-| originating_cool_text_account_id | String | Cool Text account that received the opt-out | Yes |
-| originating_application_name | String | Resolved application name (e.g., "GCMA", "KMI") | Yes |
-| opt_out_keyword_received | String | The exact keyword string from the message body | Yes |
-| message_body | String | Full inbound message body | Yes |
-| system_response | String | Description of system action (e.g., "OPT_OUT_STATUS_WRITTEN", "ALREADY_OPT_OUT_NO_ACTION") | Yes |
-| confirmation_sms_sent | Boolean | Whether the opt-out confirmation SMS was dispatched | Yes |
-| confirmation_sms_timestamp | String | ISO 8601 UTC; null if not sent | No |
-| confirmation_sms_status | Enum | SENT \| FAILED \| NOT_SENT | Yes |
-| record_id | String | UUID; unique identifier for this audit record | Yes (system-generated) |
-
-**Outputs:**
-| Field | Type | Format/Constraints |
-|-------|------|--------------------|
-| audit_record_id | String | UUID of the written audit record |
-| write_success | Boolean | true if audit record persisted successfully |
-
-**Business Rules:**
-- BR-039: An audit log entry must be written for every opt-out event, including events where the cell number was already OPT-OUT (idempotent opt-out attempts are still logged).
-- BR-040: The audit log is immutable — records cannot be updated or deleted after writing.
-- BR-041: Audit log data must be retained for a minimum of 5 years from the event_timestamp (NFR-004).
-- BR-042: A failure to write the audit log entry is a critical error that must trigger an alert to the operations team; it does not roll back the opt-out status write.
-- BR-043: Cell phone numbers in the audit log are stored in a way that supports regulatory discovery requests while complying with applicable data handling requirements.
-
-**Edge Cases:**
-| Scenario | Expected System Behavior |
-|----------|--------------------------|
-| Opt-out status write succeeds but audit log write fails | Log critical error; alert operations; do not roll back opt-out |
-| Cell number already OPT-OUT when keyword received | Write audit log entry with system_response = "ALREADY_OPT_OUT_NO_ACTION" |
-| Confirmation SMS not sent (delivery failure) | Log confirmation_sms_status = FAILED; audit entry still written |
-
-**Error Conditions:**
-| Error | Trigger | System Response |
-|-------|---------|-----------------|
-| Audit log database unavailable | Cannot persist audit record | Log critical error to operational log; alert operations team |
-
----
-
-### SPEC-009: Blocked Outbound SMS Audit Log Entry
-- **Source Requirements:** REQ-010, REQ-011
-- **PRD Reference:** PRD §3
-- **Priority:** Must Have
-- **Dependencies:** SPEC-006 (Block enforcement triggers this log entry), SPEC-001 (Outbound proxy identifies the blocking event)
-
-**Behavior:**
-Every time an outbound SMS is suppressed because the destination cell number has OPT-OUT status, the system writes an immutable audit log entry. The entry records all information needed to demonstrate that the block was correctly applied.
-
-**Inputs:**
-| Field | Type | Constraints | Required |
-|-------|------|-------------|----------|
-| event_type | Enum | BLOCKED_OUTBOUND | Yes |
-| event_timestamp | String | ISO 8601 UTC; timestamp of the suppression decision | Yes |
-| cell_number | String | E.164 format; the destination that was blocked | Yes |
-| originating_cool_text_account_id | String | Cool Text account that submitted the outbound request | Yes |
-| originating_application_name | String | Resolved application name | Yes |
-| message_body | String | Full message body of the suppressed message | Yes |
-| suppression_reason | String | "OPT_OUT" | Yes |
-| record_id | String | UUID; system-generated | Yes |
-
-**Outputs:**
-| Field | Type | Format/Constraints |
-|-------|------|--------------------|
-| audit_record_id | String | UUID |
-| write_success | Boolean | true if record persisted |
-
-**Business Rules:**
-- BR-044: Every blocked outbound SMS attempt generates an independent audit log entry.
-- BR-045: The audit log is immutable; records cannot be updated or deleted.
-- BR-046: Blocked outbound audit records are retained for a minimum of 5 years (NFR-004).
-- BR-047: Message body is stored in the audit log to support regulatory discovery.
-- BR-048: A failure to write the blocked-outbound audit log entry is a critical error; the block on the message is still applied regardless of audit log write failure.
-
-**Edge Cases:**
-| Scenario | Expected System Behavior |
-|----------|--------------------------|
-| Application submits 100 blocked messages in rapid succession | Each generates an independent audit log entry |
-| Audit log database unavailable | Log critical error; block still applied; alert operations |
-
-**Error Conditions:**
-| Error | Trigger | System Response |
-|-------|---------|-----------------|
-| Audit log database unavailable | Cannot write blocked-outbound record | Critical error; alert operations; block still enforced |
-
----
-
-### SPEC-010: Re-Opt-In Event Audit Log Entry
-- **Source Requirements:** REQ-009 (audit trail for all compliance-relevant events), REQ-011
-- **PRD Reference:** PRD §3
-- **Priority:** Must Have
-- **Dependencies:** SPEC-007 (Re-opt-in write triggers this log entry)
-
-**Behavior:**
-Every manual re-opt-in action performed via SPEC-007 generates an immutable audit log entry. The entry records who performed the re-opt-in, when, for which cell number, and the reason provided.
-
-**Inputs:**
-| Field | Type | Constraints | Required |
-|-------|------|-------------|----------|
-| event_type | Enum | RE_OPT_IN | Yes |
-| event_timestamp | String | ISO 8601 UTC | Yes |
-| cell_number | String | E.164 format | Yes |
-| agent_user_id | String | Authenticated user ID of the Help Desk agent | Yes |
-| reason | String | Free-text reason provided by the agent | Yes |
-| ticket_reference | String | Help Desk ticket reference | No |
-| previous_status | Enum | OPT_OUT \| OPT_IN | Yes |
-| record_id | String | UUID; system-generated | Yes |
-
-**Outputs:**
-| Field | Type | Format/Constraints |
-|-------|------|--------------------|
-| audit_record_id | String | UUID |
-| write_success | Boolean | |
-
-**Business Rules:**
-- BR-049: Every re-opt-in action, including idempotent ones (re-opting-in a number already OPT-IN), generates an audit log entry.
-- BR-050: The audit log entry is immutable and retained for 5 years (NFR-004).
-
----
-
-## BC-5: Compliance Reporting
-
-### SPEC-011: On-Demand Report — SMS to Opted-In Numbers
-- **Source Requirements:** REQ-013
-- **PRD Reference:** PRD §3
-- **Priority:** Must Have
-- **Dependencies:** SPEC-001 (Forwarded outbound messages must be recorded), SPEC-009 (Audit log is the data source)
-
-**Behavior:**
-The system provides a queryable data set (and report output) containing all outbound SMS messages that were successfully forwarded to opted-in cell numbers. The report data includes the fields specified in REQ-013 for each forwarded message. This report data is the underlying data set used by the weekly compliance report (SPEC-013).
-
-[ASSUMED: Per CQ-018 default — REQ-013 and REQ-014 are the underlying queryable data sets; REQ-015 is the automated weekly delivery combining both. The on-demand query is available to Compliance Officers via a mechanism to be determined by the architecture (API query or report extract). No self-service UI is in scope for Phase 1.]
-
-**Inputs (Query Parameters):**
-| Field | Type | Constraints | Required |
-|-------|------|-------------|----------|
-| date_from | String | ISO 8601 date; start of reporting period | Yes |
-| date_to | String | ISO 8601 date; end of reporting period | Yes |
-| application_filter | String | Filter by application name; null = all applications | No |
-| cell_number_filter | String | Filter by specific cell number; null = all numbers | No |
-
-**Outputs (per record):**
-| Field | Type | Format/Constraints |
-|-------|------|--------------------|
-| status | String | "FORWARDED" |
-| cell_number | String | E.164 |
-| originating_application_name | String | |
-| message_timestamp | String | ISO 8601 UTC |
-| message_body | String | |
-| cool_text_account_id | String | |
-
-**Business Rules:**
-- BR-051: Only users with the Compliance Officer or authorized reporting role may access this data.
-- BR-052: The report reflects data from the audit log; it does not query the live SMS platform.
-- BR-053: The report covers all four SCG LDCs (CON-009).
-
----
-
-### SPEC-012: On-Demand Report — SMS Attempted to Opted-Out Numbers
+### SPEC-001: Webhook Ingestion
 - **Source Requirements:** REQ-014
-- **PRD Reference:** PRD §3
+- **PRD Reference:** PRD §3, CQ-003
 - **Priority:** Must Have
-- **Dependencies:** SPEC-009 (Blocked outbound audit log is the data source)
+- **Dependencies:** SPEC-016 (Cool Text account registry must exist to identify the originating application)
+- **Flags:** none
 
 **Behavior:**
-The system provides a queryable data set of all outbound SMS messages that were suppressed because the destination cell number had OPT-OUT status. This serves as evidence of correct TCPA enforcement and is also used by the weekly compliance report (SPEC-013).
+Cool Text / Twilio pushes inbound customer SMS messages to a TCPA API webhook endpoint. The system receives the HTTP POST, validates the request origin (API key), extracts the message payload, and routes it to internal processing. The endpoint returns HTTP 200 immediately upon successful receipt — it does not wait for downstream processing to complete.
 
-**Inputs (Query Parameters):**
+**Inputs:**
 | Field | Type | Constraints | Required |
 |-------|------|-------------|----------|
-| date_from | String | ISO 8601 date | Yes |
-| date_to | String | ISO 8601 date | Yes |
-| application_filter | String | Filter by application name; null = all | No |
-| cell_number_filter | String | Filter by specific cell number; null = all | No |
+| from | string | E.164 phone number format | Yes |
+| to | string | E.164 phone number — must match a registered Cool Text account number | Yes |
+| body | string | SMS message text, max 160 chars | Yes |
+| provider | string | "cooltext" or "twilio" | Yes |
+| messageId | string | Provider-assigned unique message ID | Yes |
+| timestamp | datetime | ISO 8601 UTC | Yes |
+| apiKey | string | Header: X-Api-Key | Yes |
 
-**Outputs (per record):**
+**Outputs:**
 | Field | Type | Format/Constraints |
 |-------|------|--------------------|
-| status | String | "BLOCKED" |
-| cell_number | String | E.164 |
-| originating_application_name | String | |
-| attempt_timestamp | String | ISO 8601 UTC |
-| message_body | String | |
-| suppression_reason | String | "OPT_OUT" |
+| status | string | "received" |
+| internalId | string | UUID assigned by TCPA API |
 
 **Business Rules:**
-- BR-054: Only users with the Compliance Officer or authorized reporting role may access this data.
-- BR-055: The data set is drawn from the immutable audit log.
-
----
-
-### SPEC-013: Automated Weekly Compliance Report
-- **Source Requirements:** REQ-015
-- **PRD Reference:** PRD §3
-- **Priority:** Must Have
-- **Dependencies:** SPEC-011, SPEC-012 (Data sets must be queryable), SPEC-008, SPEC-009 (Audit log data)
-- **Flags:** [COMPLEX: Requires a scheduled job, email dispatch integration, and report formatting logic. Report generation must be reliable — a missed weekly report is a compliance visibility gap.]
-
-**Behavior:**
-Every Monday at 6:00 AM, the TCPA API automatically generates a weekly compliance report covering the prior 7 calendar days (Monday through Sunday). The report is emailed to the Compliance Officers distribution list. The report contains:
-1. Summary of all SMS messages forwarded to opted-in numbers (count, per-application breakdown).
-2. Summary of all SMS messages blocked/suppressed to opted-out numbers (count, per-application breakdown).
-3. Any cases where a message was delivered to a cell number that was opted out at the time of delivery (compliance failures — should be zero; non-zero is an alert condition).
-4. Opt-out success rate KPI: (total opt-out events processed / (opt-out events + confirmation failures)) × 100%.
-5. Total opt-out and re-opt-in counts for the period.
-
-[ASSUMED: Report is emailed to Compliance Officers every Monday at 6:00 AM (per clarification default for CQ-004). Format is an HTML email body with a CSV attachment containing the detailed records. Recipients are the Compliance Officer persona group; specific distribution list to be confirmed by IT/Compliance. If a Monday report generation fails, the failure is logged and an alert is sent to IT.]
-
-**Inputs (scheduled trigger):**
-| Field | Type | Constraints | Required |
-|-------|------|-------------|----------|
-| report_period_start | String | ISO 8601 date; prior Monday 00:00:00 UTC | System-calculated |
-| report_period_end | String | ISO 8601 date; prior Sunday 23:59:59 UTC | System-calculated |
-
-**Outputs (email):**
-| Field | Type | Format/Constraints |
-|-------|------|--------------------|
-| email_subject | String | "TCPA Compliance Weekly Report — [period dates]" |
-| email_body | String | HTML summary with KPI metrics |
-| csv_attachment | File | Detailed records: SPEC-011 + SPEC-012 data for the period |
-| recipients | List<Email> | Compliance Officers distribution list (configuration) |
-
-**Business Rules:**
-- BR-056: Report generation runs every Monday at 6:00 AM system time (assumed UTC unless configured otherwise).
-- BR-057: The report covers the 7-day period from the prior Monday 00:00:00 UTC through Sunday 23:59:59 UTC.
-- BR-058: Report generation requires no manual intervention.
-- BR-059: Any compliance failures detected (messages delivered to opted-out numbers) are prominently highlighted in the report.
-- BR-060: If report generation or email dispatch fails, a critical alert is sent to IT/Platform Engineering; the failure is logged with full error detail.
-- BR-061: The report email is not sent to external parties — it is internal SCG distribution only.
+- BR-001: The `to` number must match a registered Cool Text account in SPEC-016. Unrecognised accounts return 400.
+- BR-002: The API key must be valid. Invalid keys return 401.
+- BR-003: The system must return HTTP 200 within 5 seconds. Processing continues asynchronously.
 
 **Edge Cases:**
 | Scenario | Expected System Behavior |
 |----------|--------------------------|
-| No SMS activity in the reporting period | Report still generated with zero counts |
-| Email dispatch fails | Log failure; retry once; log permanent failure and alert IT if retry fails |
-| Report generation job fails (exception) | Log critical error; alert IT; do not silently skip |
-| Compliance failure detected (non-zero messages to opted-out numbers) | Include alert section in report; trigger additional alert to Compliance Officers |
+| `to` number not in Cool Text account registry | Return 400; log unrecognised account; do not process |
+| Duplicate messageId received | Return 200 (idempotent); do not reprocess; log duplicate |
+| Malformed phone number in `from` | Return 400; log validation failure |
+| Body is empty | Return 400; log validation failure |
 
 **Error Conditions:**
 | Error | Trigger | System Response |
 |-------|---------|-----------------|
-| Scheduled job does not run | Infrastructure failure | Alert IT; investigate; manually trigger if needed |
-| Email server unavailable | SMTP/email relay unreachable | Retry once; log permanent failure if retry fails |
+| 401 Unauthorized | Invalid or missing API key | HTTP 401; log authentication failure |
+| 400 Bad Request | Missing required field or invalid format | HTTP 400 with field-level error detail |
+| 500 Internal Error | Unexpected processing failure | HTTP 500; log full stack; alert on-call |
 
 ---
 
-## BC-6: Application Registration & Configuration
-
-### SPEC-014: Cool Text Account Registration
-- **Source Requirements:** REQ-016, REQ-018
-- **PRD Reference:** PRD §3
+### SPEC-002: Keyword Detection
+- **Source Requirements:** REQ-003
+- **PRD Reference:** PRD §3, OOBR03, PD-002
 - **Priority:** Must Have
-- **Dependencies:** None
+- **Dependencies:** SPEC-001 (message must be ingested first)
+- **Flags:** none
 
 **Behavior:**
-The TCPA API maintains a configuration registry mapping Cool Text account identifiers to in-scope SCG applications. This registry determines which applications are subject to TCPA enforcement. An application is "in scope" if and only if its Cool Text account ID appears in the registry. Applications not in the registry pass through the system without enforcement (REQ-018).
+After ingestion, the system evaluates the message body to determine whether it is a TCPA opt-out request. The body is trimmed of leading and trailing whitespace and compared case-insensitively to the seven opt-out keywords. Match must be exact — the trimmed body must equal the keyword in its entirety.
 
-[ASSUMED: Application registration is managed via a configuration file or database record maintained by IT/Platform Engineering. No self-service UI is required in Phase 1 (per CQ-016 default). The initial registry entries for the five in-scope applications (BizTalk, GCMA, KMI, ARM, CCB/My Account) are populated at deployment time via configuration. Changes to the registry require an IT-managed configuration deployment.]
+The seven opt-out keywords are: STOP, QUIT, END, REVOKE, OPT-OUT, CANCEL, UNSUBSCRIBE.
 
-The registry stores, per application:
-- Cool Text account ID (used to match inbound and outbound messages)
-- Application name (human-readable label for logging and reports)
-- Application callback URL (for routing inbound non-opt-out SMS replies)
-- Active/inactive flag (to disable an application without deleting its record)
-- Onboarded date
+If the body matches exactly, the message is classified as an opt-out request and routed to SPEC-003. If it does not match, the message is classified as a general reply and routed to SPEC-005 for forwarding to the originating application.
 
-**Inputs (configuration — managed by IT, not a runtime API):**
+**Inputs:**
 | Field | Type | Constraints | Required |
 |-------|------|-------------|----------|
-| cool_text_account_id | String | Unique; non-empty | Yes |
-| application_name | String | Human-readable; non-empty | Yes |
-| callback_url | String | Valid HTTPS URL; used for inbound reply routing | Yes |
-| active | Boolean | Whether this account is actively enforced | Yes |
+| messageBody | string | Raw SMS body from SPEC-001 | Yes |
 
-**Outputs (runtime lookup result):**
+**Outputs:**
 | Field | Type | Format/Constraints |
 |-------|------|--------------------|
-| is_registered | Boolean | true if account ID found in registry |
-| application_name | String | null if not registered |
-| callback_url | String | null if not registered |
-| is_active | Boolean | null if not registered |
+| isOptOut | boolean | true if exact keyword match |
+| matchedKeyword | string | The matched keyword, or null |
+| normalizedBody | string | Trimmed, uppercased body used for comparison |
 
 **Business Rules:**
-- BR-062: Exactly the five in-scope applications are registered at launch: BizTalk, GCMA, KMI Active, ARM/Construction Portal, CCB/My Account.
-- BR-063: CCB/My Account registration is included but the active flag may be set to false pending confirmation of CCB go-live readiness (ASM-004). The active flag can be toggled without a code change.
-- BR-064: An unregistered Cool Text account ID is treated as pass-through — no enforcement, no logging of compliance events (REQ-018).
-- BR-065: Cool Text account IDs are provided via configuration, not user-entered at runtime (ASM-006).
-- BR-066: The registry change process is an IT configuration deployment; no runtime admin API for registry changes in Phase 1.
+- BR-004: Comparison is case-insensitive. "stop", "Stop", "STOP" all match.
+- BR-005: Comparison is exact-word. "Please STOP" does not match. "STOP" alone does.
+- BR-006: Leading/trailing whitespace is stripped before comparison.
+- BR-007: "OPT-OUT" with a hyphen is the only multi-word keyword; it matches only if the entire body is "OPT-OUT" (case-insensitive, trimmed).
 
 **Edge Cases:**
 | Scenario | Expected System Behavior |
 |----------|--------------------------|
-| Inbound message from unregistered Cool Text account | Pass through without enforcement; log warning |
-| Outbound message for unregistered Cool Text account | Pass through without enforcement |
-| Application marked inactive in registry | Treat as unregistered — no enforcement |
+| Body is "stop " (trailing space) | Trim → "stop" → match STOP → opt-out |
+| Body is "please stop" | No match → general reply |
+| Body is "STOPNOW" | No match → general reply |
+| Body is "OPT-OUT" | Match → opt-out |
+| Body is "opt out" (space not hyphen) | No match → general reply |
+| Body is "STOP\n" (newline) | Trim → "STOP" → match |
+
+**Error Conditions:**
+| Error | Trigger | System Response |
+|-------|---------|-----------------|
+| Null body | Body field is null after ingestion | Log error; treat as non-opt-out; route to SPEC-005 |
 
 ---
 
-## BC-7: Observability
-
-### SPEC-015: Structured Operational & Debug Logging
-- **Source Requirements:** REQ-017
-- **PRD Reference:** PRD §3
+### SPEC-003: Opt-Out Processing
+- **Source Requirements:** REQ-004
+- **PRD Reference:** PRD §3, OOBR04
 - **Priority:** Must Have
-- **Dependencies:** None (cross-cutting concern)
+- **Dependencies:** SPEC-002 (keyword detection must classify as opt-out), SPEC-010 (audit log)
+- **Flags:** none
 
 **Behavior:**
-The TCPA API emits structured logs for every significant operational event. Logs are written in a machine-parseable format (JSON) and are accessible to IT/Platform Engineering through the standard log infrastructure. Two log levels are supported:
-- **Production logs:** Significant events only — opt-out received, message forwarded, message blocked, confirmation SMS sent/failed, re-opt-in processed, weekly report generated/failed, authentication events. Suitable for always-on production monitoring.
-- **Debug logs:** Full request/response detail, database query timings, retry attempts, internal state transitions. Available for incident diagnosis; may be toggled on/off per environment.
+When SPEC-002 classifies a message as an opt-out request, the system updates the customer's opt-out status in the compliance store. The customer is identified by their `from` phone number (E.164). The update is atomic — the status change and the audit log entry (SPEC-010) must succeed together or both roll back. After successful update, SPEC-004 is triggered to send the confirmation.
+
+**Inputs:**
+| Field | Type | Constraints | Required |
+|-------|------|-------------|----------|
+| phoneNumber | string | E.164 format from SPEC-001 | Yes |
+| matchedKeyword | string | From SPEC-002 | Yes |
+| internalMessageId | string | UUID from SPEC-001 | Yes |
+| receivedAt | datetime | ISO 8601 UTC | Yes |
+
+**Outputs:**
+| Field | Type | Format/Constraints |
+|-------|------|--------------------|
+| optOutId | string | UUID of the opt-out record created |
+| phoneNumber | string | E.164 |
+| status | string | "opted-out" |
+| effectiveAt | datetime | ISO 8601 UTC — time the record was written |
 
 **Business Rules:**
-- BR-067: All log entries include: timestamp (ISO 8601 UTC), log level, event type, correlation ID (request-scoped UUID for tracing), and relevant entity IDs.
-- BR-068: Cell phone numbers in logs are masked (last 4 digits visible only) to limit PII exposure in log aggregation systems.
-- BR-069: Message body content is not logged in production logs; it is available in debug logs only.
-- BR-070: No credentials, authentication tokens, or API keys appear in any log output.
-- BR-071: Logs do not contain raw PII beyond the masked cell number format.
-- BR-072: Production and debug log streams are separable so production log volumes remain manageable.
+- BR-008: If the customer is already opted out, the system records the duplicate STOP request in the audit log but does not create a new opt-out record. Confirmation is still sent.
+- BR-009: The opt-out status must be written before the confirmation (SPEC-004) is triggered.
+- BR-010: The audit log entry (SPEC-010) is written atomically with the opt-out record.
 
 **Edge Cases:**
 | Scenario | Expected System Behavior |
 |----------|--------------------------|
-| Log write fails (disk full, log sink unavailable) | System continues operating; log failure itself is caught and emitted at a best-effort fallback channel |
-| Debug logging enabled in production | Possible via configuration flag; not enabled by default; must not impact request throughput |
+| Customer already opted out | Log duplicate; send confirmation; do not duplicate opt-out record |
+| Database write fails | Roll back; do not trigger confirmation; log error; alert |
+| Same number sends STOP twice within 1 second | Idempotency — second write is a no-op; one confirmation sent |
+
+**Error Conditions:**
+| Error | Trigger | System Response |
+|-------|---------|-----------------|
+| Database unavailable | Persistence layer unreachable | Log error; alert on-call; do not send confirmation |
+
+---
+
+### SPEC-004: Opt-Out Confirmation
+- **Source Requirements:** REQ-005, REQ-008
+- **PRD Reference:** PRD §3, OOBR04, OOBR09, PD-004
+- **Priority:** Must Have
+- **Dependencies:** SPEC-003 (opt-out record must be written), SPEC-016 (Cool Text account for originating app), SPEC-017 (message wording config)
+- **Flags:** none
+
+**Behavior:**
+After a successful opt-out record is written (SPEC-003), the system dispatches a confirmation SMS to the customer's phone number. The message body is read from the configurable opt-out message store (SPEC-017) — it is never hardcoded. The message is dispatched via the same Cool Text account that received the original STOP. The entire flow from STOP receipt to confirmation dispatch must complete within 60 seconds (P99).
+
+**Inputs:**
+| Field | Type | Constraints | Required |
+|-------|------|-------------|----------|
+| phoneNumber | string | E.164 — destination (customer) | Yes |
+| coolTextAccountNumber | string | From SPEC-016 — originating account | Yes |
+| optOutId | string | UUID from SPEC-003 | Yes |
+| receivedAt | datetime | ISO 8601 UTC — original STOP receipt time | Yes |
+
+**Outputs:**
+| Field | Type | Format/Constraints |
+|-------|------|--------------------|
+| confirmationMessageId | string | Provider-assigned ID |
+| dispatchedAt | datetime | ISO 8601 UTC |
+| latencySeconds | integer | dispatchedAt minus receivedAt — for SLA monitoring |
+| messageBody | string | Actual text sent (snapshot for audit) |
+
+**Business Rules:**
+- BR-011: Message body must be read from SPEC-017 at dispatch time, not cached at startup.
+- BR-012: Dispatch must complete within 60 seconds of the original STOP receipt (NFR-001).
+- BR-013: The confirmation is sent via the same Cool Text account number the STOP was received on.
+- BR-014: A snapshot of the exact message body sent is written to the audit log.
+
+**Edge Cases:**
+| Scenario | Expected System Behavior |
+|----------|--------------------------|
+| Cool Text / Twilio dispatch fails | Retry up to 3 times with exponential backoff; log failure; alert if all retries exhausted |
+| Confirmation sent after 60-second window | Log SLA breach; alert; do not suppress the message |
+| Opt-out message config missing | Log error; alert; do not send blank message; escalate |
+
+**Error Conditions:**
+| Error | Trigger | System Response |
+|-------|---------|-----------------|
+| Provider dispatch failure after retries | 3 failed dispatch attempts | Log permanent failure; alert on-call; audit record marked "confirmation-failed" |
+| SLA breach | dispatchedAt > receivedAt + 60s | Log SLA violation metric; alert; audit record flagged |
+
+---
+
+### SPEC-005: Inbound Message Routing
+- **Source Requirements:** REQ-002
+- **PRD Reference:** PRD §3, OOBR02, CQ-001
+- **Priority:** Must Have
+- **Dependencies:** SPEC-001 (ingestion), SPEC-002 (keyword detection — only non-opt-out messages route here), SPEC-016 (account-to-application mapping)
+- **Flags:** none
+
+**Behavior:**
+For inbound customer messages that are not opt-out requests (SPEC-002 returns isOptOut = false), the system forwards the exact original message body to the Gas application that owns the Cool Text account on which the message was received. The `to` number on the inbound message maps to exactly one registered Cool Text account (CQ-001: 1:1 mapping), which maps to exactly one Gas application with a registered callback endpoint.
+
+**Inputs:**
+| Field | Type | Constraints | Required |
+|-------|------|-------------|----------|
+| internalMessageId | string | UUID from SPEC-001 | Yes |
+| from | string | E.164 — customer number | Yes |
+| body | string | Original unmodified message body | Yes |
+| coolTextAccountNumber | string | The `to` number from the original inbound message | Yes |
+
+**Outputs:**
+| Field | Type | Format/Constraints |
+|-------|------|--------------------|
+| forwardStatus | string | "forwarded" or "failed" |
+| applicationEndpoint | string | URL the message was forwarded to |
+| httpStatusCode | integer | Response code from the application callback |
+
+**Business Rules:**
+- BR-015: The message body forwarded must be byte-for-byte identical to the body received — no modification.
+- BR-016: The target application is resolved by looking up the Cool Text account number in SPEC-016.
+- BR-017: If the application callback returns non-2xx, the forward is logged as failed. The TCPA API does not retry — application delivery is best-effort for general replies.
+
+**Edge Cases:**
+| Scenario | Expected System Behavior |
+|----------|--------------------------|
+| Application callback endpoint unreachable | Log forwarding failure; do not retry; alert IT |
+| Application returns 500 | Log failure with response; do not retry |
+| Message is an opt-out keyword — routed here in error | Should not occur; if it does, log anomaly and halt forwarding |
+
+**Error Conditions:**
+| Error | Trigger | System Response |
+|-------|---------|-----------------|
+| No application registered for Cool Text account | Account in SPEC-016 has no callback URL | Log error; alert IT; do not forward |
+
+---
+
+## BC-2: Outbound Message Gateway
+
+### SPEC-006: Outbound Message Submission
+- **Source Requirements:** REQ-014 (outbound side)
+- **PRD Reference:** PRD §3, CQ-004
+- **Priority:** Must Have
+- **Dependencies:** SPEC-007 (queue-time opt-out check), SPEC-016 (Cool Text account registry)
+- **Flags:** [COMPLEX: fail-safe behaviour when TCPA API is unavailable — drives HA design for all in-scope application integrations]
+
+**Behavior:**
+In-scope Gas applications submit outbound SMS messages to the TCPA API rather than calling Cool Text / Twilio directly. The TCPA API receives the outbound message request, performs a queue-time opt-out check (SPEC-007), and — if the number is not opted out — queues the message for dispatch. If the TCPA API is unavailable, the calling application receives an explicit error response and must not send the message through any alternative path (fail-safe per CQ-004).
+
+**Inputs:**
+| Field | Type | Constraints | Required |
+|-------|------|-------------|----------|
+| toNumber | string | E.164 destination (customer) | Yes |
+| body | string | SMS message body, max 160 chars | Yes |
+| coolTextAccountNumber | string | The application's registered account | Yes |
+| applicationId | string | Registered application identifier | Yes |
+| apiKey | string | Header: X-Api-Key | Yes |
+| correlationId | string | Caller-provided idempotency key | No |
+
+**Outputs:**
+| Field | Type | Format/Constraints |
+|-------|------|--------------------|
+| status | string | "queued", "suppressed", or "rejected" |
+| suppressionReason | string | "opted-out" if suppressed, null otherwise |
+| messageId | string | UUID if queued; null if suppressed |
+| queuedAt | datetime | ISO 8601 UTC |
+
+**Business Rules:**
+- BR-018: A request with a `correlationId` that matches a previously processed request returns the original response (idempotency).
+- BR-019: If the `coolTextAccountNumber` is not registered in SPEC-016, the request is rejected with 400.
+- BR-020: Fail-safe — if the TCPA API is itself unavailable, the HTTP client connection times out and the calling application must treat this as a send-blocking error.
+
+**Edge Cases:**
+| Scenario | Expected System Behavior |
+|----------|--------------------------|
+| TCPA API is overloaded | Return 503 with Retry-After header; calling app must not bypass |
+| Duplicate correlationId | Return original response; do not re-queue |
+| Body exceeds 160 chars | Return 400 with validation error |
+
+**Error Conditions:**
+| Error | Trigger | System Response |
+|-------|---------|-----------------|
+| 400 Bad Request | Missing field, invalid format, unregistered account | HTTP 400 with field detail |
+| 401 Unauthorized | Invalid API key | HTTP 401 |
+| 503 Service Unavailable | TCPA API overloaded or dependencies degraded | HTTP 503 + Retry-After |
+
+---
+
+### SPEC-007: Queue-Time Opt-Out Check
+- **Source Requirements:** REQ-006
+- **PRD Reference:** PRD §3, OOBR06, CQ-006
+- **Priority:** Must Have
+- **Dependencies:** SPEC-006 (outbound submission), BC-3 opt-out status store
+- **Flags:** none
+
+**Behavior:**
+At the point an outbound message is submitted (SPEC-006), the system queries the opt-out status store for the destination phone number. If the number is opted out, the message is suppressed immediately and the caller receives status "suppressed". The suppression is logged. If the number is opted in (or has no record, per ASM-002), the message proceeds to the dispatch queue.
+
+**Inputs:**
+| Field | Type | Constraints | Required |
+|-------|------|-------------|----------|
+| toNumber | string | E.164 | Yes |
+| messageId | string | UUID from SPEC-006 | Yes |
+
+**Outputs:**
+| Field | Type | Format/Constraints |
+|-------|------|--------------------|
+| optOutStatus | string | "opted-out" or "opted-in" |
+| checkedAt | datetime | ISO 8601 UTC |
+| suppressionLogId | string | UUID of suppression log entry if suppressed |
+
+**Business Rules:**
+- BR-021: No record in the opt-out store means opted-in (ASM-002).
+- BR-022: A suppressed message must be logged with: toNumber, messageId, applicationId, checkedAt, optOutStatus.
+- BR-023: The opt-out status lookup must complete within 100ms P99 to stay within the overall outbound submission latency budget.
+
+**Edge Cases:**
+| Scenario | Expected System Behavior |
+|----------|--------------------------|
+| Opt-out status is being written concurrently (race) | Queue-time check returns opted-in; send-time check (SPEC-008) catches it. Race condition is an accepted edge case per CQ-007 — audit log entry written. |
+| Status store query times out | Return 503 to caller (fail-safe — cannot confirm status) |
+
+**Error Conditions:**
+| Error | Trigger | System Response |
+|-------|---------|-----------------|
+| Status store unavailable | Persistence layer unreachable | Return 503 to SPEC-006; suppress send |
+
+---
+
+### SPEC-008: Send-Time Opt-Out Check
+- **Source Requirements:** REQ-006
+- **PRD Reference:** PRD §3, OOBR06, CQ-006, CQ-007
+- **Priority:** Must Have
+- **Dependencies:** SPEC-007 (message must have passed queue-time check), BC-3 opt-out status store
+- **Flags:** none
+
+**Behavior:**
+Immediately before dispatching a queued message to Cool Text / Twilio, the system performs a second opt-out status check. This is the safety net that catches messages queued before a STOP was processed (the race condition acknowledged in CQ-007). If the number is now opted out, the message is suppressed at send time. An audit log entry is written indicating the message was suppressed at send time after passing the queue-time check — this is logged as an accepted edge case, not a violation.
+
+**Inputs:**
+| Field | Type | Constraints | Required |
+|-------|------|-------------|----------|
+| toNumber | string | E.164 | Yes |
+| messageId | string | UUID from SPEC-006 | Yes |
+| queuedAt | datetime | ISO 8601 UTC — when the message was originally queued | Yes |
+
+**Outputs:**
+| Field | Type | Format/Constraints |
+|-------|------|--------------------|
+| optOutStatus | string | "opted-out" or "opted-in" |
+| checkedAt | datetime | ISO 8601 UTC |
+| action | string | "dispatched" or "suppressed-at-send-time" |
+
+**Business Rules:**
+- BR-024: If opted out at send time (but not at queue time), suppress and log as "suppressed-at-send-time" with queuedAt and optOutEffectiveAt timestamps.
+- BR-025: A "suppressed-at-send-time" event is classified as an accepted edge case, not a TCPA violation, provided optOutEffectiveAt > queuedAt (i.e. the opt-out was received after the message was queued).
+- BR-026: If optOutEffectiveAt <= queuedAt (opt-out was already in effect when message was queued), this is flagged as a suppression failure and treated as a potential violation — alert immediately.
+
+**Edge Cases:**
+| Scenario | Expected System Behavior |
+|----------|--------------------------|
+| Opt-out received after queue time, before send time | Suppress at send time; log as accepted edge case |
+| Opt-out was already in effect at queue time | Log as potential violation; alert; suppress |
+| Status store unavailable at send time | Suppress send (fail-safe); log; alert |
+
+**Error Conditions:**
+| Error | Trigger | System Response |
+|-------|---------|-----------------|
+| Status store unavailable | Persistence unreachable at send time | Suppress message (fail-safe); log; alert on-call |
+
+---
+
+## BC-3: Opt-Out & Compliance Management
+
+### SPEC-009: Opt-Out Status Store
+- **Source Requirements:** REQ-004, REQ-006
+- **PRD Reference:** PRD §3, OOBR04, OOBR06
+- **Priority:** Must Have
+- **Dependencies:** none (foundational)
+- **Flags:** none
+
+**Behavior:**
+The opt-out status store is the authoritative record of every customer phone number's opt-out status. A record exists for every number that has ever sent an opt-out keyword. Numbers with no record are treated as opted-in (ASM-002). The store supports three operations: write opt-out (SPEC-003), write re-opt-in (SPEC-011), and read status (SPEC-007, SPEC-008).
+
+**Inputs (Write Opt-Out):**
+| Field | Type | Constraints | Required |
+|-------|------|-------------|----------|
+| phoneNumber | string | E.164, primary key | Yes |
+| status | string | "opted-out" | Yes |
+| effectiveAt | datetime | ISO 8601 UTC | Yes |
+| optOutId | string | UUID — links to audit record | Yes |
+
+**Inputs (Write Re-Opt-In):**
+| Field | Type | Constraints | Required |
+|-------|------|-------------|----------|
+| phoneNumber | string | E.164, primary key | Yes |
+| status | string | "opted-in" | Yes |
+| effectiveAt | datetime | ISO 8601 UTC | Yes |
+| reOptInId | string | UUID — links to audit record | Yes |
+
+**Business Rules:**
+- BR-027: The store is keyed by E.164 phone number. One record per number (upsert on write).
+- BR-028: Status transitions are: (none) → opted-out → opted-in → opted-out (cycles allowed).
+- BR-029: Status reads must return results within 100ms P99.
+- BR-030: All historical status changes are preserved in the audit log (SPEC-010); the status store holds only the current state.
+
+**Edge Cases:**
+| Scenario | Expected System Behavior |
+|----------|--------------------------|
+| Re-opt-in for number that was never opted out | Write opted-in record; log as anomaly; do not reject |
+| Concurrent write (opt-out and re-opt-in for same number) | Last-write-wins with timestamp; both writes are audit-logged |
+
+---
+
+### SPEC-010: Audit Logging
+- **Source Requirements:** REQ-001, REQ-007 (re-opt-in audit)
+- **PRD Reference:** PRD §3, OOBR01, NFR-003
+- **Priority:** Must Have
+- **Dependencies:** none (foundational — all other specs write to this)
+- **Flags:** none
+
+**Behavior:**
+The system writes an immutable audit log entry for every compliance-significant event. Events include: STOP received, opt-out status written, confirmation dispatched, confirmation failed, message suppressed (queue-time), message suppressed (send-time), re-opt-in performed, race-condition edge case logged. Audit records are retained for 5 years and must be queryable by phone number and date range.
+
+**Audit Event Schema:**
+| Field | Type | Constraints |
+|-------|------|-------------|
+| auditId | string | UUID, primary key |
+| eventType | string | Enum: STOP_RECEIVED, OPT_OUT_WRITTEN, CONFIRMATION_DISPATCHED, CONFIRMATION_FAILED, SUPPRESSED_QUEUE_TIME, SUPPRESSED_SEND_TIME, RE_OPT_IN, RACE_CONDITION_EDGE_CASE, SLA_BREACH |
+| phoneNumber | string | E.164 |
+| occurredAt | datetime | ISO 8601 UTC |
+| applicationId | string | Originating Gas application (where applicable) |
+| messageId | string | UUID of the associated message |
+| details | JSON | Event-specific payload (keyword, message body snapshot, latency, agent ID for re-opt-ins, etc.) |
+
+**Business Rules:**
+- BR-031: Audit records are immutable — no update or delete operations permitted.
+- BR-032: Audit records must be retained for a minimum of 5 years from the event date (NFR-003).
+- BR-033: Audit records must be queryable by: phoneNumber, eventType, date range (from/to), applicationId.
+- BR-034: Every opt-out and re-opt-in write in SPEC-009 must have a corresponding audit record written atomically.
+
+**Error Conditions:**
+| Error | Trigger | System Response |
+|-------|---------|-----------------|
+| Audit write failure | Persistence unavailable | Block the triggering operation (opt-out/re-opt-in cannot succeed if audit cannot be written) |
+
+---
+
+### SPEC-011: Admin Re-Opt-In API
+- **Source Requirements:** REQ-007
+- **PRD Reference:** PRD §3, OOBR07, CQ-005, CQ-011
+- **Priority:** Must Have
+- **Dependencies:** SPEC-009 (opt-out status store), SPEC-010 (audit log)
+- **Flags:** none
+
+**Behavior:**
+An authenticated REST endpoint allows a Help Desk agent to update a customer's opt-out status to opted-in. The caller must provide a valid API key and a reason for the re-opt-in. The system validates that the number exists in the status store (a re-opt-in for an unknown number is allowed but logged as anomalous). The status is updated and an audit record is written atomically. Rate limiting of 10 requests per minute per API key is enforced.
+
+**Inputs:**
+| Field | Type | Constraints | Required |
+|-------|------|-------------|----------|
+| phoneNumber | string | E.164 | Yes |
+| reason | string | Free text, max 500 chars | Yes |
+| agentId | string | Help Desk agent identifier | Yes |
+| apiKey | string | Header: X-Api-Key | Yes |
+
+**Outputs:**
+| Field | Type | Format/Constraints |
+|-------|------|--------------------|
+| reOptInId | string | UUID of the re-opt-in record |
+| phoneNumber | string | E.164 |
+| status | string | "opted-in" |
+| effectiveAt | datetime | ISO 8601 UTC |
+
+**Business Rules:**
+- BR-035: Rate limit: 10 requests per minute per API key. Excess requests return 429 with Retry-After header.
+- BR-036: The reason field is mandatory and must be stored in the audit record.
+- BR-037: The agentId is stored in the audit record to provide a full chain of custody.
+- BR-038: Re-opt-in for a number with no opt-out record is permitted; logged as anomalous.
+- BR-039: The status update and audit record are written atomically — partial writes must roll back.
+
+**Edge Cases:**
+| Scenario | Expected System Behavior |
+|----------|--------------------------|
+| Rate limit exceeded | HTTP 429 with Retry-After: 60 |
+| Number not currently opted out | Update status to opted-in; log as anomalous; return success |
+| agentId not provided | HTTP 400 |
+
+**Error Conditions:**
+| Error | Trigger | System Response |
+|-------|---------|-----------------|
+| 401 Unauthorized | Invalid API key | HTTP 401 |
+| 429 Too Many Requests | Rate limit exceeded | HTTP 429 + Retry-After |
+| 500 Internal Error | Atomic write failure | HTTP 500; roll back; log; alert |
+
+---
+
+## BC-4: Reporting
+
+### SPEC-012: Opted-In Message Volume Report
+- **Source Requirements:** REQ-009
+- **PRD Reference:** PRD §3, RPBR01, CQ-002, CQ-010
+- **Priority:** Must Have
+- **Dependencies:** SPEC-006 (outbound submission — source of message volume data), SPEC-015 (shares scheduling infrastructure)
+- **Flags:** none
+
+**Behavior:**
+Every Monday (US Eastern), the system generates a report covering all outbound SMS messages successfully dispatched to opted-in numbers during the prior Monday–Sunday week. The report is delivered by email to the configurable distribution list (SPEC-017). Data is sourced from the outbound message dispatch log.
+
+**Report Contents:**
+| Field | Description |
+|-------|-------------|
+| Reporting period | Start date and end date (Mon–Sun) |
+| Total messages dispatched to opted-in numbers | Count |
+| Breakdown by application | Count per Gas application |
+| Breakdown by day | Daily count within the period |
+
+**Business Rules:**
+- BR-040: Report covers messages dispatched (reached Cool Text / Twilio) — not messages submitted (which may have been suppressed).
+- BR-041: Report is generated at 06:00 US Eastern every Monday.
+- BR-042: Delivery failures (email bounce) are logged and alerted.
+
+---
+
+### SPEC-013: Opted-Out Message Volume Report
+- **Source Requirements:** REQ-010
+- **PRD Reference:** PRD §3, RPBR02, CQ-002, CQ-010
+- **Priority:** Must Have
+- **Dependencies:** SPEC-007, SPEC-008 (suppression events — source data), SPEC-015 (scheduling)
+- **Flags:** none
+
+**Behavior:**
+Every Monday (US Eastern), the system generates a report covering all outbound SMS messages suppressed during the prior Monday–Sunday week because the destination number was opted out. Data covers both queue-time and send-time suppressions. Delivered by email to the configurable distribution list.
+
+**Report Contents:**
+| Field | Description |
+|-------|-------------|
+| Reporting period | Start date and end date |
+| Total messages suppressed | Count |
+| Breakdown by application | Count per Gas application |
+| Breakdown by suppression type | Queue-time vs. send-time |
+| Breakdown by day | Daily count |
+| Race-condition edge cases | Count of accepted send-time suppressions |
+
+**Business Rules:**
+- BR-043: Each suppressed message appears once — not counted at both queue-time and send-time.
+- BR-044: Report generated at 06:00 US Eastern every Monday; same delivery mechanism as SPEC-012.
+
+---
+
+### SPEC-014: Weekly Compliance Report
+- **Source Requirements:** REQ-011
+- **PRD Reference:** PRD §3, RPBR03, CQ-002, CQ-009, CQ-010
+- **Priority:** Must Have
+- **Dependencies:** SPEC-012, SPEC-013 (data feeds), SPEC-010 (audit log — source of opt-out event data)
+- **Flags:** none
+
+**Behavior:**
+Every Monday (US Eastern), the system generates a consolidated compliance report covering the prior week. This is the primary TCPA audit artefact. It is delivered by email to the configurable distribution list (which may differ from SPEC-012 and SPEC-013 recipients). The report summarises the opt-out enforcement effectiveness.
+
+**Report Contents:**
+| Field | Description |
+|-------|-------------|
+| Reporting period | Start date and end date |
+| Total STOP requests received | Count |
+| Total confirmations sent within 60 seconds | Count and % |
+| Total confirmations breaching 60-second SLA | Count |
+| Total opted-out numbers (cumulative) | Count |
+| Total messages suppressed this week | Count |
+| Total messages dispatched to opted-in numbers | Count |
+| Opt-out suppression rate | % (should be 100%) |
+| Re-opt-ins performed | Count |
+| Alerts triggered | List with descriptions |
+
+**Business Rules:**
+- BR-045: Suppression rate below 100% triggers an alert in the report body.
+- BR-046: Any SLA breach (confirmation > 60 seconds) is listed individually.
+- BR-047: Report generated at 06:00 US Eastern every Monday.
+- BR-048: Email recipient list is read from SPEC-017 (configurable, separate from SPEC-012/013 lists if needed).
+
+---
+
+## BC-5: Configuration & Administration
+
+### SPEC-015: Cool Text Account Registry
+- **Source Requirements:** REQ-013
+- **PRD Reference:** PRD §3, CQ-001, CQ-008
+- **Priority:** Must Have
+- **Dependencies:** none (foundational)
+- **Flags:** none
+
+**Behavior:**
+The system maintains a database table of Cool Text account numbers and their associated Gas application metadata. This table is the authoritative source for: inbound message routing (SPEC-005), outbound message validation (SPEC-006), and confirmation dispatch (SPEC-004). Entries are managed via database migration scripts — no UI required for Phase 1. Each entry maps a Cool Text account number 1:1 to exactly one Gas application.
+
+**Schema:**
+| Field | Type | Constraints |
+|-------|------|-------------|
+| coolTextAccountNumber | string | Primary key, E.164 or account ID format |
+| applicationId | string | Unique identifier of the Gas application |
+| applicationName | string | Human-readable (e.g. "BizTalk", "GCMA") |
+| callbackUrl | string | HTTPS URL — where to forward inbound replies |
+| isActive | boolean | Inactive accounts are rejected on inbound/outbound |
+| createdAt | datetime | ISO 8601 UTC |
+| updatedAt | datetime | ISO 8601 UTC |
+
+**Business Rules:**
+- BR-049: One Cool Text account maps to exactly one applicationId (1:1).
+- BR-050: Inactive accounts (isActive = false) are rejected with 400 on inbound webhook and outbound submission.
+- BR-051: Changes to this table take effect immediately — no restart required.
+- BR-052: In-scope Phase 1 applications: BizTalk, GCMA, KMI, ARM / Construction Portal.
+
+---
+
+### SPEC-016: System Configuration Store
+- **Source Requirements:** REQ-008, REQ-011 (distribution lists)
+- **PRD Reference:** PRD §3, PD-004, CQ-009
+- **Priority:** Must Have
+- **Dependencies:** none (foundational)
+- **Flags:** none
+
+**Behavior:**
+The system maintains a configuration store for runtime-adjustable values that must not require a code deployment to change. Key configuration items: opt-out confirmation message body, email distribution lists for each report type, weekly report schedule, rate limiting thresholds. Values are read at runtime — not cached at startup.
+
+**Configuration Items:**
+| Key | Description | Default |
+|-----|-------------|---------|
+| optOutMessageBody | Global opt-out confirmation text (PENDING LEGAL) | Placeholder — see PRD §3 REQ-008 |
+| reportRecipients.optedIn | Email list for SPEC-012 | configurable |
+| reportRecipients.optedOut | Email list for SPEC-013 | configurable |
+| reportRecipients.compliance | Email list for SPEC-014 | configurable |
+| reportSchedule.dayOfWeek | Day to generate reports | Monday |
+| reportSchedule.timeEastern | Time to generate reports (US Eastern) | 06:00 |
+| adminApi.rateLimitPerMinute | Re-opt-in API rate limit | 10 |
+
+**Business Rules:**
+- BR-053: Configuration values are read at call time — a change is effective on the next invocation without restart.
+- BR-054: The optOutMessageBody key must exist and be non-empty. If missing or empty, SPEC-004 must fail with an alert rather than send a blank message.
+
+---
+
+### SPEC-017: Production & Debug Logging
+- **Source Requirements:** REQ-012
+- **PRD Reference:** PRD §3, §Appendix
+- **Priority:** Must Have
+- **Dependencies:** none
+- **Flags:** none
+
+**Behavior:**
+The system produces structured logs at two levels for IT consumption. Production logs capture every significant operational event (message received, message dispatched, suppression, opt-out written, re-opt-in, report generated, alert triggered). Debug logs capture full request/response payloads and internal state transitions. Log level is configurable at runtime. Logs must not contain customer PII beyond the phone number, and must not contain message body content in production-level logs.
+
+**Business Rules:**
+- BR-055: Production logs: message events (no body), opt-out events, suppression events, report generation, API auth failures, SLA events.
+- BR-056: Debug logs: full request/response payloads, internal processing steps. Debug level is off by default in production.
+- BR-057: Phone numbers in logs are hashed in production log level; unhashed in debug (IT use only, access-controlled).
+- BR-058: Log retention: at minimum 90 days for production logs; 30 days for debug logs.
 
 ---
 
 ## Non-Functional Specifications
 
-### NFS-001: Opt-Out Confirmation SMS Timing
+### NFS-001: Opt-Out Confirmation Latency
 - **Source:** NFR-001
-- **Category:** Compliance
-- **Measurable Target:** The opt-out confirmation SMS (SPEC-005) must be dispatched to Cool Text within 60 seconds of the timestamp of the inbound message receipt that triggered the opt-out. Measured end-to-end from webhook receipt to Cool Text API call initiation.
-- **Verification Method:** Load test with recorded timestamps at webhook receipt and at Cool Text API call; assert p99 dispatch latency ≤ 60 seconds. SLA breach events logged and available for compliance audit.
+- **Category:** Performance
+- **Measurable Target:** P99 latency from STOP receipt to confirmation SMS dispatched to Cool Text / Twilio ≤ 60 seconds, measured at the TCPA API layer. Network delivery time by Cool Text / Twilio is excluded.
+- **Verification Method:** Application performance monitoring. Log `receivedAt` and `dispatchedAt` for every STOP event. P99 calculated over rolling 7-day window. Alert if P99 exceeds 50 seconds (warning) or 60 seconds (breach).
 
----
+### NFS-002: Opted-Out Number Suppression Rate
+- **Source:** NFR-004
+- **Category:** Reliability
+- **Measurable Target:** 0 messages dispatched to opted-out numbers per reporting week. Accepted edge-case suppressions (CQ-007: message queued before STOP) do not count as failures provided optOutEffectiveAt > queuedAt and the send-time check (SPEC-008) suppressed the message.
+- **Verification Method:** Weekly compliance report (SPEC-014). Any non-zero count of messages reaching opted-out numbers (excluding accepted edge cases) triggers immediate alert and investigation.
 
-### NFS-002: Opt-Out Enforcement Timing
-- **Source:** NFR-002
-- **Category:** Compliance
-- **Measurable Target:** Once a cell number's OPT-OUT status is written to the TCPA database (SPEC-004), any subsequent outbound SMS to that number (SPEC-001, SPEC-006) must be blocked. The block must apply to 100% of outbound requests received after the status write completes. There is no grace period.
-- **Verification Method:** Automated test: write OPT-OUT status for a cell number; immediately submit outbound SMS request for that number; assert SUPPRESSED response. Test with concurrent requests to verify no race condition.
-
----
-
-### NFS-003: TCPA Regulatory Deadline
+### NFS-003: Audit Log Retention
 - **Source:** NFR-003
 - **Category:** Compliance
-- **Measurable Target:** The TCPA API must be deployed to production and enforcing opt-out rules for all five in-scope applications by January 31, 2027.
-- **Verification Method:** Production deployment sign-off checklist with date stamp; all five application integrations verified end-to-end in production before deadline.
+- **Measurable Target:** All audit records queryable for minimum 5 years (1,825 days) from event date. Query response for a date-range lookup against 5-year-old data must return within 30 seconds.
+- **Verification Method:** Annual data retention audit. Query test against oldest records.
 
----
-
-### NFS-004: Audit Log Retention
-- **Source:** NFR-004
-- **Category:** Data Retention
-- **Measurable Target:** Audit log records (SPEC-008, SPEC-009, SPEC-010) must be retained for a minimum of 5 years from the event_timestamp of each record. Records must be queryable (not just archived) for the full 5-year retention period.
-- **Verification Method:** Data retention policy applied at the storage layer; automated purge test confirms records older than 5 years + 1 day are eligible for purge while records at exactly 5 years are retained. Spot-query test confirms 5-year-old records are accessible.
-
----
-
-### NFS-005: Fail-Closed on TCPA API Unavailability
-- **Source:** NFR-005
-- **Category:** Reliability / Compliance
-- **Measurable Target:** If the TCPA API database is unavailable and the opt-out status of a destination cell number cannot be determined, the outbound SMS must be blocked (not forwarded). The upstream application receives a 503 Service Unavailable response. Zero messages must be forwarded without a confirmed OPT-IN status check.
-- **Verification Method:** Integration test: bring down TCPA database; submit outbound SMS request; assert 503 response and no message delivered to Cool Text. Verify message blocked count in operational logs.
-
----
-
-### NFS-006: Opt-Out Processing Latency
+### NFS-004: API Authentication
 - **Source:** NFR-006
-- **Category:** Performance
-- **Measurable Target:** From inbound webhook receipt (Step 1) to opt-out status written to database (Step 4 — SPEC-004 completion), the elapsed time must be ≤ 5 seconds at p99 under normal operating load. This leaves at least 55 seconds of headroom within the 60-second confirmation SMS SLA (NFS-001).
-- **Verification Method:** Instrumented timing in integration tests and production monitoring; p99 latency metric on the opt-out processing pipeline; alert if p99 exceeds 5 seconds.
-
----
-
-### NFS-007: PII Protection in Transit and at Rest
-- **Source:** NFR-007
 - **Category:** Security
-- **Measurable Target:** (a) All API communication (inbound from applications, outbound to Cool Text, admin endpoint) uses HTTPS with TLS 1.2 or higher. TLS 1.0 and 1.1 are disabled. (b) Cell phone numbers stored in the TCPA database are encrypted at rest using AES-256 or equivalent. (c) Cell phone numbers in logs are masked (last 4 digits visible only — BR-068).
-- **Verification Method:** (a) TLS configuration scan (e.g., testssl.sh or equivalent) confirms TLS 1.2+ only. (b) Database column encryption verified in schema review. (c) Log output review confirms masking is applied in all log events.
+- **Measurable Target:** 100% of API endpoints reject requests without a valid API key. Zero unauthenticated requests reach any business logic. Measured by: all 4xx responses to unauthenticated requests have HTTP 401 status; no 2xx responses to unauthenticated requests.
+- **Verification Method:** Security test suite — all endpoints probed without API key; all must return 401.
 
----
-
-### NFS-008: Audit Log Completeness
+### NFS-005: Message Throughput
 - **Source:** NFR-008
-- **Category:** Auditability
-- **Measurable Target:** 100% of opt-out events (SPEC-003 positive detections) must produce a corresponding audit log entry (SPEC-008). 0% silent failures — every failure to write an audit log entry must generate a critical operational alert. Measured as: (audit_log_entries / opt_out_events_processed) = 1.00.
-- **Verification Method:** Integration test: process N opt-out events; assert N audit log entries exist. Chaos test: simulate audit log write failure; assert critical alert is generated and no opt-out event is silently dropped from the audit trail.
+- **Category:** Scalability
+- **Measurable Target:** System handles steady-state volume of ~1,000 messages/day without latency degradation. System handles peak burst of 5,000 messages/hour (outage notification event) while maintaining NFS-001 P99 confirmation latency ≤ 60 seconds.
+- **Verification Method:** Load test at 5,000 messages/hour sustained for 15 minutes. NFS-001 P99 must remain ≤ 60 seconds throughout. Zero message loss or duplicate dispatches.
 
----
-
-### NFS-009: System Availability
-- **Source:** NFR-011
-- **Category:** Availability
-- **Measurable Target:** The TCPA API must achieve 99.9% uptime measured on a rolling 30-day window (≤ 43.8 minutes of unplanned downtime per month). SLA applies 24x7x365.
-- **Verification Method:** Uptime monitoring with external health-check probe at ≤ 1-minute intervals. Monthly SLA report generated from monitoring data. Planned maintenance windows excluded from SLA calculation if communicated in advance.
-
----
-
-### NFS-010: Structured Log Availability
-- **Source:** NFR-010
-- **Category:** Observability
-- **Measurable Target:** All production log events are written in structured JSON format and are accessible to IT/Platform Engineering via the standard log aggregation platform within 5 minutes of the event occurring. Debug logs are togglable without a service restart.
-- **Verification Method:** Log format validation in CI (assert all log output is valid JSON). Log availability test: emit test event; verify it appears in log aggregation system within 5 minutes.
+### NFS-006: Compliance Deadline
+- **Source:** CON-001
+- **Category:** Compliance
+- **Measurable Target:** System live in production and enforcing opt-outs before January 31, 2027. Production deployment date is the measurement.
+- **Verification Method:** Production go-live date recorded and signed off by compliance team.
 
 ---
 
 ## Spec Dependency Map
 
 ```
-SPEC-020 (App Registration — BC-6)
-  └── SPEC-001 (Outbound SMS Proxy)
-        └── SPEC-006 (Block Enforcement)
-              └── SPEC-009 (Blocked Outbound Audit Log)
-                    └── SPEC-012 (On-Demand Report: Opted-Out)
-                          └── SPEC-013 (Weekly Compliance Report)
+SPEC-015 (Cool Text Registry)
+  └─► SPEC-001 (Webhook Ingestion)
+        └─► SPEC-002 (Keyword Detection)
+              ├─► SPEC-003 (Opt-Out Processing)
+              │     ├─► SPEC-010 (Audit Log)
+              │     └─► SPEC-004 (Confirmation Dispatch)
+              │           └─► SPEC-016 (Config Store)
+              └─► SPEC-005 (Inbound Routing)
 
-SPEC-002 (Inbound SMS Routing)
-  └── SPEC-003 (Opt-Out Keyword Detection)
-        └── SPEC-004 (Opt-Out Status Write)
-              ├── SPEC-005 (Opt-Out Confirmation SMS)
-              ├── SPEC-008 (Opt-Out Event Audit Log)
-              │     └── SPEC-011 (On-Demand Report: Opted-In)
-              │           └── SPEC-013 (Weekly Compliance Report)
-              └── SPEC-007 (Re-Opt-In Admin Endpoint)
-                    └── SPEC-010 (Re-Opt-In Audit Log)
+SPEC-009 (Status Store)
+  ├─► SPEC-007 (Queue-Time Check)
+  │     └─► SPEC-006 (Outbound Submission)
+  └─► SPEC-008 (Send-Time Check)
 
-SPEC-015 (Structured Logging) — cross-cutting, no upstream dependency
+SPEC-010 (Audit Log)
+  └─► SPEC-011 (Admin Re-Opt-In)
+
+SPEC-012, SPEC-013 (Volume Reports) ─► SPEC-014 (Compliance Report)
 ```
 
-Note: SPEC-014 is the configuration spec for SPEC-020 (Application Registration). These are combined as BC-6 / SPEC-014 (the runtime lookup) backed by the configuration registry. SPEC-020 referenced in the dependency map = SPEC-014 runtime lookup component.
-
----
-
 ## Specs Summary
-- Total specs: 15 functional specs + 10 non-functional specs = 25 total
-- Bounded contexts: 7
-- Complex specs requiring architecture attention: 3 (SPEC-001, SPEC-007, SPEC-013)
-- Must Have: 15 | Should Have: 0 | Could Have: 0
-- Non-Functional Specs: 10 (NFS-001 through NFS-010)
-
-### Requirement Coverage
-| REQ-ID | Covered by SPEC(s) |
-|--------|--------------------|
-| REQ-001 | SPEC-001, SPEC-002 |
-| REQ-002 | SPEC-002 |
-| REQ-003 | SPEC-003 |
-| REQ-004 | SPEC-004 |
-| REQ-005 | SPEC-005 |
-| REQ-006 | SPEC-006 |
-| REQ-007 | SPEC-005 |
-| REQ-008 | SPEC-001, SPEC-006 |
-| REQ-009 | SPEC-008 |
-| REQ-010 | SPEC-009 |
-| REQ-011 | SPEC-008, SPEC-009, SPEC-010 (NFS-004) |
-| REQ-012 | SPEC-007 |
-| REQ-013 | SPEC-011 |
-| REQ-014 | SPEC-012 |
-| REQ-015 | SPEC-013 |
-| REQ-016 | SPEC-014 |
-| REQ-017 | SPEC-015 |
-| REQ-018 | SPEC-001, SPEC-014 |
-
-### Assumptions Applied in This Stage
-| ID | Assumption | Source |
-|----|-----------|--------|
-| SPEC-A-001 | All in-scope applications use REST/JSON to communicate with TCPA API; BizTalk protocol requires IT verification | CQ-011 clarification default |
-| SPEC-A-002 | Opt-out keyword matching is exact word-boundary match, case-insensitive; not substring-only | CQ-001 clarification default |
-| SPEC-A-003 | Fail behavior when TCPA API is unavailable is fail-closed (block SMS, return 503) | CQ-005 clarification default |
-| SPEC-A-004 | CCB/My Account included in scope; active flag in configuration allows go-live to be gated | CQ-009 clarification default |
-| SPEC-A-005 | Inbound routing uses Cool Text account ID to map to originating application | CQ-010 clarification default |
-| SPEC-A-006 | Availability SLA is 99.9% uptime 24x7 | CQ-007 clarification default |
-| SPEC-A-007 | Weekly reports emailed to Compliance Officers every Monday at 6:00 AM | CQ-004 clarification default |
-| SPEC-A-008 | Re-opt-in mechanism is a privileged admin REST API endpoint; no UI in Phase 1 | CQ-003 clarification default |
-| SPEC-A-009 | Duplicate opt-out keyword from already-opted-out number: log only, no re-confirmation SMS | CQ-021 default |
-| SPEC-A-010 | Re-opt-in does not send confirmation SMS to customer in Phase 1; Help Desk notifies via phone | CQ-023 default |
-| SPEC-A-011 | Opt-out confirmation SMS message text is a compliance-approved constant stored in configuration; placeholder used; actual text to be provided by Legal before go-live | CQ-002 open |
-| SPEC-A-012 | Application registration is a configuration-file-managed IT process; no runtime admin API for registration in Phase 1 | CQ-016 default |
+- Total specs: 17 (functional) + 6 (non-functional) = 23
+- Bounded contexts: 5
+- Complex specs requiring architecture attention: 1 (SPEC-006 — fail-safe HA design)
+- Must Have: 17 / Should Have: 0 / Could Have: 0

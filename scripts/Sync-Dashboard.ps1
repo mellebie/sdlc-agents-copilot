@@ -295,8 +295,8 @@ function Get-AgentConfidence($id) {
             $c = ReadContent 'outputs/task-log.md'
             $sr = Check-SelfReported $c; if ($sr) { return $sr }
             if (-not $c) { return [ordered]@{ level='low'; reason='task-log.md not found' } }
-            $covered = Count-Flags $c 'ACs Covered:'
-            $gaps    = Count-Flags $c 'Known Coverage Gaps:'
+            $covered = Count-Flags $c '(?i)ACs Covered:|### Test Coverage'
+            $gaps    = Count-Flags $c '(?i)Known Coverage Gaps:|### Known Gaps'
             if ($covered -gt 0 -and $gaps -eq 0) { return [ordered]@{ level='high';   reason='All ACs covered, no gaps noted' } }
             if ($covered -gt 0)                  { return [ordered]@{ level='medium'; reason="Coverage gaps noted in $gaps test suite(s)" } }
             return [ordered]@{ level='low'; reason='No test coverage recorded in task log' }

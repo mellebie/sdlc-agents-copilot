@@ -3,7 +3,7 @@
      Source PRD: inputs/prd.md
      PRD Sections: All (Overview, Personas, Functional Requirements, NFRs, Constraints, Out of Scope, Success Metrics, Assumptions, Dependencies, Decisions)
      Generated: 2026-07-23
-     Status: DRAFT
+     Status: APPROVED
 -->
 
 # Requirements — TCPA Regulatory Compliance API
