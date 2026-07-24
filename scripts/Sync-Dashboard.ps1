@@ -171,8 +171,16 @@ function Get-AgentConfidence($id) {
             $c = ReadContent 'outputs/requirements.md'
             $sr = Check-SelfReported $c; if ($sr) { return $sr }
             if (-not $c) { return [ordered]@{ level='low'; reason='requirements.md not found' } }
+            # [RESOLVED:...] flags do not match this pattern - only unresolved AMBIGUOUS/GAP count
             $n = Count-Flags $c '\[(AMBIGUOUS|GAP)'
+            # Cross-check clarifications: if all blocking questions answered, remaining flags are less severe
+            $cl = ReadContent 'outputs/clarifications.md'
+            $clarifiedAll = $cl -and ((Count-Flags $cl '_\[human to fill in\]_') -eq 0)
             if ($n -eq 0) { return [ordered]@{ level='high'; reason='No ambiguities or gaps flagged' } }
+            if ($clarifiedAll) {
+                if ($n -le 2) { return [ordered]@{ level='medium'; reason="$n open flag(s) - all clarifications answered; resolve remaining flags in requirements.md" } }
+                return [ordered]@{ level='low'; reason="$n open flags remain in requirements.md - update resolved flags to [RESOLVED:...]" }
+            }
             if ($n -le 3) { return [ordered]@{ level='medium'; reason="$n ambiguit(ies)/gap(s) flagged" } }
             return [ordered]@{ level='low'; reason="$n open flags require resolution" }
         }

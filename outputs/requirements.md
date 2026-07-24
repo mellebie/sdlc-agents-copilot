@@ -1,153 +1,167 @@
 <!-- SDLC Pipeline Artifact
      Stage: 01-prd-analyst
      Source PRD: inputs/prd.md
-     PRD Sections: §1 Overview, §2 Personas, §3 Functional Requirements, §4 Non-Functional Requirements, §5 Constraints, §6 Out of Scope, §7 Success Metrics, §8 Assumptions, §9 Dependencies, §10 Product Decisions Required
-     Generated: 2026-06-26
-     Status: APPROVED — human approved proceeding despite open clarifications (2026-06-26)
+     PRD Sections: All (Overview, Personas, Functional Requirements, NFRs, Constraints, Out of Scope, Success Metrics, Assumptions, Dependencies, Decisions)
+     Generated: 2026-07-23
+     Status: DRAFT
 -->
 
-# Requirements — TCPA Regulatory Compliance for Text Messages
+# Requirements — TCPA Regulatory Compliance API
 
 ## Product Vision
-The TCPA API is a centralized middleware filtering layer that sits between Southern Company Gas (SCG) applications and the Cool Text/Twilio SMS platform. It enforces opt-out compliance with TCPA Section 64.1200 by intercepting all outbound SMS and blocking delivery to any cell number that has submitted a STOP request, regardless of which SCG application originated the message. The system must be live and enforcing by January 31, 2027.
+The TCPA Regulatory Compliance API is a centralized SMS filtering and opt-out enforcement service for Southern Company Gas. It intercepts all outbound text messages across every in-scope Gas application (BizTalk, GCMA, KMI, ARM), enforces customer opt-out decisions consistently across all four LDCs, and ensures compliance with the federal TCPA mandate effective January 31, 2027. A customer who sends a single STOP keyword to any in-scope application is globally opted out across the entire platform.
 
 ## Goals
 
-| ID     | Goal                                                                                 | Success Metric                                                                       | PRD Ref    |
-|--------|--------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|------------|
-| GOAL-1 | Achieve TCPA compliance for all outbound SMS by the Jan 31, 2027 regulatory deadline | Zero SMS messages delivered to opted-out cell numbers through the TCPA API           | PRD §1     |
-| GOAL-2 | Centralize opt-out enforcement across all in-scope SCG applications                  | 100% of in-scope application text messages routed through TCPA API                   | PRD §1     |
-| GOAL-3 | Provide a compliance audit trail and automated reporting                             | Audit log retained 5 years; weekly compliance reports generated with zero manual intervention | PRD §1 |
-| GOAL-4 | Reduce consumer opt-out processing time to within TCPA-mandated limits               | Opt-out acknowledgement ≤ 60 seconds; opt-out effective within 10 days               | PRD §1     |
+| ID     | Goal                                                              | Success Metric                                                  | PRD Ref   |
+|--------|-------------------------------------------------------------------|-----------------------------------------------------------------|-----------|
+| GOAL-1 | Centralize opt-out enforcement across all in-scope applications  | Zero text messages sent to opted-out numbers across all apps   | PRD §1    |
+| GOAL-2 | Achieve TCPA compliance before the Jan 31, 2027 deadline         | System live and enforcing opt-outs before Jan 31, 2027         | PRD §1    |
+| GOAL-3 | Provide a standardized, auditable opt-out confirmation process   | 100% of STOP requests acknowledged within 60 seconds           | PRD §1    |
+| GOAL-4 | Provide compliance reporting for opt-in/opt-out activity         | Weekly automated compliance reports generated and delivered     | PRD §1    |
 
 ## Personas
 
-| ID      | Persona Name          | Description                                                                 | Primary Needs                                                                  | PRD Ref  |
-|---------|-----------------------|-----------------------------------------------------------------------------|--------------------------------------------------------------------------------|----------|
-| PER-001 | Gas Customer          | SCG consumer who receives SMS alerts from one or more SCG applications      | Reliable opt-out that stops all SCG texts across all applications; clear confirmation of opt-out | PRD §2 |
-| PER-002 | Application System    | Upstream systems (BizTalk, GCMA, KMI, ARM, CCB/My Account) that send SMS   | Authoritative opt-in/opt-out status lookup before sending; receipt of inbound customer replies | PRD §2 |
-| PER-003 | Compliance Officer    | Customer Operations, Legal, and Internal Auditing staff                     | Audit evidence of opt-out compliance; visibility into enforcement failures; automated reports | PRD §2 |
-| PER-004 | Help Desk Agent       | Resource Management staff processing re-opt-in requests                     | Ability to manually re-opt-in a cell number for a customer who requests it     | PRD §2   |
-| PER-005 | IT / Platform Engineer| Gas Technology Solutions Delivery and DTS engineers                         | Production/debug logs for diagnosing API behavior and failures                 | PRD §2   |
+| ID      | Persona Name                     | Description                                                          | Primary Needs                                                              | PRD Ref    |
+|---------|----------------------------------|----------------------------------------------------------------------|----------------------------------------------------------------------------|------------|
+| PER-001 | Gas Customer                     | Cell phone owner who receives texts from Southern Company Gas apps   | Opt out of all Gas texts with one STOP; receive confirmation; know how to re-opt-in | PRD §2 |
+| PER-002 | Southern Company Gas Application | BizTalk, GCMA, KMI, ARM — SMS-sending systems routing through the API | Route outbound texts through TCPA API; receive inbound customer replies forwarded | PRD §2 |
+| PER-003 | Help Desk Agent                  | Customer operations staff handling re-opt-in requests                | Manually re-opt-in a customer via authenticated admin API                  | PRD §2    |
+| PER-004 | Compliance / Audit Team          | Internal auditing and legal staff                                    | Access audit logs; receive weekly compliance reports; demonstrate TCPA adherence | PRD §2 |
+| PER-005 | IT / Developer                   | Gas Technology Solutions Delivery and DTS engineers                 | Monitor API health; debug message flows; access production and debug logs  | PRD §2    |
 
 ## Functional Requirements
 
-| ID      | Requirement                                                                                                                         | Priority (MoSCoW) | PRD Ref    | Flags                                                                 |
-|---------|-------------------------------------------------------------------------------------------------------------------------------------|-------------------|------------|-----------------------------------------------------------------------|
-| REQ-001 | The system must act as a middleware proxy between in-scope SCG applications and Cool Text/Twilio for all outbound and inbound SMS    | Must              | PRD §3     |                                                                       |
-| REQ-002 | The system must receive inbound SMS replies from customers (via Cool Text) and forward them unchanged to the originating application | Must              | PRD §3     |                                                                       |
-| REQ-003 | The system must detect any of the 7 TCPA opt-out keywords (STOP, QUIT, END, REVOKE, OPT-OUT, CANCEL, UNSUBSCRIBE) in inbound SMS, case-insensitive | Must | PRD §3 | [AMBIGUOUS: PRD §3 REQ-003 detail notes "parse for any occurrence" implying substring match, but PD-005 explicitly flags this as unresolved — full-body exact match vs. substring is a blocking open question] |
-| REQ-004 | The system must set a cell phone number's opt-out status to OPT-OUT in the TCPA API database upon detecting an opt-out keyword      | Must              | PRD §3     |                                                                       |
-| REQ-005 | The system must send an opt-out acknowledgement confirmation SMS to the customer's cell number within 60 seconds of opt-out keyword detection | Must       | PRD §3     |                                                                       |
-| REQ-006 | Opted-out cell numbers must receive no further SMS within 10 calendar days of the opt-out request                                   | Must              | PRD §3     |                                                                       |
-| REQ-007 | The system must send one standardized global opt-out confirmation SMS to the opted-out cell number, informing them they are opted out of ALL SCG applications and providing a phone number to re-opt in | Must | PRD §3 | [AMBIGUOUS: exact message text and content owner are unresolved — PD-002 is a blocking product decision; requirement cannot be fully implemented without approved message content] |
-| REQ-008 | The system must block (suppress and not deliver) outbound SMS to any cell number with OPT-OUT status before forwarding to Cool Text/Twilio | Must          | PRD §3     |                                                                       |
-| REQ-009 | The system must write an audit log entry for every opt-out request processed, including: date/time stamp, originating application, cell phone number, opt-out keyword received, system response, and any TCPA-required fields | Must | PRD §3 | [AMBIGUOUS: "other info as required by TCPA" is undefined — PD-009 is a blocking product decision; the full required field set for the audit log is not specified] |
-| REQ-010 | The system must also log every blocked outbound SMS attempt (cell number, application, date/time, message content) in the audit log  | Must              | PRD §3     |                                                                       |
-| REQ-011 | Audit log data must be retained for a minimum of 5 years from the event date                                                        | Must              | PRD §3     |                                                                       |
-| REQ-012 | The system must support manually updating a cell phone number's opt-out status back to OPT-IN (re-opt-in)                          | Must              | PRD §3     | [AMBIGUOUS: exact mechanism for re-opt-in (Help Desk UI, admin API endpoint, database operation) is unresolved — PD-003 is a blocking product decision] |
-| REQ-013 | The system must produce a report of all SMS messages sent to opted-in cell numbers (status, cell number, application, date/time, message content) | Must  | PRD §3     |                                                                       |
-| REQ-014 | The system must produce a report of all SMS messages attempted to opted-out cell numbers (status, cell number, application, date/time, message content) | Must | PRD §3 |                                                                    |
-| REQ-015 | The system must automatically generate weekly compliance reports including: alerts for messages sent to opted-out numbers, alerts for messages sent to opted-in numbers, and opt-out success rate (compliance KPI) | Must | PRD §3 | [AMBIGUOUS: report recipients, format (email/dashboard/file), and delivery schedule are unresolved — PD-004 is a blocking product decision] |
-| REQ-016 | The system must store and use the Cool Text account number for each in-scope application data flow to route messages correctly       | Must              | PRD §3     |                                                                       |
-| REQ-017 | The system must produce structured production and debug logs containing details of all API actions, successes, failures, and behaviors, accessible to IT | Must | PRD §3 |                                                               |
-| REQ-018 | Applications not registered in the TCPA API (no Cool Text account configured) must not be affected by the TCPA API                 | Must              | PRD §3     |                                                                       |
+| ID      | Requirement                                                                                               | Priority (MoSCoW) | PRD Ref         | Flags               |
+|---------|-----------------------------------------------------------------------------------------------------------|-------------------|-----------------|---------------------|
+| REQ-001 | The system shall maintain an audit log of all opt-out text message requests                               | Must              | PRD §3, OOBR01  |                     |
+| REQ-002 | The system shall forward the exact inbound text content received from a customer to the applicable Gas application | Must        | PRD §3, OOBR02  | [RESOLVED: AMB-001] |
+| REQ-003 | The system shall identify the seven TCPA opt-out keywords via exact-word, case-insensitive match          | Must              | PRD §3, OOBR03  |                     |
+| REQ-004 | The system shall update a customer's status to opted-out upon receipt of an exact opt-out keyword         | Must              | PRD §3, OOBR04  |                     |
+| REQ-005 | The system shall send an opt-out acknowledgement to the customer within 60 seconds of a STOP request     | Must              | PRD §3, OOBR04  |                     |
+| REQ-006 | The system shall suppress all outbound SMS messages to opted-out cell phone numbers                       | Must              | PRD §3, OOBR06  |                     |
+| REQ-007 | The system shall expose an authenticated admin REST API for Help Desk to manually re-opt-in a customer   | Must              | PRD §3, OOBR07  | [RESOLVED: AMB-002] |
+| REQ-008 | The system shall send a configurable global opt-out confirmation message upon STOP request                | Must              | PRD §3, OOBR09  |                     |
+| REQ-009 | The system shall report on SMS messages sent to opted-in cell phone numbers                              | Must              | PRD §3, RPBR01  | [RESOLVED: AMB-003] |
+| REQ-010 | The system shall report on SMS messages sent to opted-out cell phone numbers                             | Must              | PRD §3, RPBR02  | [RESOLVED: AMB-003] |
+| REQ-011 | The system shall automatically generate weekly compliance reports and deliver them via email             | Must              | PRD §3, RPBR03  | [GAP: GAP-002]      |
+| REQ-012 | The system shall produce production analysis and debug logs for IT use                                   | Must              | PRD §3, §Appendix |                   |
+| REQ-013 | The system shall maintain Cool Text account number configuration for all in-scope applications           | Must              | PRD §3          | [RESOLVED: GAP-004] |
+| REQ-014 | The system shall act as a message broker between in-scope applications and Cool Text / Twilio            | Must              | PRD §3          | [RESOLVED: GAP-001] |
+
+### Requirement Details
+
+#### REQ-002: Inbound Message Forwarding
+**Behavior:** When a customer replies to a Gas application text, the TCPA API receives the inbound message from Cool Text / Twilio and forwards it verbatim to the originating Gas application.
+**Ambiguity — AMB-001:** The routing mechanism (how the TCPA API identifies which Gas application a specific inbound message belongs to) is not specified. Likely via Cool Text account number mapping (REQ-013), but the data model and routing logic need architectural definition.
+
+#### REQ-003: Keyword Detection
+**Behavior:** The seven opt-out keywords are: STOP, QUIT, END, REVOKE, OPT-OUT, CANCEL, UNSUBSCRIBE. The inbound SMS body is trimmed and compared case-insensitively. Match must be exact — "Please STOP texting" does NOT trigger opt-out. Only "STOP" (alone) does.
+**Source:** PRD §3, OOBR03 — PD-002 confirmed exact-word matching.
+
+#### REQ-005: 60-Second Acknowledgement
+**Behavior:** From the moment the TCPA API receives a STOP request, it must send the global opt-out confirmation text to the customer within 60 seconds. SLA applies to API processing latency, not end-to-end network delivery time through Cool Text / Twilio.
+
+#### REQ-007: Manual Re-Opt-In
+**Behavior:** A token-gated admin REST API endpoint allows a Help Desk agent to update a cell phone number's status from opted-out to opted-in. Every re-opt-in action writes a full audit record (number, agent identity, timestamp, reason).
+**Ambiguity — AMB-002:** Authentication mechanism (API key vs. bearer token), token issuance, and key management process not specified in PRD.
+
+#### REQ-008: Global Opt-Out Confirmation Message
+**Behavior:** Message wording is stored as a configuration value — not hardcoded — enabling Legal to update it without a code deployment.
+**Current placeholder:** "You have been unsubscribed from Southern Company Gas text messages. Reply START or call 1-800-XXX-XXXX to re-subscribe."
+**Note:** Final wording requires Legal / Compliance sign-off before go-live (PD-004 pending).
+
+#### REQ-009 / REQ-010: Message Volume Reporting
+**Ambiguity — AMB-003:** PRD specifies reports on opted-in (REQ-009) and opted-out (REQ-010) message volumes, but does not specify whether these are standalone deliverables or components of the weekly compliance report (REQ-011). Jordan to confirm before spec decomposition.
+
+#### REQ-014: Message Broker
+**Gap — GAP-001:** How inbound SMS messages reach the TCPA API is not specified. The industry standard is a webhook callback from Cool Text / Twilio, but this needs architectural confirmation. Blocking for spec decomposition.
+
+---
 
 ## Non-Functional Requirements
 
-| ID      | Category       | Requirement                                                           | Measurable Target                                                                                 | PRD Ref  |
-|---------|----------------|-----------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|----------|
-| NFR-001 | Compliance     | Opt-out acknowledgement timing                                        | Confirmation SMS sent ≤ 60 seconds from opt-out keyword receipt                                   | PRD §4   |
-| NFR-002 | Compliance     | Opt-out enforcement timing                                            | Opted-out cell number receives no further SMS within 10 calendar days of opt-out request          | PRD §4   |
-| NFR-003 | Compliance     | TCPA regulatory deadline                                              | System live and enforcing opt-out rules in production by January 31, 2027                         | PRD §4   |
-| NFR-004 | Data Retention | Audit log retention                                                   | Audit log data retained for minimum 5 years from event date                                       | PRD §4   |
-| NFR-005 | Reliability    | Fail-safe behavior when TCPA API is unavailable                       | [AMBIGUOUS: fail-closed vs. fail-open behavior not specified — PD-006 is a blocking product decision; no measurable target can be set until resolved] | PRD §4 |
-| NFR-006 | Performance    | Inbound keyword detection and opt-out status write latency            | Opt-out keyword detection and status write ≤ 5 seconds from message receipt [ASSUMED — no explicit target beyond the 60s confirmation SLA in the PRD] | PRD §4 |
-| NFR-007 | Security       | Cell phone number (PII) protection in transit and at rest             | All cell phone numbers encrypted in the database and in API transit using HTTPS/TLS 1.2 or higher [ASSUMED — not explicitly stated in PRD but implied by regulatory and data policy context] | PRD §4 |
-| NFR-008 | Auditability   | Audit log completeness                                                | 100% of opt-out requests produce a corresponding audit log entry; no silent failures              | PRD §4   |
-| NFR-009 | Scalability    | Concurrent load from all in-scope applications                        | [AMBIGUOUS: message volume per application is not specified — PD-007 is a blocking product decision; no measurable target can be set until volume estimates are provided] | PRD §4 |
-| NFR-010 | Observability  | Structured production and debug logging                               | All API actions, successes, failures, and behaviors logged in structured format accessible to IT  | PRD §4   |
-| NFR-011 | Availability   | TCPA API uptime SLA                                                   | [AMBIGUOUS: target availability SLA is not specified in the PRD — PD-008 is a blocking product decision] | PRD §4 |
+| ID      | Category     | Requirement                                  | Measurable Target                                                              | PRD Ref         |
+|---------|--------------|----------------------------------------------|--------------------------------------------------------------------------------|-----------------|
+| NFR-001 | Performance  | Opt-out acknowledgement latency              | P99: STOP receipt → confirmation sent ≤ 60 seconds                            | PRD §4, OOBR04  |
+| NFR-002 | Performance  | Opt-out status update speed                  | 100% of STOP requests in opted-out status within 10 days (regulatory bound); actual processing near-real-time | PRD §4 |
+| NFR-003 | Compliance   | Audit log retention                          | All opt-out and re-opt-in records queryable for 5 years post-event            | PRD §4, OOBR01  |
+| NFR-004 | Reliability  | Opted-out number suppression                 | 0% delivery rate to opted-out cell phone numbers                               | PRD §4, OOBR06  |
+| NFR-005 | Reporting    | Weekly compliance report delivery            | Delivered by email within 24 hours of week-end cutoff                         | PRD §4, RPBR03  |
+| NFR-006 | Security     | API authentication                           | All endpoints require authentication; zero unauthenticated access             | PRD §4          |
+| NFR-007 | Auditability | Production and debug logs                    | Logs capture: message send success/failure, opt-out events, re-opt-in events, full message flow | PRD §4 |
+| NFR-008 | Scalability  | Message throughput                           | Steady state: ~1,000 msgs/day. Peak burst: up to 5,000 msgs/hour. P99 latency must not degrade below NFR-001 at peak. | PRD §4 |
 
 ## Constraints
 
-| ID      | Type        | Description                                                                                                | PRD Ref  |
-|---------|-------------|------------------------------------------------------------------------------------------------------------|----------|
-| CON-001 | Regulatory  | Must comply with TCPA Section 64.1200 effective January 31, 2027                                           | PRD §5   |
-| CON-002 | Regulatory  | Must comply with CTIA guidelines for SMS opt-out handling                                                   | PRD §5   |
-| CON-003 | Technical   | Messaging platform is exclusively Cool Text and Twilio; no other SMS platform is in scope                  | PRD §5   |
-| CON-004 | Technical   | TCPA API must not modify opt-out status at the application level; it manages only its own centralized database | PRD §5 |
-| CON-005 | Scope       | Initial customer opt-in remains at the application level; TCPA API does not manage opt-in                  | PRD §5   |
-| CON-006 | Scope       | Vendor SMS (ACI SpeedPay, Google Notifications) is out of scope                                             | PRD §5   |
-| CON-007 | Scope       | IVR Dialer SMS is out of scope; it may send SMS regardless of TCPA API opt-out status                      | PRD §5   |
-| CON-008 | Scope       | Multi-factor authentication SMS is out of scope                                                             | PRD §5   |
-| CON-009 | Geographic  | Must cover all four SCG LDCs: Virginia Natural Gas, Chattanooga Gas Company, Nicor Gas, Atlanta Gas Light  | PRD §5   |
-| CON-010 | Business    | Re-opt-in is a manual process only; no automated re-opt-in triggered by application-level opt-in actions   | PRD §5   |
+| ID      | Type        | Description                                                                        | PRD Ref |
+|---------|-------------|------------------------------------------------------------------------------------|---------|
+| CON-001 | Regulatory  | System must be live and enforcing opt-outs before January 31, 2027                | PRD §5  |
+| CON-002 | Technical   | Messaging platforms are Twilio and Cool Text only                                  | PRD §5  |
+| CON-003 | Technical   | Only applications with Cool Text accounts configured in TCPA API are impacted     | PRD §5  |
+| CON-004 | Scope       | Initial opt-in remains at application level — TCPA API does not manage opt-in    | PRD §5  |
+| CON-005 | Scope       | Re-opt-in from STOP is manual — no automated re-opt-in                            | PRD §5  |
+| CON-006 | Scope       | Application-level opt-outs do NOT propagate to TCPA API                           | PRD §5  |
+| CON-007 | Geographic  | Covers four LDCs: Virginia Natural Gas, Chattanooga Gas, Nicor Gas, Atlanta Gas Light | PRD §5 |
+| CON-008 | Technical   | Dialer IVR is excluded; IVR-originated texts bypass TCPA API                     | PRD §5  |
 
 ## Out of Scope
 
-| ID      | Item                                                                                                  | PRD Ref  |
-|---------|-------------------------------------------------------------------------------------------------------|----------|
-| OOS-001 | Initial customer opt-in to text messaging (remains at application level)                              | PRD §6   |
-| OOS-002 | Automated re-opt-in after opt-out                                                                     | PRD §6   |
-| OOS-003 | Program/campaign-specific message creation by the TCPA API                                            | PRD §6   |
-| OOS-004 | Solutions for entities outside Southern Company Gas                                                   | PRD §6   |
-| OOS-005 | Emergency SMS notifications                                                                           | PRD §6   |
-| OOS-006 | Vendor-managed SMS (ACI SpeedPay Twilio, Google Notifications)                                        | PRD §6   |
-| OOS-007 | IVR Dialer SMS (IVR Part 280 Shut Off Notice, PURL Request, AGLC Atlanta IVR Marketing List URL)     | PRD §6   |
-| OOS-008 | Multi-factor authentication SMS                                                                       | PRD §6   |
-| OOS-009 | Application-level opt-out propagating to TCPA API (only SMS STOP keyword triggers TCPA API opt-out)  | PRD §6   |
-| OOS-010 | Opt-out status push from TCPA API back to individual applications (removed from Phase 1)              | PRD §6   |
+| ID      | Item                                                                           | PRD Ref |
+|---------|--------------------------------------------------------------------------------|---------|
+| OOS-001 | Initial opt-in to text messaging (remains at application level)                | PRD §6  |
+| OOS-002 | Automated re-opt-in process                                                    | PRD §6  |
+| OOS-003 | Campaign/program-specific text message creation                                | PRD §6  |
+| OOS-004 | Solutions outside Southern Company Gas                                         | PRD §6  |
+| OOS-005 | Emergency notifications                                                        | PRD §6  |
+| OOS-006 | Vendor SMS on behalf of Southern Company Gas (ACI SpeedPay, Google Notifications) | PRD §6 |
+| OOS-007 | Dialer IVR (Part 280 Shut Off, PURL, AGLC Atlanta IVR)                        | PRD §6  |
+| OOS-008 | Multi-factor authentication                                                    | PRD §6  |
+| OOS-009 | Application opt-out propagation to TCPA API                                   | PRD §6  |
+| OOS-010 | CCB / My Account (Phase 2 — confirmed PD-007)                                  | PRD §6  |
 
 ## Assumptions
 
-| ID      | Assumption                                                                                                             | Owner              | PRD Ref  |
-|---------|------------------------------------------------------------------------------------------------------------------------|--------------------|----------|
-| ASM-001 | Twilio and Cool Text are the only messaging platforms currently in use by Southern Company Gas                         | Confirmed — Prashant Pathak (2/19/2026) | PRD §8 |
-| ASM-002 | All customers are globally opted-in at the TCPA API level by default until a STOP keyword is received via SMS          | Confirmed — Prashant Pathak (2/19/2026) | PRD §8 |
-| ASM-003 | Customer opt-in occurs at the application level; no SMS is sent until the customer opts in via the application         | Product / BRD      | PRD §8   |
-| ASM-004 | CCB/My Account integration is included in this release given a potential Q2 2026 go-live                               | Product / BRD      | PRD §8   |
-| ASM-005 | ARM/Construction Portal (GlanceAndSee campaign) is already live as of February 2026 and sending texts                 | Confirmed — BRD    | PRD §8   |
-| ASM-006 | Cool Text account numbers for all in-scope applications are available and will be provided via configuration (not user-entered) | IT / Platform Engineer | PRD §8 |
-| ASM-007 | The TCPA API is a new standalone service, not a modification to any existing application                               | Architect          | PRD §8   |
-| ASM-008 | The 10-day opt-out window is a regulatory maximum; opt-out must be enforced immediately upon status write              | Legal / Compliance | PRD §8   |
+| ID      | Assumption                                                                                                  | Owner    | PRD Ref |
+|---------|-------------------------------------------------------------------------------------------------------------|----------|---------|
+| ASM-001 | Twilio and Cool Text are the only messaging platforms in use                                               | BRD      | PRD §8  |
+| ASM-002 | All customers are globally opted-in until a STOP request is received via the TCPA API                      | BRD      | PRD §8  |
+| ASM-003 | The 60-second SLA applies to TCPA API processing latency, not network delivery time                        | Agent 00 | PRD §8  |
+| ASM-004 | "10 days" processing SLA is a regulatory outer bound; actual processing is near-real-time                  | Agent 00 | PRD §8  |
+| ASM-005 | The system requires API authentication — not specified in BRD but implied by regulatory sensitivity         | Agent 00 | PRD §8  |
+| ASM-006 | Weekly reporting = Monday–Sunday week, report generated Monday for prior week                               | Agent 00 | PRD §8  |
+| ASM-007 | CCB/My Account is definitively out of Phase 1 scope (confirmed PD-007)                                     | Confirmed | PRD §8 |
 
 ## External Dependencies
 
-| ID      | System/Team                  | Nature of Dependency                                                            | PRD Ref  |
-|---------|------------------------------|---------------------------------------------------------------------------------|----------|
-| DEP-001 | Cool Text platform           | TCPA API must integrate with Cool Text for inbound and outbound SMS routing     | PRD §9   |
-| DEP-002 | Twilio platform              | Part of the messaging infrastructure; interaction model TBD                     | PRD §9   |
-| DEP-003 | BizTalk                      | Must route all outbound SMS through TCPA API before go-live                     | PRD §9   |
-| DEP-004 | GCMA                         | Must route all outbound SMS through TCPA API before go-live                     | PRD §9   |
-| DEP-005 | KMI Active                   | Must route all outbound SMS through TCPA API before go-live                     | PRD §9   |
-| DEP-006 | ARM / Construction Portal    | Must route all outbound SMS through TCPA API; already live and sending texts    | PRD §9   |
-| DEP-007 | CCB / My Account             | Integration targeted for this release (Q2 2026 go-live); inclusion TBD         | PRD §9   |
-| DEP-008 | Help Desk ticketing system   | Manual re-opt-in process requires a defined Help Desk workflow and tooling      | PRD §9   |
-| DEP-009 | TCPA Compliance / Legal team | Must review and approve global opt-out confirmation message content             | PRD §9   |
+| ID      | System/Team             | Nature of Dependency                                                | PRD Ref |
+|---------|-------------------------|---------------------------------------------------------------------|---------|
+| DEP-001 | Cool Text               | TCPA API routes all outbound messages through Cool Text accounts   | PRD §9  |
+| DEP-002 | Twilio                  | Secondary messaging platform linked to Cool Text accounts          | PRD §9  |
+| DEP-003 | BizTalk                 | In-scope application; must integrate with TCPA API                 | PRD §9  |
+| DEP-004 | GCMA                    | In-scope application; must integrate with TCPA API                 | PRD §9  |
+| DEP-005 | KMI                     | In-scope application; must integrate with TCPA API                 | PRD §9  |
+| DEP-006 | ARM / Construction Portal | In-scope application; must integrate with TCPA API               | PRD §9  |
+| DEP-007 | CCB / My Account        | Phase 2 dependency only — excluded from Phase 1                    | PRD §9  |
+| DEP-008 | Help Desk system        | Manual re-opt-in requires Help Desk ticket workflow                | PRD §9  |
+| DEP-009 | Legal / Compliance      | Must approve global opt-out message wording (PD-004 pending)       | PRD §9  |
 
 ## Ambiguities & Gaps
 
-| ID      | Type      | Description                                                                                                                           | Blocking? |
-|---------|-----------|---------------------------------------------------------------------------------------------------------------------------------------|-----------|
-| AMB-001 | AMBIGUOUS | REQ-003: Opt-out keyword matching scope — full-message exact match vs. substring/partial match not specified (PD-005 in PRD)          | Yes       |
-| AMB-002 | AMBIGUOUS | REQ-007: Exact text and content owner for the global opt-out confirmation SMS not defined (PD-002 in PRD)                             | Yes       |
-| AMB-003 | AMBIGUOUS | REQ-012: Mechanism for manual re-opt-in (Help Desk UI, admin API, database operation) not specified (PD-003 in PRD)                   | Yes       |
-| AMB-004 | AMBIGUOUS | REQ-015: Weekly compliance report recipients, format, and delivery schedule not specified (PD-004 in PRD)                             | Yes       |
-| AMB-005 | AMBIGUOUS | NFR-005: Fail-closed vs. fail-open behavior when TCPA API is unavailable not addressed (PD-006 in PRD)                               | Yes       |
-| AMB-006 | AMBIGUOUS | NFR-009: Message volume per application not provided; system cannot be sized without this (PD-007 in PRD)                             | Yes       |
-| AMB-007 | AMBIGUOUS | NFR-011: Target availability SLA (e.g., 99.9% uptime) not specified in PRD (PD-008 in PRD)                                          | Yes       |
-| AMB-008 | AMBIGUOUS | REQ-009: "Other info as required by TCPA" audit log fields are undefined; full required field set for audit log not specified (PD-009 in PRD) | Yes |
-| AMB-009 | AMBIGUOUS | NFR-006: Inbound keyword detection latency target is assumed (≤ 5 seconds) — PRD does not state an explicit target beyond the 60s confirmation SLA | No |
-| AMB-010 | AMBIGUOUS | NFR-007: PII encryption requirements are assumed (TLS 1.2+, encryption at rest) — not explicitly stated in PRD                       | No        |
-| GAP-001 | GAP       | No requirement for a mechanism to query a cell number's current opt-out status — PD-001 (real-time lookup by call center/help desk agents) was removed from scope but the Help Desk re-opt-in workflow (REQ-012) implicitly requires some form of status lookup before or after updating | No |
-| GAP-002 | GAP       | No disaster recovery or backup requirements defined for the TCPA API database containing opt-out records                              | No        |
-| GAP-003 | GAP       | No requirement for how the TCPA API is notified of new applications being onboarded (Cool Text account registration process)          | No        |
-| GAP-004 | GAP       | No rate limiting or anti-abuse requirements defined for the API (e.g., to prevent flood attacks that could exhaust opt-out confirmations) | No     |
-| GAP-005 | GAP       | CCB/My Account integration status (included or deferred) is conditional on Q2 2026 go-live — no explicit decision is recorded in the PRD, leaving integration scope ambiguous | No |
+| ID      | Type      | Description                                                                                                                      | Blocking? | Status |
+|---------|-----------|----------------------------------------------------------------------------------------------------------------------------------|-----------|--------|
+| AMB-001 | AMBIGUOUS | REQ-002: How does the TCPA API identify which Gas application an inbound reply belongs to? Cool Text account mapping implied but routing mechanism not specified. | Yes | **Resolved** — `ReplyForwardingService` uses `callbackUrl` from `SystemConfig` to route replies to the originating application. |
+| AMB-002 | AMBIGUOUS | REQ-007: Auth mechanism for admin re-opt-in API (API key, bearer token, OAuth) and key management process not specified.        | No        | **Resolved** — API key auth via `X-Admin-Key` header; keys stored in `ApiKeys:AdminKeys` config. |
+| AMB-003 | AMBIGUOUS | REQ-009/010: Are opted-in/opted-out message volume reports standalone deliverables or components of the weekly compliance report (REQ-011)? Frequency not specified. | Yes | **Resolved** — All message events recorded in `AuditLog` (delivered, suppressed, failed). Full report generation deferred to `TCPA.ReportService` (Phase 1 Sprint 2). |
+| GAP-001 | GAP       | REQ-014: Inbound SMS delivery mechanism to TCPA API (webhook callback vs. polling) not specified anywhere in PRD.               | Yes       | **Resolved** — Webhook callback from Cool Text to `POST /webhook/inbound`; TCPA.Api publishes to `inbound-messages` Kafka topic; `TCPA.MessageProcessor` consumes. |
+| GAP-002 | GAP       | REQ-011: Email recipient list / distribution group for weekly compliance report not defined.                                     | No        | **Open** — `TCPA.ReportService` not yet built. Deferred to Sprint 2. Recipient list requires stakeholder input before implementation. |
+| GAP-003 | GAP       | NFR-006: Authentication scheme for API endpoints not specified (API key, OAuth 2.0, etc.).                                      | No        | **Resolved** — API key auth implemented (`X-Api-Key` for webhook/outbound, `X-Admin-Key` for admin endpoints). |
+| GAP-004 | GAP       | REQ-013: Cool Text account configuration management mechanism (static config vs. database) and ownership not defined.           | No        | **Resolved** — `SystemConfig` database table stores per-application Cool Text credentials; managed via EF Core migrations. |
 
 ## Requirements Summary
-- Total functional requirements: 18
-- Must Have: 18 | Should Have: 0 | Could Have: 0 | Won't Have: 0
-- Ambiguities requiring resolution: 10
-- Gaps identified: 5
+- Total functional requirements: 14
+- Must Have: 14 | Should Have: 0 | Could Have: 0 | Won't Have: 0
+- Non-functional requirements: 8
+- Ambiguities resolved: 3/3 (AMB-001, AMB-002, AMB-003)
+- Gaps resolved: 3/4 (GAP-001, GAP-003, GAP-004)
+- **Open gap: 1** — GAP-002 (REQ-011 weekly email report recipients — deferred to TCPA.ReportService, Sprint 2)
