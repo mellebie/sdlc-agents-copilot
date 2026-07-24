@@ -404,7 +404,12 @@ function Get-PhaseConfidence($agents) {
     $medNames  = @($scored | Where-Object { $_.confidence.level -eq 'medium' } | ForEach-Object { $_.name })
 
     if ($avg -ge 1.5) {
-        $reason = 'All agents scored High confidence'
+        if ($medNames.Count -gt 0 -or $lowNames.Count -gt 0) {
+            $dragging = if ($lowNames.Count -gt 0) { $lowNames -join ', ' } else { $medNames -join ', ' }
+            $reason = "Weighted average High - dragged by: $dragging"
+        } else {
+            $reason = 'All agents scored High confidence'
+        }
         return [ordered]@{ level='high'; reason=$reason }
     } elseif ($avg -ge 0.5) {
         $dragging = if ($lowNames.Count -gt 0) { $lowNames -join ', ' } else { $medNames -join ', ' }
