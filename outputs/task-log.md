@@ -580,3 +580,50 @@
 - Passed: 45
 - Failed: 0
 - Duration: ~2 s
+
+---
+
+## Test Plan Agent Output (09c)
+
+### Test Plan Summary
+- Total test cases: 140
+- Source artifacts processed: requirements.md, specs.md, stories.md, risks.md, architecture.md
+- Stories covered: 18 (Must Have: 18, Should Have: 0, Could Have: 0)
+- Business rules covered: 58 (BR-001 through BR-058)
+- NFRs with test cases: 8 (NFR-001 through NFR-008)
+- Critical/High risks with verification test cases: 7 (RISK-001 through RISK-009 where Critical/High)
+
+### Coverage by Priority
+| Priority | Count |
+|----------|-------|
+| Critical | 56    |
+| High     | 74    |
+| Medium   | 10    |
+| Low      | 0     |
+
+### Coverage by Scenario Type
+| Type     | Count |
+|----------|-------|
+| Positive | 50    |
+| Negative | 40    |
+| Edge     | 18    |
+| Security | 9     |
+| NFR      | 11    |
+| Contract | 6     |
+| E2E      | 6     |
+
+### Automated Test Coverage
+- Test cases with automated coverage (Automated + Manual+Automated): 105 (75%)
+- Test cases requiring manual execution only: 35 (25%)
+
+### Files Produced
+- tests/TCPA-Test-Cases.csv
+- tests/TCPA-Test-Plan.xlsx
+- scripts/Generate-TestPlan.ps1
+
+### Known Gaps
+- TC-030 (Debug log full payload): Manual only — requires enabling debug mode in a controlled environment; not safe to automate in CI
+- TC-083/084 (NLB failover): Manual only — requires NLB infrastructure and two live nodes; cannot be simulated in unit/integration tests
+- TC-107 through TC-121 (Reporting): TCPA.ReportService is a planned but not yet implemented component; automated tests deferred to when ReportService plan is executed
+- TC-129 (API key revocation): Manual — depends on auth service external to this pipeline delivery
+- TC-131/135 (Zero delivery SLA, go-live date): Manual compliance verification against live system and project plan
