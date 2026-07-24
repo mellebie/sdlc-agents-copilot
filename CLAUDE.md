@@ -192,6 +192,16 @@ After the plan is saved, choose an execution mode for Step 8:
 
 The plan's interface contracts directly enforce Agent 08's [BLOCKED-BY] dependency
 checks — tasks cannot silently consume outputs that haven't been produced yet.
+
+> ⚠️ **If using `superpowers:subagent-driven-development`:** The SDD skill
+> handles Steps 8 and 9 together (Amelia implements, tests per task). It does
+> **NOT** run Steps 9b or 9c. After all SDD tasks are complete and the
+> final whole-branch review is clean, you **MUST** explicitly dispatch:
+> 1. **Agent 09b (Drew)** — Functional & E2E test generator
+> 2. **Agent 09c (Avery)** — Test plan CSV and Excel generator
+>
+> Do not proceed to Step 10 (Blake) until both agents have produced their
+> artifacts. Agent 10's pre-condition check will verify this.
 ---
 
 ### Step 8 — Code Generator
@@ -400,21 +410,21 @@ Do not proceed to Step 12 until confirmed.
 
 ## Pipeline Execution Summary
 
-| Step | Agent                    | Key Output                             | Gate              |
-|------|--------------------------|----------------------------------------|-------------------|
-| 0    | BRD to PRD Bridge        | inputs/prd.md                          | Checkpoint 0      |
-| 1    | PRD Analyst              | outputs/requirements.md                |                   |
-| 2    | Clarification            | outputs/clarifications.md              | Checkpoint 1      |
-| 3    | Spec Decomposer          | outputs/specs.md                       |                   |
-| 4    | Architecture             | outputs/architecture.md                |                   |
-| 5    | Risk Assessment          | outputs/risks.md                       | Checkpoint 2      |
-| 6    | Story Writer             | outputs/stories.md                     |                   |
-| 7    | Task Breakdown           | outputs/tasks.md                       | Checkpoint 3      |
-| 8    | Code Generator           | src/                                   |                   |
-| 9    | Unit & Integration Tests | tests/                                 |                   |
-| 9b   | Functional & E2E Tests   | tests/functional/                      |                   |
-| 9c   | Test Plan Generator      | tests/[Product]-Test-Plan.xlsx         |                   |
-| 10   | Code Reviewer            | outputs/review-findings.md             |                   |
-| 11   | Security Agent           | outputs/security-findings.md           | Checkpoint 4      |
-| 12   | Documentation            | outputs/docs/                          |                   |
-| 13   | PR Assembler             | outputs/pr-description.md + GitHub PR  | Human PR approval |
+| Step | Agent                    | Key Output                             | Gate              | Notes |
+|------|--------------------------|----------------------------------------|-------------------|-------|
+| 0    | BRD to PRD Bridge        | inputs/prd.md                          | Checkpoint 0      |       |
+| 1    | PRD Analyst              | outputs/requirements.md                |                   |       |
+| 2    | Clarification            | outputs/clarifications.md              | Checkpoint 1      |       |
+| 3    | Spec Decomposer          | outputs/specs.md                       |                   |       |
+| 4    | Architecture             | outputs/architecture.md                |                   |       |
+| 5    | Risk Assessment          | outputs/risks.md                       | Checkpoint 2      |       |
+| 6    | Story Writer             | outputs/stories.md                     |                   |       |
+| 7    | Task Breakdown           | outputs/tasks.md                       | Checkpoint 3      |       |
+| 8    | Code Generator           | src/                                   |                   | SDD skill covers 8+9 together |
+| 9    | Unit & Integration Tests | tests/                                 |                   | SDD skill covers 8+9 together |
+| 9b   | Functional & E2E Tests   | tests/functional/                      |                   | ⚠️ Always explicit — NOT covered by SDD skill |
+| 9c   | Test Plan Generator      | tests/[Product]-Test-Plan.xlsx         |                   | ⚠️ Always explicit — NOT covered by SDD skill |
+| 10   | Code Reviewer            | outputs/review-findings.md             |                   | Blocked if 9b/9c artifacts are stale |
+| 11   | Security Agent           | outputs/security-findings.md           | Checkpoint 4      |       |
+| 12   | Documentation            | outputs/docs/                          |                   |       |
+| 13   | PR Assembler             | outputs/pr-description.md + GitHub PR  | Human PR approval |       |

@@ -16,9 +16,34 @@ must be fixed and what is a suggestion.
 
 ---
 
+## Pre-condition Check — Test Artifact Freshness
+
+Before reviewing a single line of code, verify that Steps 9b and 9c have
+produced fresh artifacts for this pipeline run:
+
+1. **Step 9b check:** `tests/functional/` must contain at least one test
+   file per Must Have story in `outputs/stories.md`. If the directory is
+   empty or only contains files older than the most recent `src/` commit,
+   halt:
+   > "Agent 10 blocked — Step 9b (Drew) has not produced functional tests
+   > for this pipeline run. Run Agent 09b before proceeding."
+
+2. **Step 9c check:** The test plan CSV (`tests/*-Test-Cases.csv`) must
+   exist and its modification time must be newer than the most recent
+   commit to `src/`. If the file is missing or stale, halt:
+   > "Agent 10 blocked — Step 9c (Avery) has not produced an updated test
+   > plan for this pipeline run. Run Agent 09c before proceeding."
+
+These checks exist because `superpowers:subagent-driven-development` handles
+Steps 8 and 9 together but does not run 9b or 9c. They are always mandatory
+formal pipeline steps regardless of the execution mode used for Step 8.
+
+---
+
 ## Inputs
 - `src/` — all implementation files produced in Stage 4
-- `tests/` — all test files produced in Stage 4
+- `tests/` — all unit and integration test files produced in Steps 8–9
+- `tests/functional/` — all functional and E2E test files produced in Step 9b
 - `outputs/architecture.md` — to verify code fits the intended design
 - `outputs/specs.md` — to verify code implements the correct behavior
 - `outputs/task-log.md` — code generator and test generator notes
