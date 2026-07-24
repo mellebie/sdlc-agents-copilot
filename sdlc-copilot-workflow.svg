@@ -1,1 +1,267 @@
-PHN2ZyB2aWV3Qm94PSIwIDAgOTAwIDEzODAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgcm9sZT0iaW1nIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLCAtYXBwbGUtc3lzdGVtLCBzYW5zLXNlcmlmIj4KICA8dGl0bGU+U0RMQyBBZ2VudCBQaXBlbGluZSDigJQgR2l0SHViIENvcGlsb3QgV29ya2Zsb3c8L3RpdGxlPgogIDxkZXNjPkZsb3cgZGlhZ3JhbSBzaG93aW5nIHRoZSBTRExDIHBpcGVsaW5lIGV4ZWN1dGluZyBpbiB0d28gbW9kZXM6IENvcGlsb3QgQ2hhdCBBZ2VudCBNb2RlIGZvciBTdGVwcyAwLTcsIGFuZCBDb3BpbG90IENvZGluZyBBZ2VudCB2aWEgR2l0SHViIElzc3VlcyBmb3IgU3RlcHMgOC0xMywgd2l0aCBmb3VyIGh1bWFuIGNoZWNrcG9pbnQgZ2F0ZXMuPC9kZXNjPgoKICA8IS0tIEJhY2tncm91bmQgLS0+CiAgPHJlY3Qgd2lkdGg9IjkwMCIgaGVpZ2h0PSIxMzgwIiBmaWxsPSIjMGQxMTE3IiByeD0iMTIiLz4KCiAgPCEtLSBUSVRMRSAtLT4KICA8dGV4dCB4PSI0NTAiIHk9IjQwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjE3IiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjZTZlZGYzIiBsZXR0ZXItc3BhY2luZz0iMC4zIj5TRExDIEFnZW50IFBpcGVsaW5lIOKAlCBHaXRIdWIgQ29waWxvdDwvdGV4dD4KICA8dGV4dCB4PSI0NTAiIHk9IjYwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjEyIiBmaWxsPSIjN2Q4NTkwIj5QUkQgdG8gUFIgwrcgVHdvIGV4ZWN1dGlvbiBtb2RlcyDCtyBGb3VyIGh1bWFuIGNoZWNrcG9pbnRzPC90ZXh0PgoKICA8IS0tIExFR0VORCAtLT4KICA8cmVjdCB4PSIzMCIgeT0iNzYiIHdpZHRoPSIxMiIgaGVpZ2h0PSIxMiIgcng9IjMiIGZpbGw9IiMxZjZmZWIiLz4KICA8dGV4dCB4PSI0NyIgeT0iODciIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiM3ZDg1OTAiPkNvcGlsb3QgQ2hhdCDigJQgQWdlbnQgTW9kZTwvdGV4dD4KICA8cmVjdCB4PSIyMDAiIHk9Ijc2IiB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHJ4PSIzIiBmaWxsPSIjNmU0MGM5Ii8+CiAgPHRleHQgeD0iMjE3IiB5PSI4NyIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzdkODU5MCI+Q29waWxvdCBDb2RpbmcgQWdlbnQ8L3RleHQ+CiAgPHJlY3QgeD0iMzYwIiB5PSI3NiIgd2lkdGg9IjEyIiBoZWlnaHQ9IjEyIiByeD0iMyIgZmlsbD0iI2I0NTMwOSIvPgogIDx0ZXh0IHg9IjM3NyIgeT0iODciIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiM3ZDg1OTAiPkh1bWFuIENoZWNrcG9pbnQ8L3RleHQ+CiAgPHJlY3QgeD0iNTAwIiB5PSI3NiIgd2lkdGg9IjEyIiBoZWlnaHQ9IjEyIiByeD0iMyIgZmlsbD0iIzFhN2YzNyIvPgogIDx0ZXh0IHg9IjUxNyIgeT0iODciIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiM3ZDg1OTAiPkFydGlmYWN0IC8gT3V0cHV0PC90ZXh0PgoKICA8IS0tIElOUFVUIEJPWCAtLT4KICA8cmVjdCB4PSIzMDAiIHk9IjEwMCIgd2lkdGg9IjMwMCIgaGVpZ2h0PSI1NCIgcng9IjgiIGZpbGw9IiMxNjFiMjIiIHN0cm9rZT0iIzMwMzYzZCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8dGV4dCB4PSI0NTAiIHk9IjEyMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMiIgZm9udC13ZWlnaHQ9IjYwMCIgZmlsbD0iI2U2ZWRmMyI+SU5QVVQ8L3RleHQ+CiAgPHRleHQgeD0iNDUwIiB5PSIxMzkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiM3ZDg1OTAiPmlucHV0cy9wcmQubWQgIMK3ICBpbnB1dHMvYnJkLm1kPC90ZXh0PgoKICA8bGluZSB4MT0iNDUwIiB5MT0iMTU0IiB4Mj0iNDUwIiB5Mj0iMTc0IiBzdHJva2U9IiMzMDM2M2QiIHN0cm9rZS13aWR0aD0iMS41IiBtYXJrZXItZW5kPSJ1cmwoI2FycikiLz4KCiAgPCEtLSBDSEFUIE1PREUgWk9ORSAtLT4KICA8cmVjdCB4PSIzMCIgeT0iMTc1IiB3aWR0aD0iODQwIiBoZWlnaHQ9IjI0IiByeD0iNCIgZmlsbD0iIzFmNmZlYiIgb3BhY2l0eT0iMC4xNSIvPgogIDx0ZXh0IHg9IjQ1MCIgeT0iMTkxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjExIiBmb250LXdlaWdodD0iNjAwIiBmaWxsPSIjNThhNmZmIiBsZXR0ZXItc3BhY2luZz0iMSI+Q09QSUxPVCBDSEFUIOKAlCBBR0VOVCBNT0RFICDCtyAgLmdpdGh1Yi9wcm9tcHRzLyoucHJvbXB0Lm1kPC90ZXh0PgoKICA8IS0tIFN0ZXAgMCAtLT4KICA8cmVjdCB4PSI2MCIgeT0iMjEwIiB3aWR0aD0iMTgwIiBoZWlnaHQ9IjcyIiByeD0iNyIgZmlsbD0iIzE2MWIyMiIgc3Ryb2tlPSIjMWY2ZmViIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxyZWN0IHg9IjYwIiB5PSIyMTAiIHdpZHRoPSIxODAiIGhlaWdodD0iMjIiIHJ4PSI3IiBmaWxsPSIjMWY2ZmViIiBvcGFjaXR5PSIwLjI1Ii8+CiAgPHJlY3QgeD0iNjAiIHk9IjIyOCIgd2lkdGg9IjE4MCIgaGVpZ2h0PSI0IiBmaWxsPSIjMWY2ZmViIiBvcGFjaXR5PSIwLjI1Ii8+CiAgPHRleHQgeD0iMTUwIiB5PSIyMjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTAiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiM1OGE2ZmYiPlN0ZXAgMCDigJQgQWxleDwvdGV4dD4KICA8dGV4dCB4PSIxNTAiIHk9IjI0MyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMCIgZmlsbD0iI2M5ZDFkOSI+QlJEIHRvIFBSRCBCcmlkZ2U8L3RleHQ+CiAgPHRleHQgeD0iMTUwIiB5PSIyNTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iOS41IiBmaWxsPSIjN2Q4NTkwIj5CUkQgb25seSDigJQgc2tpcCBpZjwvdGV4dD4KICA8dGV4dCB4PSIxNTAiIHk9IjI3MSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSI5LjUiIGZpbGw9IiM3ZDg1OTAiPlBSRCBhbHJlYWR5IGV4aXN0czwvdGV4dD4KCiAgPCEtLSBTdGVwIDEgLS0+CiAgPHJlY3QgeD0iMjgwIiB5PSIyMTAiIHdpZHRoPSIxODAiIGhlaWdodD0iNzIiIHJ4PSI3IiBmaWxsPSIjMTYxYjIyIiBzdHJva2U9IiMxZjZmZWIiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPHJlY3QgeD0iMjgwIiB5PSIyMTAiIHdpZHRoPSIxODAiIGhlaWdodD0iMjIiIHJ4PSI3IiBmaWxsPSIjMWY2ZmViIiBvcGFjaXR5PSIwLjI1Ii8+CiAgPHJlY3QgeD0iMjgwIiB5PSIyMjgiIHdpZHRoPSIxODAiIGhlaWdodD0iNCIgZmlsbD0iIzFmNmZlYiIgb3BhY2l0eT0iMC4yNSIvPgogIDx0ZXh0IHg9IjM3MCIgeT0iMjI2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjEwIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjNThhNmZmIj5TdGVwIDEg4oCUIFNhbTwvdGV4dD4KICA8dGV4dCB4PSIzNzAiIHk9IjI0MyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMCIgZmlsbD0iI2M5ZDFkOSI+UFJEIEFuYWx5c3Q8L3RleHQ+CiAgPHRleHQgeD0iMzcwIiB5PSIyNjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iOS41IiBmaWxsPSIjN2Q4NTkwIj5vdXRwdXRzL3JlcXVpcmVtZW50cy5tZDwvdGV4dD4KCiAgPCEtLSBTdGVwIDIgLS0+CiAgPHJlY3QgeD0iNTAwIiB5PSIyMTAiIHdpZHRoPSIxODAiIGhlaWdodD0iNzIiIHJ4PSI3IiBmaWxsPSIjMTYxYjIyIiBzdHJva2U9IiMxZjZmZWIiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPHJlY3QgeD0iNTAwIiB5PSIyMTAiIHdpZHRoPSIxODAiIGhlaWdodD0iMjIiIHJ4PSI3IiBmaWxsPSIjMWY2ZmViIiBvcGFjaXR5PSIwLjI1Ii8+CiAgPHJlY3QgeD0iNTAwIiB5PSIyMjgiIHdpZHRoPSIxODAiIGhlaWdodD0iNCIgZmlsbD0iIzFmNmZlYiIgb3BhY2l0eT0iMC4yNSIvPgogIDx0ZXh0IHg9IjU5MCIgeT0iMjI2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjEwIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjNThhNmZmIj5TdGVwIDIg4oCUIEpvcmRhbjwvdGV4dD4KICA8dGV4dCB4PSI1OTAiIHk9IjI0MyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMCIgZmlsbD0iI2M5ZDFkOSI+Q2xhcmlmaWNhdGlvbjwvdGV4dD4KICA8dGV4dCB4PSI1OTAiIHk9IjI2MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSI5LjUiIGZpbGw9IiM3ZDg1OTAiPm91dHB1dHMvY2xhcmlmaWNhdGlvbnMubWQ8L3RleHQ+CgogIDxsaW5lIHgxPSIyNDAiIHkxPSIyNDYiIHgyPSIyNzgiIHkyPSIyNDYiIHN0cm9rZT0iIzFmNmZlYiIgc3Ryb2tlLXdpZHRoPSIxLjUiIG1hcmtlci1lbmQ9InVybCgjYXJyQmx1ZSkiLz4KICA8bGluZSB4MT0iNDYwIiB5MT0iMjQ2IiB4Mj0iNDk4IiB5Mj0iMjQ2IiBzdHJva2U9IiMxZjZmZWIiIHN0cm9rZS13aWR0aD0iMS41IiBtYXJrZXItZW5kPSJ1cmwoI2FyckJsdWUpIi8+CiAgPGxpbmUgeDE9IjU5MCIgeTE9IjI4MiIgeDI9IjU5MCIgeTI9IjMwMCIgc3Ryb2tlPSIjMzAzNjNkIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxsaW5lIHgxPSI1OTAiIHkxPSIzMDAiIHgyPSI0NTAiIHkyPSIzMDAiIHN0cm9rZT0iIzMwMzYzZCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8bGluZSB4MT0iNDUwIiB5MT0iMzAwIiB4Mj0iNDUwIiB5Mj0iMzE2IiBzdHJva2U9IiMzMDM2M2QiIHN0cm9rZS13aWR0aD0iMS41IiBtYXJrZXItZW5kPSJ1cmwoI2FycikiLz4KCiAgPCEtLSBDSEVDS1BPSU5UIDEgLS0+CiAgPHJlY3QgeD0iMTcwIiB5PSIzMTciIHdpZHRoPSI1NjAiIGhlaWdodD0iNDQiIHJ4PSI3IiBmaWxsPSIjYjQ1MzA5IiBvcGFjaXR5PSIwLjE4IiBzdHJva2U9IiNkOTc3MDYiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtZGFzaGFycmF5PSI1LDMiLz4KICA8dGV4dCB4PSIzODAiIHk9IjMzNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iI2Q5NzcwNiI+4puUICBDSEVDS1BPSU5UIDE8L3RleHQ+CiAgPHRleHQgeD0iMzgwIiB5PSIzNTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiM3ZDg1OTAiPlJldmlldyByZXF1aXJlbWVudHMgKyBjbGFyaWZpY2F0aW9ucyDCtyBBbnN3ZXIgYWxsIGJsb2NraW5nIHF1ZXN0aW9uczwvdGV4dD4KICA8dGV4dCB4PSI2NzAiIHk9IjM0MyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSI5IiBmaWxsPSIjZDk3NzA2IiBmb250LXN0eWxlPSJpdGFsaWMiPiJDaGVja3BvaW50IDEgYXBwcm92ZWQiPC90ZXh0PgoKICA8bGluZSB4MT0iNDUwIiB5MT0iMzYxIiB4Mj0iNDUwIiB5Mj0iMzc4IiBzdHJva2U9IiMzMDM2M2QiIHN0cm9rZS13aWR0aD0iMS41IiBtYXJrZXItZW5kPSJ1cmwoI2FycikiLz4KCiAgPCEtLSBTdGVwIDMgLS0+CiAgPHJlY3QgeD0iNjAiIHk9IjM4MCIgd2lkdGg9IjE4MCIgaGVpZ2h0PSI3MiIgcng9IjciIGZpbGw9IiMxNjFiMjIiIHN0cm9rZT0iIzFmNmZlYiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8cmVjdCB4PSI2MCIgeT0iMzgwIiB3aWR0aD0iMTgwIiBoZWlnaHQ9IjIyIiByeD0iNyIgZmlsbD0iIzFmNmZlYiIgb3BhY2l0eT0iMC4yNSIvPgogIDxyZWN0IHg9IjYwIiB5PSIzOTgiIHdpZHRoPSIxODAiIGhlaWdodD0iNCIgZmlsbD0iIzFmNmZlYiIgb3BhY2l0eT0iMC4yNSIvPgogIDx0ZXh0IHg9IjE1MCIgeT0iMzk2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjEwIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjNThhNmZmIj5TdGVwIDMg4oCUIFRheWxvcjwvdGV4dD4KICA8dGV4dCB4PSIxNTAiIHk9IjQxMyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMCIgZmlsbD0iI2M5ZDFkOSI+U3BlYyBEZWNvbXBvc2VyPC90ZXh0PgogIDx0ZXh0IHg9IjE1MCIgeT0iNDMwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjkuNSIgZmlsbD0iIzdkODU5MCI+b3V0cHV0cy9zcGVjcy5tZDwvdGV4dD4KCiAgPCEtLSBTdGVwIDQgLS0+CiAgPHJlY3QgeD0iMjgwIiB5PSIzODAiIHdpZHRoPSIxODAiIGhlaWdodD0iNzIiIHJ4PSI3IiBmaWxsPSIjMTYxYjIyIiBzdHJva2U9IiMxZjZmZWIiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPHJlY3QgeD0iMjgwIiB5PSIzODAiIHdpZHRoPSIxODAiIGhlaWdodD0iMjIiIHJ4PSI3IiBmaWxsPSIjMWY2ZmViIiBvcGFjaXR5PSIwLjI1Ii8+CiAgPHJlY3QgeD0iMjgwIiB5PSIzOTgiIHdpZHRoPSIxODAiIGhlaWdodD0iNCIgZmlsbD0iIzFmNmZlYiIgb3BhY2l0eT0iMC4yNSIvPgogIDx0ZXh0IHg9IjM3MCIgeT0iMzk2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjEwIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjNThhNmZmIj5TdGVwIDQg4oCUIFdpbnN0b248L3RleHQ+CiAgPHRleHQgeD0iMzcwIiB5PSI0MTMiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiNjOWQxZDkiPkFyY2hpdGVjdHVyZTwvdGV4dD4KICA8dGV4dCB4PSIzNzAiIHk9IjQzMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSI5LjUiIGZpbGw9IiM3ZDg1OTAiPm91dHB1dHMvYXJjaGl0ZWN0dXJlLm1kPC90ZXh0PgoKICA8IS0tIFN0ZXAgNSAtLT4KICA8cmVjdCB4PSI1MDAiIHk9IjM4MCIgd2lkdGg9IjE4MCIgaGVpZ2h0PSI3MiIgcng9IjciIGZpbGw9IiMxNjFiMjIiIHN0cm9rZT0iIzFmNmZlYiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8cmVjdCB4PSI1MDAiIHk9IjM4MCIgd2lkdGg9IjE4MCIgaGVpZ2h0PSIyMiIgcng9IjciIGZpbGw9IiMxZjZmZWIiIG9wYWNpdHk9IjAuMjUiLz4KICA8cmVjdCB4PSI1MDAiIHk9IjM5OCIgd2lkdGg9IjE4MCIgaGVpZ2h0PSI0IiBmaWxsPSIjMWY2ZmViIiBvcGFjaXR5PSIwLjI1Ii8+CiAgPHRleHQgeD0iNTkwIiB5PSIzOTYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTAiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiM1OGE2ZmYiPlN0ZXAgNSDigJQgTW9yZ2FuPC90ZXh0PgogIDx0ZXh0IHg9IjU5MCIgeT0iNDEzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjEwIiBmaWxsPSIjYzlkMWQ5Ij5SaXNrIEFzc2Vzc21lbnQ8L3RleHQ+CiAgPHRleHQgeD0iNTkwIiB5PSI0MzAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iOS41IiBmaWxsPSIjN2Q4NTkwIj5vdXRwdXRzL3Jpc2tzLm1kPC90ZXh0PgoKICA8bGluZSB4MT0iNDUwIiB5MT0iMzc4IiB4Mj0iMTUwIiB5Mj0iMzc4IiBzdHJva2U9IiMzMDM2M2QiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWRhc2hhcnJheT0iMiwyIi8+CiAgPGxpbmUgeDE9IjE1MCIgeTE9IjM3OCIgeDI9IjE1MCIgeTI9IjM4MCIgc3Ryb2tlPSIjMzAzNjNkIiBzdHJva2Utd2lkdGg9IjEiIG1hcmtlci1lbmQ9InVybCgjYXJyKSIvPgogIDxsaW5lIHgxPSIyNDAiIHkxPSI0MTYiIHgyPSIyNzgiIHkyPSI0MTYiIHN0cm9rZT0iIzFmNmZlYiIgc3Ryb2tlLXdpZHRoPSIxLjUiIG1hcmtlci1lbmQ9InVybCgjYXJyQmx1ZSkiLz4KICA8bGluZSB4MT0iNDYwIiB5MT0iNDE2IiB4Mj0iNDk4IiB5Mj0iNDE2IiBzdHJva2U9IiMxZjZmZWIiIHN0cm9rZS13aWR0aD0iMS41IiBtYXJrZXItZW5kPSJ1cmwoI2FyckJsdWUpIi8+CiAgPGxpbmUgeDE9IjU5MCIgeTE9IjQ1MiIgeDI9IjU5MCIgeTI9IjQ3MCIgc3Ryb2tlPSIjMzAzNjNkIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxsaW5lIHgxPSI1OTAiIHkxPSI0NzAiIHgyPSI0NTAiIHkyPSI0NzAiIHN0cm9rZT0iIzMwMzYzZCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8bGluZSB4MT0iNDUwIiB5MT0iNDcwIiB4Mj0iNDUwIiB5Mj0iNDg2IiBzdHJva2U9IiMzMDM2M2QiIHN0cm9rZS13aWR0aD0iMS41IiBtYXJrZXItZW5kPSJ1cmwoI2FycikiLz4KCiAgPCEtLSBDSEVDS1BPSU5UIDIgLS0+CiAgPHJlY3QgeD0iMTcwIiB5PSI0ODciIHdpZHRoPSI1NjAiIGhlaWdodD0iNDQiIHJ4PSI3IiBmaWxsPSIjYjQ1MzA5IiBvcGFjaXR5PSIwLjE4IiBzdHJva2U9IiNkOTc3MDYiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtZGFzaGFycmF5PSI1LDMiLz4KICA8dGV4dCB4PSIzODAiIHk9IjUwNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iI2Q5NzcwNiI+4puUICBDSEVDS1BPSU5UIDIgLS0+CiAgPHRleHQgeD0iMzgwIiB5PSI1MjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiM3ZDg1OTAiPkFwcHJvdmUgYXJjaGl0ZWN0dXJlIMK3IEFjY2VwdCBvciBkaXNtaXNzIHJpc2tzPC90ZXh0PgogIDx0ZXh0IHg9IjY3MCIgeT0iNTEwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjkiIGZpbGw9IiNkOTc3MDYiIGZvbnQtc3R5bGU9Iml0YWxpYyI+IkNoZWNrcG9pbnQgMiBhcHByb3ZlZCI8L3RleHQ+CgogIDxsaW5lIHgxPSI0NTAiIHkxPSI1MzEiIHgyPSI0NTAiIHkyPSI1NDgiIHN0cm9rZT0iIzMwMzYzZCIgc3Ryb2tlLXdpZHRoPSIxLjUiIG1hcmtlci1lbmQ9InVybCgjYXJyKSIvPgoKICA8IS0tIFN0ZXAgNiAtLT4KICA8cmVjdCB4PSIxNzAiIHk9IjU1MCIgd2lkdGg9IjIyMCIgaGVpZ2h0PSI3MiIgcng9IjciIGZpbGw9IiMxNjFiMjIiIHN0cm9rZT0iIzFmNmZlYiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8cmVjdCB4PSIxNzAiIHk9IjU1MCIgd2lkdGg9IjIyMCIgaGVpZ2h0PSIyMiIgcng9IjciIGZpbGw9IiMxZjZmZWIiIG9wYWNpdHk9IjAuMjUiLz4KICA8cmVjdCB4PSIxNzAiIHk9IjU2OCIgd2lkdGg9IjIyMCIgaGVpZ2h0PSI0IiBmaWxsPSIjMWY2ZmViIiBvcGFjaXR5PSIwLjI1Ii8+CiAgPHRleHQgeD0iMjgwIiB5PSI1NjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTAiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiM1OGE2ZmYiPlN0ZXAgNiDigJQgUmlsZXk8L3RleHQ+CiAgPHRleHQgeD0iMjgwIiB5PSI1ODMiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiNjOWQxZDkiPlN0b3J5IFdyaXRlcjwvdGV4dD4KICA8dGV4dCB4PSIyODAiIHk9IjYwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSI5LjUiIGZpbGw9IiM3ZDg1OTAiPm91dHB1dHMvc3Rvcmllcy5tZDwvdGV4dD4KCiAgPCEtLSBTdGVwIDcgLS0+CiAgPHJlY3QgeD0iNDMwIiB5PSI1NTAiIHdpZHRoPSIyMjAiIGhlaWdodD0iNzIiIHJ4PSI3IiBmaWxsPSIjMTYxYjIyIiBzdHJva2U9IiMxZjZmZWIiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPHJlY3QgeD0iNDMwIiB5PSI1NTAiIHdpZHRoPSIyMjAiIGhlaWdodD0iMjIiIHJ4PSI3IiBmaWxsPSIjMWY2ZmViIiBvcGFjaXR5PSIwLjI1Ii8+CiAgPHJlY3QgeD0iNDMwIiB5PSI1NjgiIHdpZHRoPSIyMjAiIGhlaWdodD0iNCIgZmlsbD0iIzFmNmZlYiIgb3BhY2l0eT0iMC4yNSIvPgogIDx0ZXh0IHg9IjU0MCIgeT0iNTY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjEwIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjNThhNmZmIj5TdGVwIDcg4oCUIENhc2V5PC90ZXh0PgogIDx0ZXh0IHg9IjU0MCIgeT0iNTgzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjEwIiBmaWxsPSIjYzlkMWQ5Ij5UYXNrIEJyZWFrZG93bjwvdGV4dD4KICA8dGV4dCB4PSI1NDAiIHk9IjYwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSI5LjUiIGZpbGw9IiM3ZDg1OTAiPm91dHB1dHMvdGFza3MubWQ8L3RleHQ+CgogIDxsaW5lIHgxPSIzOTAiIHkxPSI1ODYiIHgyPSI0MjgiIHkyPSI1ODYiIHN0cm9rZT0iIzFmNmZlYiIgc3Ryb2tlLXdpZHRoPSIxLjUiIG1hcmtlci1lbmQ9InVybCgjYXJyQmx1ZSkiLz4KICA8bGluZSB4MT0iNDUwIiB5MT0iNTQ4IiB4Mj0iMjgwIiB5Mj0iNTQ4IiBzdHJva2U9IiMzMDM2M2QiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWRhc2hhcnJheT0iMiwyIi8+CiAgPGxpbmUgeDE9IjI4MCIgeTE9IjU0OCIgeDI9IjI4MCIgeTI9IjU1MCIgc3Ryb2tlPSIjMzAzNjNkIiBzdHJva2Utd2lkdGg9IjEiIG1hcmtlci1lbmQ9InVybCgjYXJyKSIvPgogIDxsaW5lIHgxPSI1NDAiIHkxPSI2MjIiIHgyPSI1NDAiIHkyPSI2NDAiIHN0cm9rZT0iIzMwMzYzZCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8bGluZSB4MT0iNTQwIiB5MT0iNjQwIiB4Mj0iNDUwIiB5Mj0iNjQwIiBzdHJva2U9IiMzMDM2M2QiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPGxpbmUgeDE9IjQ1MCIgeTE9IjY0MCIgeDI9IjQ1MCIgeTI9IjY1NyIgc3Ryb2tlPSIjMzAzNjNkIiBzdHJva2Utd2lkdGg9IjEuNSIgbWFya2VyLWVuZD0idXJsKCNhcnIpIi8+CgogIDwhLS0gQ0hFQ0tQT0lOVCAzIC0tPgogIDxyZWN0IHg9IjE3MCIgeT0iNjU4IiB3aWR0aD0iNTYwIiBoZWlnaHQ9IjQ0IiByeD0iNyIgZmlsbD0iI2I0NTMwOSIgb3BhY2l0eT0iMC4xOCIgc3Ryb2tlPSIjZDk3NzA2IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWRhc2hhcnJheT0iNSwzIi8+CiAgPHRleHQgeD0iMzgwIiB5PSI2NzUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTAiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNkOTc3MDYiPuKblCAgQ0hFQ0tQT0lOVCAzPC90ZXh0PgogIDx0ZXh0IHg9IjM4MCIgeT0iNjkxIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjEwIiBmaWxsPSIjN2Q4NTkwIj5BcHByb3ZlIHN0b3JpZXMgYW5kIHRhc2tzIMK3IEFkanVzdCBzY29wZSAvIHByaW9yaXR5IGFzIG5lZWRlZDwvdGV4dD4KICA8dGV4dCB4PSI2NzAiIHk9IjY4MSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSI5IiBmaWxsPSIjZDk3NzA2IiBmb250LXN0eWxlPSJpdGFsaWMiPiJDaGVja3BvaW50IDMgYXBwcm92ZWQiPC90ZXh0PgoKICA8IS0tIENPRElORyBBR0VOVCBaT05FIC0tPgogIDxsaW5lIHgxPSI0NTAiIHkxPSI3MDIiIHgyPSI0NTAiIHkyPSI3MTgiIHN0cm9rZT0iIzMwMzYzZCIgc3Ryb2tlLXdpZHRoPSIxLjUiIG1hcmtlci1lbmQ9InVybCgjYXJyKSIvPgogIDxyZWN0IHg9IjMwIiB5PSI3MTkiIHdpZHRoPSI4NDAiIGhlaWdodD0iMjQiIHJ4PSI0IiBmaWxsPSIjNmU0MGM5IiBvcGFjaXR5PSIwLjIiLz4KICA8dGV4dCB4PSI0NTAiIHk9IjczNSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMSIgZm9udC13ZWlnaHQ9IjYwMCIgZmlsbD0iI2E3OGJmYSIgbGV0dGVyLXNwYWNpbmc9IjEiPkNPUElMT1QgQ09ESU5HIEFHRU5UICDCtyAgR2l0SHViIElzc3VlcyAgwrcgIC5naXRodWIvSVNTVUVfVEVNUExBVEUvPC90ZXh0PgoKICA8cmVjdCB4PSIzMCIgeT0iNzQ4IiB3aWR0aD0iMjQwIiBoZWlnaHQ9IjM2IiByeD0iNiIgZmlsbD0iIzE2MWIyMiIgc3Ryb2tlPSIjMzAzNjNkIiBzdHJva2Utd2lkdGg9IjEiLz4KICA8dGV4dCB4PSIxNTAiIHk9Ijc2MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMCIgZmlsbD0iIzdkODU5MCI+Q3JlYXRlIElzc3VlIGZyb20gdGVtcGxhdGU8L3RleHQ+CiAgPHRleHQgeD0iMTUwIiB5PSI3NzYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiM3ZDg1OTAiPuKGkiBBc3NpZ24gdG8gQ29waWxvdCDihpIgUFIgY3JlYXRlZDwvdGV4dD4KCiAgPCEtLSBTdGVwIDggLS0+CiAgPHJlY3QgeD0iNjAiIHk9IjgwMCIgd2lkdGg9IjE4MCIgaGVpZ2h0PSI4MCIgcng9IjciIGZpbGw9IiMxNjFiMjIiIHN0cm9rZT0iIzZlNDBjOSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8cmVjdCB4PSI2MCIgeT0iODAwIiB3aWR0aD0iMTgwIiBoZWlnaHQ9IjIyIiByeD0iNyIgZmlsbD0iIzZlNDBjOSIgb3BhY2l0eT0iMC4zIi8+CiAgPHJlY3QgeD0iNjAiIHk9IjgxOCIgd2lkdGg9IjE4MCIgaGVpZ2h0PSI0IiBmaWxsPSIjNmU0MGM5IiBvcGFjaXR5PSIwLjMiLz4KICA8dGV4dCB4PSIxNTAiIHk9IjgxNiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iI2E3OGJmYSI+U3RlcCA4IOKAlCBBbWVsaWE8L3RleHQ+CiAgPHRleHQgeD0iMTUwIiB5PSI4MzMiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiNjOWQxZDkiPkNvZGUgR2VuZXJhdG9yPC90ZXh0PgogIDx0ZXh0IHg9IjE1MCIgeT0iODUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjkuNSIgZmlsbD0iIzdkODU5MCI+c3JjLyDigJQgcHJvZHVjdGlvbiBjb2RlPC90ZXh0PgogIDx0ZXh0IHg9IjE1MCIgeT0iODY1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjkuNSIgZmlsbD0iIzdkODU5MCI+dGFzay1sb2cubWQ8L3RleHQ+CgogIDwhLS0gU3RlcCA5IC0tPgogIDxyZWN0IHg9IjI4MCIgeT0iODAwIiB3aWR0aD0iMTgwIiBoZWlnaHQ9IjgwIiByeD0iNyIgZmlsbD0iIzE2MWIyMiIgc3Ryb2tlPSIjNmU0MGM5IiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxyZWN0IHg9IjI4MCIgeT0iODAwIiB3aWR0aD0iMTgwIiBoZWlnaHQ9IjIyIiByeD0iNyIgZmlsbD0iIzZlNDBjOSIgb3BhY2l0eT0iMC4zIi8+CiAgPHJlY3QgeD0iMjgwIiB5PSI4MTgiIHdpZHRoPSIxODAiIGhlaWdodD0iNCIgZmlsbD0iIzZlNDBjOSIgb3BhY2l0eT0iMC4zIi8+CiAgPHRleHQgeD0iMzcwIiB5PSI4MTYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTAiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNhNzhiZmEiPlN0ZXAgOSDigJQgUXVpbm48L3RleHQ+CiAgPHRleHQgeD0iMzcwIiB5PSI4MzMiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiNjOWQxZDkiPlVuaXQgJmFtcDsgSW50ZWdyYXRpb24gVGVzdHM8L3RleHQ+CiAgPHRleHQgeD0iMzcwIiB5PSI4NTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iOS41IiBmaWxsPSIjN2Q4NTkwIj50ZXN0cy88L3RleHQ+CgogIDwhLS0gU3RlcCA5YiAtLT4KICA8cmVjdCB4PSI1MDAiIHk9IjgwMCIgd2lkdGg9IjE4MCIgaGVpZ2h0PSI4MCIgcng9IjciIGZpbGw9IiMxNjFiMjIiIHN0cm9rZT0iIzZlNDBjOSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8cmVjdCB4PSI1MDAiIHk9IjgwMCIgd2lkdGg9IjE4MCIgaGVpZ2h0PSIyMiIgcng9IjciIGZpbGw9IiM2ZTQwYzkiIG9wYWNpdHk9IjAuMyIvPgogIDxyZWN0IHg9IjUwMCIgeT0iODE4IiB3aWR0aD0iMTgwIiBoZWlnaHQ9IjQiIGZpbGw9IiM2ZTQwYzkiIG9wYWNpdHk9IjAuMyIvPgogIDx0ZXh0IHg9IjU5MCIgeT0iODE2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjEwIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjYTc4YmZhIj5TdGVwIDliIOKAlCBEcmV3PC90ZXh0PgogIDx0ZXh0IHg9IjU5MCIgeT0iODMzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjEwIiBmaWxsPSIjYzlkMWQ5Ij5GdW5jdGlvbmFsICZhbXA7IEUyRSBUZXN0czwvdGV4dD4KICA8dGV4dCB4PSI1OTAiIHk9Ijg1MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSI5LjUiIGZpbGw9IiM3ZDg1OTAiPnRlc3RzL2Z1bmN0aW9uYWwvPC90ZXh0PgoKICA8IS0tIFN0ZXAgOWMgLS0+CiAgPHJlY3QgeD0iNzAwIiB5PSI4MDAiIHdpZHRoPSIxNzAiIGhlaWdodD0iODAiIHJ4PSI3IiBmaWxsPSIjMTYxYjIyIiBzdHJva2U9IiM2ZTQwYzkiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPHJlY3QgeD0iNzAwIiB5PSI4MDAiIHdpZHRoPSIxNzAiIGhlaWdodD0iMjIiIHJ4PSI3IiBmaWxsPSIjNmU0MGM5IiBvcGFjaXR5PSIwLjMiLz4KICA8cmVjdCB4PSI3MDAiIHk9IjgxOCIgd2lkdGg9IjE3MCIgaGVpZ2h0PSI0IiBmaWxsPSIjNmU0MGM5IiBvcGFjaXR5PSIwLjMiLz4KICA8dGV4dCB4PSI3ODUiIHk9IjgxNiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iI2E3OGJmYSI+U3RlcCA5YyDigJQgQXZlcnk8L3RleHQ+CiAgPHRleHQgeD0iNzg1IiB5PSI4MzMiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiNjOWQxZDkiPlRlc3QgUGxhbjwvdGV4dD4KICA8dGV4dCB4PSI3ODUiIHk9Ijg1MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSI5LjUiIGZpbGw9IiM3ZDg1OTAiPiouY3N2IMK3ICoueGxzeDwvdGV4dD4KCiAgPGxpbmUgeDE9IjQ1MCIgeTE9IjcxOCIgeDI9IjE1MCIgeTI9IjcxOCIgc3Ryb2tlPSIjMzAzNjNkIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1kYXNoYXJyYXk9IjIsMiIvPgogIDxsaW5lIHgxPSIxNTAiIHkxPSI3MTgiIHgyPSIxNTAiIHkyPSI4MDAiIHN0cm9rZT0iIzMwMzYzZCIgc3Ryb2tlLXdpZHRoPSIxIiBtYXJrZXItZW5kPSJ1cmwoI2FycikiLz4KICA8bGluZSB4MT0iMjQwIiB5MT0iODQwIiB4Mj0iMjc4IiB5Mj0iODQwIiBzdHJva2U9IiM2ZTQwYzkiIHN0cm9rZS13aWR0aD0iMS41IiBtYXJrZXItZW5kPSJ1cmwoI2FyclB1cnApIi8+CiAgPGxpbmUgeDE9IjQ2MCIgeTE9Ijg0MCIgeDI9IjQ5OCIgeTI9Ijg0MCIgc3Ryb2tlPSIjNmU0MGM5IiBzdHJva2Utd2lkdGg9IjEuNSIgbWFya2VyLWVuZD0idXJsKCNhcnJQdXJwKSIvPgogIDxsaW5lIHgxPSI2ODAiIHkxPSI4NDAiIHgyPSI2OTgiIHkyPSI4NDAiIHN0cm9rZT0iIzZlNDBjOSIgc3Ryb2tlLXdpZHRoPSIxLjUiIG1hcmtlci1lbmQ9InVybCgjYXJyUHVycCkiLz4KCiAgPCEtLSBTdGVwcyAxMCArIDExIC0tPgogIDxsaW5lIHgxPSIzNzAiIHkxPSI4ODAiIHgyPSIzNzAiIHkyPSI5MDYiIHN0cm9rZT0iIzMwMzYzZCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8bGluZSB4MT0iMzcwIiB5MT0iOTA2IiB4Mj0iNDUwIiB5Mj0iOTA2IiBzdHJva2U9IiMzMDM2M2QiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPGxpbmUgeDE9IjQ1MCIgeTE9IjkwNiIgeDI9IjUzMCIgeTI9IjkwNiIgc3Ryb2tlPSIjMzAzNjNkIiBzdHJva2Utd2lkdGg9IjEuNSIgbWFya2VyLWVuZD0idXJsKCNhcnIpIi8+CgogIDwhLS0gU3RlcCAxMCAtLT4KICA8cmVjdCB4PSIyODAiIHk9IjkwOCIgd2lkdGg9IjIxMCIgaGVpZ2h0PSI3MiIgcng9IjciIGZpbGw9IiMxNjFiMjIiIHN0cm9rZT0iIzZlNDBjOSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8cmVjdCB4PSIyODAiIHk9IjkwOCIgd2lkdGg9IjIxMCIgaGVpZ2h0PSIyMiIgcng9IjciIGZpbGw9IiM2ZTQwYzkiIG9wYWNpdHk9IjAuMyIvPgogIDxyZWN0IHg9IjI4MCIgeT0iOTI2IiB3aWR0aD0iMjEwIiBoZWlnaHQ9IjQiIGZpbGw9IiM2ZTQwYzkiIG9wYWNpdHk9IjAuMyIvPgogIDx0ZXh0IHg9IjM4NSIgeT0iOTI0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjEwIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjYTc4YmZhIj5TdGVwIDEwIOKAlCBCbGFrZTwvdGV4dD4KICA8dGV4dCB4PSIzODUiIHk9Ijk0MSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMCIgZmlsbD0iI2M5ZDFkOSI+Q29kZSBSZXZpZXdlcjwvdGV4dD4KICA8dGV4dCB4PSIzODUiIHk9Ijk1OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSI5LjUiIGZpbGw9IiM3ZDg1OTAiPm91dHB1dHMvcmV2aWV3LWZpbmRpbmdzLm1kPC90ZXh0PgoKICA8IS0tIFN0ZXAgMTEgLS0+CiAgPHJlY3QgeD0iNTIwIiB5PSI5MDgiIHdpZHRoPSIyMTAiIGhlaWdodD0iNzIiIHJ4PSI3IiBmaWxsPSIjMTYxYjIyIiBzdHJva2U9IiM2ZTQwYzkiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPHJlY3QgeD0iNTIwIiB5PSI5MDgiIHdpZHRoPSIyMTAiIGhlaWdodD0iMjIiIHJ4PSI3IiBmaWxsPSIjNmU0MGM5IiBvcGFjaXR5PSIwLjMiLz4KICA8cmVjdCB4PSI1MjAiIHk9IjkyNiIgd2lkdGg9IjIxMCIgaGVpZ2h0PSI0IiBmaWxsPSIjNmU0MGM5IiBvcGFjaXR5PSIwLjMiLz4KICA8dGV4dCB4PSI2MjUiIHk9IjkyNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iI2E3OGJmYSI+U3RlcCAxMSDigJQgUm9iaW48L3RleHQ+CiAgPHRleHQgeD0iNjI1IiB5PSI5NDEiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiNjOWQxZDkiPlNlY3VyaXR5IEFnZW50PC90ZXh0PgogIDx0ZXh0IHg9IjYyNSIgeT0iOTU4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjkuNSIgZmlsbD0iIzdkODU5MCI+b3V0cHV0cy9zZWN1cml0eS1maW5kaW5ncy5tZDwvdGV4dD4KCiAgPGxpbmUgeDE9IjQ5MCIgeTE9Ijk0NCIgeDI9IjUxOCIgeTI9Ijk0NCIgc3Ryb2tlPSIjNmU0MGM5IiBzdHJva2Utd2lkdGg9IjEuNSIgbWFya2VyLWVuZD0idXJsKCNhcnJQdXJwKSIvPgogIDxsaW5lIHgxPSI2MjUiIHkxPSI5ODAiIHgyPSI2MjUiIHkyPSI5OTgiIHN0cm9rZT0iIzMwMzYzZCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8bGluZSB4MT0iNjI1IiB5MT0iOTk4IiB4Mj0iNDUwIiB5Mj0iOTk4IiBzdHJva2U9IiMzMDM2M2QiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPGxpbmUgeDE9IjQ1MCIgeTE9Ijk5OCIgeDI9IjQ1MCIgeTI9IjEwMTQiIHN0cm9rZT0iIzMwMzYzZCIgc3Ryb2tlLXdpZHRoPSIxLjUiIG1hcmtlci1lbmQ9InVybCgjYXJyKSIvPgoKICA8IS0tIENIRUNLUE9JTlQgNCAtLT4KICA8cmVjdCB4PSIxNzAiIHk9IjEwMTUiIHdpZHRoPSI1NjAiIGhlaWdodD0iNDQiIHJ4PSI3IiBmaWxsPSIjYjQ1MzA5IiBvcGFjaXR5PSIwLjE4IiBzdHJva2U9IiNkOTc3MDYiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtZGFzaGFycmF5PSI1LDMiLz4KICA8dGV4dCB4PSIzODAiIHk9IjEwMzIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTAiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNkOTc3MDYiPuKblCAgQ0hFQ0tQT0lOVCA0PC90ZXh0PgogIDx0ZXh0IHg9IjM4MCIgeT0iMTA0OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMCIgZmlsbD0iIzdkODU5MCI+UmVzb2x2ZSBhbGwgQkxPQ0tJTkcgKyBTRUNVUklUWS1CTE9DS0lORyBmaW5kaW5ncyBiZWZvcmUgY29udGludWluZzwvdGV4dD4KICA8dGV4dCB4PSI2NzAiIHk9IjEwMzgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iOSIgZmlsbD0iI2Q5NzcwNiIgZm9udC1zdHlsZT0iaXRhbGljIj4iQ2hlY2twb2ludCA0IGFwcHJvdmVkIjwvdGV4dD4KCiAgPGxpbmUgeDE9IjQ1MCIgeTE9IjEwNTkiIHgyPSI0NTAiIHkyPSIxMDc2IiBzdHJva2U9IiMzMDM2M2QiIHN0cm9rZS13aWR0aD0iMS41IiBtYXJrZXItZW5kPSJ1cmwoI2FycikiLz4KCiAgPCEtLSBTdGVwIDEyIC0tPgogIDxyZWN0IHg9IjE3MCIgeT0iMTA3OCIgd2lkdGg9IjIyMCIgaGVpZ2h0PSI3MiIgcng9IjciIGZpbGw9IiMxNjFiMjIiIHN0cm9rZT0iIzZlNDBjOSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8cmVjdCB4PSIxNzAiIHk9IjEwNzgiIHdpZHRoPSIyMjAiIGhlaWdodD0iMjIiIHJ4PSI3IiBmaWxsPSIjNmU0MGM5IiBvcGFjaXR5PSIwLjMiLz4KICA8cmVjdCB4PSIxNzAiIHk9IjEwOTYiIHdpZHRoPSIyMjAiIGhlaWdodD0iNCIgZmlsbD0iIzZlNDBjOSIgb3BhY2l0eT0iMC4zIi8+CiAgPHRleHQgeD0iMjgwIiB5PSIxMDk0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjEwIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjYTc4YmZhIj5TdGVwIDEyIOKAlCBKYW1pZTwvdGV4dD4KICA8dGV4dCB4PSIyODAiIHk9IjExMTEiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiNjOWQxZDkiPkRvY3VtZW50YXRpb248L3RleHQ+CiAgPHRleHQgeD0iMjgwIiB5PSIxMTI4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjkuNSIgZmlsbD0iIzdkODU5MCI+b3V0cHV0cy9kb2NzLzwvdGV4dD4KCiAgPCEtLSBTdGVwIDEzIC0tPgogIDxyZWN0IHg9IjQzMCIgeT0iMTA3OCIgd2lkdGg9IjIyMCIgaGVpZ2h0PSI3MiIgcng9IjciIGZpbGw9IiMxNjFiMjIiIHN0cm9rZT0iIzZlNDBjOSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8cmVjdCB4PSI0MzAiIHk9IjEwNzgiIHdpZHRoPSIyMjAiIGhlaWdodD0iMjIiIHJ4PSI3IiBmaWxsPSIjNmU0MGM5IiBvcGFjaXR5PSIwLjMiLz4KICA8cmVjdCB4PSI0MzAiIHk9IjEwOTYiIHdpZHRoPSIyMjAiIGhlaWdodD0iNCIgZmlsbD0iIzZlNDBjOSIgb3BhY2l0eT0iMC4zIi8+CiAgPHRleHQgeD0iNTQwIiB5PSIxMDk0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjEwIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjYTc4YmZhIj5TdGVwIDEzIOKAlCBTYWdlPC90ZXh0PgogIDx0ZXh0IHg9IjU0MCIgeT0iMTExMSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMCIgZmlsbD0iI2M5ZDFkOSI+UFIgQXNzZW1ibGVyPC90ZXh0PgogIDx0ZXh0IHg9IjU0MCIgeT0iMTEyOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSI5LjUiIGZpbGw9IiM3ZDg1OTAiPm91dHB1dHMvcHItZGVzY3JpcHRpb24ubWQ8L3RleHQ+CgogIDxsaW5lIHgxPSI0NTAiIHkxPSIxMDc2IiB4Mj0iMjgwIiB5Mj0iMTA3NiIgc3Ryb2tlPSIjMzAzNjNkIiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1kYXNoYXJyYXk9IjIsMiIvPgogIDxsaW5lIHgxPSIyODAiIHkxPSIxMDc2IiB4Mj0iMjgwIiB5Mj0iMTA3OCIgc3Ryb2tlPSIjMzAzNjNkIiBzdHJva2Utd2lkdGg9IjEiIG1hcmtlci1lbmQ9InVybCgjYXJyKSIvPgogIDxsaW5lIHgxPSIzOTAiIHkxPSIxMTE0IiB4Mj0iNDI4IiB5Mj0iMTExNCIgc3Ryb2tlPSIjNmU0MGM5IiBzdHJva2Utd2lkdGg9IjEuNSIgbWFya2VyLWVuZD0idXJsKCNhcnJQdXJwKSIvPgogIDxsaW5lIHgxPSI1NDAiIHkxPSIxMTUwIiB4Mj0iNTQwIiB5Mj0iMTE2OCIgc3Ryb2tlPSIjMzAzNjNkIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxsaW5lIHgxPSI1NDAiIHkxPSIxMTY4IiB4Mj0iNDUwIiB5Mj0iMTE2OCIgc3Ryb2tlPSIjMzAzNjNkIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxsaW5lIHgxPSI0NTAiIHkxPSIxMTY4IiB4Mj0iNDUwIiB5Mj0iMTE4NCIgc3Ryb2tlPSIjMzAzNjNkIiBzdHJva2Utd2lkdGg9IjEuNSIgbWFya2VyLWVuZD0idXJsKCNhcnIpIi8+CgogIDwhLS0gT1VUUFVUIC0tPgogIDxyZWN0IHg9IjIzMCIgeT0iMTE4NiIgd2lkdGg9IjQ0MCIgaGVpZ2h0PSI2MiIgcng9IjgiIGZpbGw9IiMxYTdmMzciIG9wYWNpdHk9IjAuMiIgc3Ryb2tlPSIjMmVhMDQzIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDx0ZXh0IHg9IjQ1MCIgeT0iMTIxMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMyIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzNmYjk1MCI+T1VUUFVUIOKAlCBHaXRIdWIgUHVsbCBSZXF1ZXN0PC90ZXh0PgogIDx0ZXh0IHg9IjQ1MCIgeT0iMTIzMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMCIgZmlsbD0iIzdkODU5MCI+RnVsbCB0cmFjZWFiaWxpdHkgUFJEIOKGkiBzdG9yaWVzIOKGkiBzcGVjcyDihpIgY29kZSDihpIgdGVzdHMg4oaSIFBSPC90ZXh0PgogIDx0ZXh0IHg9IjQ1MCIgeT0iMTI0NCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxMCIgZmlsbD0iIzdkODU5MCI+4pqgICBIdW1hbiBhcHByb3ZhbCByZXF1aXJlZCBiZWZvcmUgbWVyZ2Ug4oCUIG5vIGF1dG8tbWVyZ2U8L3RleHQ+CgogIDwhLS0gTUNQIFNJREVCQVIgLS0+CiAgPHJlY3QgeD0iMzAiIHk9IjgwMCIgd2lkdGg9IjYiIGhlaWdodD0iNDQ4IiByeD0iMyIgZmlsbD0iIzZlNDBjOSIgb3BhY2l0eT0iMC40Ii8+CiAgPHRleHQgeD0iMjMiIHk9IjkwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSI5IiBmaWxsPSIjN2Q4NTkwIiB0cmFuc2Zvcm09InJvdGF0ZSgtOTAsMjMsMTAyNCkiPk1DUDogR2l0SHViICsgQXp1cmUgRGV2T3BzICDCtyAgLnZzY29kZS9tY3AuanNvbjwvdGV4dD4KCiAgPGRlZnM+CiAgICA8bWFya2VyIGlkPSJhcnIiIG1hcmtlcldpZHRoPSI4IiBtYXJrZXJIZWlnaHQ9IjgiIHJlZlg9IjYiIHJlZlk9IjMiIG9yaWVudD0iYXV0byI+CiAgICAgIDxwYXRoIGQ9Ik0wLDAgTDAsNiBMOCwzIHoiIGZpbGw9IiMzMDM2M2QiLz4KICAgIDwvbWFya2VyPgogICAgPG1hcmtlciBpZD0iYXJyQmx1ZSIgbWFya2VyV2lkdGg9IjgiIG1hcmtlckhlaWdodD0iOCIgcmVmWD0iNiIgcmVmWT0iMyIgb3JpZW50PSJhdXRvIj4KICAgICAgPHBhdGggZD0iTTAsMCBMMCw2IEw4LDMgeiIgZmlsbD0iIzFmNmZlYiIvPgogICAgPC9tYXJrZXI+CiAgICA8bWFya2VyIGlkPSJhcnJQdXJwIiBtYXJrZXJXaWR0aD0iOCIgbWFya2VySGVpZ2h0PSI4IiByZWZYPSI2IiByZWZZPSIzIiBvcmllbnQ9ImF1dG8iPgogICAgICA8cGF0aCBkPSJNMCwwIEwwLDYgTDgsMyB6IiBmaWxsPSIjNmU0MGM5Ii8+CiAgICA8L21hcmtlcj4KICA8L2RlZnM+Cjwvc3ZnPgo=
+<svg viewBox="0 0 900 1380" xmlns="http://www.w3.org/2000/svg" role="img" font-family="system-ui, -apple-system, sans-serif">
+  <title>SDLC Agent Pipeline — GitHub Copilot Workflow</title>
+  <desc>Flow diagram showing the SDLC pipeline executing in two modes: Copilot Chat Agent Mode for Steps 0-7, and Copilot Coding Agent via GitHub Issues for Steps 8-13, with four human checkpoint gates.</desc>
+
+  <!-- Background -->
+  <rect width="900" height="1380" fill="#0d1117" rx="12"/>
+
+  <!-- TITLE -->
+  <text x="450" y="40" text-anchor="middle" font-size="17" font-weight="700" fill="#e6edf3" letter-spacing="0.3">SDLC Agent Pipeline — GitHub Copilot</text>
+  <text x="450" y="60" text-anchor="middle" font-size="12" fill="#7d8590">PRD to PR · Two execution modes · Four human checkpoints</text>
+
+  <!-- LEGEND -->
+  <rect x="30" y="76" width="12" height="12" rx="3" fill="#1f6feb"/>
+  <text x="47" y="87" font-size="11" fill="#7d8590">Copilot Chat — Agent Mode</text>
+  <rect x="200" y="76" width="12" height="12" rx="3" fill="#6e40c9"/>
+  <text x="217" y="87" font-size="11" fill="#7d8590">Copilot Coding Agent</text>
+  <rect x="360" y="76" width="12" height="12" rx="3" fill="#b45309"/>
+  <text x="377" y="87" font-size="11" fill="#7d8590">Human Checkpoint</text>
+  <rect x="500" y="76" width="12" height="12" rx="3" fill="#1a7f37"/>
+  <text x="517" y="87" font-size="11" fill="#7d8590">Artifact / Output</text>
+
+  <!-- INPUT BOX -->
+  <rect x="300" y="100" width="300" height="54" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+  <text x="450" y="122" text-anchor="middle" font-size="12" font-weight="600" fill="#e6edf3">INPUT</text>
+  <text x="450" y="139" text-anchor="middle" font-size="11" fill="#7d8590">inputs/prd.md  ·  inputs/brd.md</text>
+
+  <line x1="450" y1="154" x2="450" y2="174" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- CHAT MODE ZONE -->
+  <rect x="30" y="175" width="840" height="24" rx="4" fill="#1f6feb" opacity="0.15"/>
+  <text x="450" y="191" text-anchor="middle" font-size="11" font-weight="600" fill="#58a6ff" letter-spacing="1">COPILOT CHAT — AGENT MODE  ·  .github/prompts/*.prompt.md</text>
+
+  <!-- Step 0 -->
+  <rect x="60" y="210" width="180" height="72" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="60" y="210" width="180" height="22" rx="7" fill="#1f6feb" opacity="0.25"/>
+  <rect x="60" y="228" width="180" height="4" fill="#1f6feb" opacity="0.25"/>
+  <text x="150" y="226" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 0 — Alex</text>
+  <text x="150" y="243" text-anchor="middle" font-size="10" fill="#c9d1d9">BRD to PRD Bridge</text>
+  <text x="150" y="258" text-anchor="middle" font-size="9.5" fill="#7d8590">BRD only — skip if</text>
+  <text x="150" y="271" text-anchor="middle" font-size="9.5" fill="#7d8590">PRD already exists</text>
+
+  <!-- Step 1 -->
+  <rect x="280" y="210" width="180" height="72" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="280" y="210" width="180" height="22" rx="7" fill="#1f6feb" opacity="0.25"/>
+  <rect x="280" y="228" width="180" height="4" fill="#1f6feb" opacity="0.25"/>
+  <text x="370" y="226" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 1 — Sam</text>
+  <text x="370" y="243" text-anchor="middle" font-size="10" fill="#c9d1d9">PRD Analyst</text>
+  <text x="370" y="260" text-anchor="middle" font-size="9.5" fill="#7d8590">outputs/requirements.md</text>
+
+  <!-- Step 2 -->
+  <rect x="500" y="210" width="180" height="72" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="500" y="210" width="180" height="22" rx="7" fill="#1f6feb" opacity="0.25"/>
+  <rect x="500" y="228" width="180" height="4" fill="#1f6feb" opacity="0.25"/>
+  <text x="590" y="226" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 2 — Jordan</text>
+  <text x="590" y="243" text-anchor="middle" font-size="10" fill="#c9d1d9">Clarification</text>
+  <text x="590" y="260" text-anchor="middle" font-size="9.5" fill="#7d8590">outputs/clarifications.md</text>
+
+  <line x1="240" y1="246" x2="278" y2="246" stroke="#1f6feb" stroke-width="1.5" marker-end="url(#arrBlue)"/>
+  <line x1="460" y1="246" x2="498" y2="246" stroke="#1f6feb" stroke-width="1.5" marker-end="url(#arrBlue)"/>
+  <line x1="590" y1="282" x2="590" y2="300" stroke="#30363d" stroke-width="1.5"/>
+  <line x1="590" y1="300" x2="450" y2="300" stroke="#30363d" stroke-width="1.5"/>
+  <line x1="450" y1="300" x2="450" y2="316" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- CHECKPOINT 1 -->
+  <rect x="170" y="317" width="560" height="44" rx="7" fill="#b45309" opacity="0.18" stroke="#d97706" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="380" y="334" text-anchor="middle" font-size="10" font-weight="700" fill="#d97706">⛔  CHECKPOINT 1</text>
+  <text x="380" y="350" text-anchor="middle" font-size="10" fill="#7d8590">Review requirements + clarifications · Answer all blocking questions</text>
+  <text x="670" y="343" text-anchor="middle" font-size="9" fill="#d97706" font-style="italic">"Checkpoint 1 approved"</text>
+
+  <line x1="450" y1="361" x2="450" y2="378" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Step 3 -->
+  <rect x="60" y="380" width="180" height="72" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="60" y="380" width="180" height="22" rx="7" fill="#1f6feb" opacity="0.25"/>
+  <rect x="60" y="398" width="180" height="4" fill="#1f6feb" opacity="0.25"/>
+  <text x="150" y="396" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 3 — Taylor</text>
+  <text x="150" y="413" text-anchor="middle" font-size="10" fill="#c9d1d9">Spec Decomposer</text>
+  <text x="150" y="430" text-anchor="middle" font-size="9.5" fill="#7d8590">outputs/specs.md</text>
+
+  <!-- Step 4 -->
+  <rect x="280" y="380" width="180" height="72" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="280" y="380" width="180" height="22" rx="7" fill="#1f6feb" opacity="0.25"/>
+  <rect x="280" y="398" width="180" height="4" fill="#1f6feb" opacity="0.25"/>
+  <text x="370" y="396" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 4 — Winston</text>
+  <text x="370" y="413" text-anchor="middle" font-size="10" fill="#c9d1d9">Architecture</text>
+  <text x="370" y="430" text-anchor="middle" font-size="9.5" fill="#7d8590">outputs/architecture.md</text>
+
+  <!-- Step 5 -->
+  <rect x="500" y="380" width="180" height="72" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="500" y="380" width="180" height="22" rx="7" fill="#1f6feb" opacity="0.25"/>
+  <rect x="500" y="398" width="180" height="4" fill="#1f6feb" opacity="0.25"/>
+  <text x="590" y="396" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 5 — Morgan</text>
+  <text x="590" y="413" text-anchor="middle" font-size="10" fill="#c9d1d9">Risk Assessment</text>
+  <text x="590" y="430" text-anchor="middle" font-size="9.5" fill="#7d8590">outputs/risks.md</text>
+
+  <line x1="450" y1="378" x2="150" y2="378" stroke="#30363d" stroke-width="1" stroke-dasharray="2,2"/>
+  <line x1="150" y1="378" x2="150" y2="380" stroke="#30363d" stroke-width="1" marker-end="url(#arr)"/>
+  <line x1="240" y1="416" x2="278" y2="416" stroke="#1f6feb" stroke-width="1.5" marker-end="url(#arrBlue)"/>
+  <line x1="460" y1="416" x2="498" y2="416" stroke="#1f6feb" stroke-width="1.5" marker-end="url(#arrBlue)"/>
+  <line x1="590" y1="452" x2="590" y2="470" stroke="#30363d" stroke-width="1.5"/>
+  <line x1="590" y1="470" x2="450" y2="470" stroke="#30363d" stroke-width="1.5"/>
+  <line x1="450" y1="470" x2="450" y2="486" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- CHECKPOINT 2 -->
+  <rect x="170" y="487" width="560" height="44" rx="7" fill="#b45309" opacity="0.18" stroke="#d97706" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="380" y="504" text-anchor="middle" font-size="10" font-weight="700" fill="#d97706">⛔  CHECKPOINT 2</text>
+  <text x="380" y="520" text-anchor="middle" font-size="10" fill="#7d8590">Approve architecture · Accept or dismiss risks</text>
+  <text x="670" y="510" text-anchor="middle" font-size="9" fill="#d97706" font-style="italic">"Checkpoint 2 approved"</text>
+
+  <line x1="450" y1="531" x2="450" y2="548" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Step 6 -->
+  <rect x="170" y="550" width="220" height="72" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="170" y="550" width="220" height="22" rx="7" fill="#1f6feb" opacity="0.25"/>
+  <rect x="170" y="568" width="220" height="4" fill="#1f6feb" opacity="0.25"/>
+  <text x="280" y="566" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 6 — Riley</text>
+  <text x="280" y="583" text-anchor="middle" font-size="10" fill="#c9d1d9">Story Writer</text>
+  <text x="280" y="600" text-anchor="middle" font-size="9.5" fill="#7d8590">outputs/stories.md</text>
+
+  <!-- Step 7 -->
+  <rect x="430" y="550" width="220" height="72" rx="7" fill="#161b22" stroke="#1f6feb" stroke-width="1.5"/>
+  <rect x="430" y="550" width="220" height="22" rx="7" fill="#1f6feb" opacity="0.25"/>
+  <rect x="430" y="568" width="220" height="4" fill="#1f6feb" opacity="0.25"/>
+  <text x="540" y="566" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">Step 7 — Casey</text>
+  <text x="540" y="583" text-anchor="middle" font-size="10" fill="#c9d1d9">Task Breakdown</text>
+  <text x="540" y="600" text-anchor="middle" font-size="9.5" fill="#7d8590">outputs/tasks.md</text>
+
+  <line x1="390" y1="586" x2="428" y2="586" stroke="#1f6feb" stroke-width="1.5" marker-end="url(#arrBlue)"/>
+  <line x1="450" y1="548" x2="280" y2="548" stroke="#30363d" stroke-width="1" stroke-dasharray="2,2"/>
+  <line x1="280" y1="548" x2="280" y2="550" stroke="#30363d" stroke-width="1" marker-end="url(#arr)"/>
+  <line x1="540" y1="622" x2="540" y2="640" stroke="#30363d" stroke-width="1.5"/>
+  <line x1="540" y1="640" x2="450" y2="640" stroke="#30363d" stroke-width="1.5"/>
+  <line x1="450" y1="640" x2="450" y2="657" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- CHECKPOINT 3 -->
+  <rect x="170" y="658" width="560" height="44" rx="7" fill="#b45309" opacity="0.18" stroke="#d97706" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="380" y="675" text-anchor="middle" font-size="10" font-weight="700" fill="#d97706">⛔  CHECKPOINT 3</text>
+  <text x="380" y="691" text-anchor="middle" font-size="10" fill="#7d8590">Approve stories and tasks · Adjust scope / priority as needed</text>
+  <text x="670" y="681" text-anchor="middle" font-size="9" fill="#d97706" font-style="italic">"Checkpoint 3 approved"</text>
+
+  <!-- CODING AGENT ZONE -->
+  <line x1="450" y1="702" x2="450" y2="718" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="30" y="719" width="840" height="24" rx="4" fill="#6e40c9" opacity="0.2"/>
+  <text x="450" y="735" text-anchor="middle" font-size="11" font-weight="600" fill="#a78bfa" letter-spacing="1">COPILOT CODING AGENT  ·  GitHub Issues  ·  .github/ISSUE_TEMPLATE/</text>
+
+  <rect x="30" y="748" width="240" height="36" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="150" y="762" text-anchor="middle" font-size="10" fill="#7d8590">Create Issue from template</text>
+  <text x="150" y="776" text-anchor="middle" font-size="10" fill="#7d8590">→ Assign to Copilot → PR created</text>
+
+  <!-- Step 8 -->
+  <rect x="60" y="800" width="180" height="80" rx="7" fill="#161b22" stroke="#6e40c9" stroke-width="1.5"/>
+  <rect x="60" y="800" width="180" height="22" rx="7" fill="#6e40c9" opacity="0.3"/>
+  <rect x="60" y="818" width="180" height="4" fill="#6e40c9" opacity="0.3"/>
+  <text x="150" y="816" text-anchor="middle" font-size="10" font-weight="700" fill="#a78bfa">Step 8 — Amelia</text>
+  <text x="150" y="833" text-anchor="middle" font-size="10" fill="#c9d1d9">Code Generator</text>
+  <text x="150" y="850" text-anchor="middle" font-size="9.5" fill="#7d8590">src/ — production code</text>
+  <text x="150" y="865" text-anchor="middle" font-size="9.5" fill="#7d8590">task-log.md</text>
+
+  <!-- Step 9 -->
+  <rect x="280" y="800" width="180" height="80" rx="7" fill="#161b22" stroke="#6e40c9" stroke-width="1.5"/>
+  <rect x="280" y="800" width="180" height="22" rx="7" fill="#6e40c9" opacity="0.3"/>
+  <rect x="280" y="818" width="180" height="4" fill="#6e40c9" opacity="0.3"/>
+  <text x="370" y="816" text-anchor="middle" font-size="10" font-weight="700" fill="#a78bfa">Step 9 — Quinn</text>
+  <text x="370" y="833" text-anchor="middle" font-size="10" fill="#c9d1d9">Unit &amp; Integration Tests</text>
+  <text x="370" y="850" text-anchor="middle" font-size="9.5" fill="#7d8590">tests/</text>
+
+  <!-- Step 9b -->
+  <rect x="500" y="800" width="180" height="80" rx="7" fill="#161b22" stroke="#6e40c9" stroke-width="1.5"/>
+  <rect x="500" y="800" width="180" height="22" rx="7" fill="#6e40c9" opacity="0.3"/>
+  <rect x="500" y="818" width="180" height="4" fill="#6e40c9" opacity="0.3"/>
+  <text x="590" y="816" text-anchor="middle" font-size="10" font-weight="700" fill="#a78bfa">Step 9b — Drew</text>
+  <text x="590" y="833" text-anchor="middle" font-size="10" fill="#c9d1d9">Functional &amp; E2E Tests</text>
+  <text x="590" y="850" text-anchor="middle" font-size="9.5" fill="#7d8590">tests/functional/</text>
+
+  <!-- Step 9c -->
+  <rect x="700" y="800" width="170" height="80" rx="7" fill="#161b22" stroke="#6e40c9" stroke-width="1.5"/>
+  <rect x="700" y="800" width="170" height="22" rx="7" fill="#6e40c9" opacity="0.3"/>
+  <rect x="700" y="818" width="170" height="4" fill="#6e40c9" opacity="0.3"/>
+  <text x="785" y="816" text-anchor="middle" font-size="10" font-weight="700" fill="#a78bfa">Step 9c — Avery</text>
+  <text x="785" y="833" text-anchor="middle" font-size="10" fill="#c9d1d9">Test Plan</text>
+  <text x="785" y="850" text-anchor="middle" font-size="9.5" fill="#7d8590">*.csv · *.xlsx</text>
+
+  <line x1="450" y1="718" x2="150" y2="718" stroke="#30363d" stroke-width="1" stroke-dasharray="2,2"/>
+  <line x1="150" y1="718" x2="150" y2="800" stroke="#30363d" stroke-width="1" marker-end="url(#arr)"/>
+  <line x1="240" y1="840" x2="278" y2="840" stroke="#6e40c9" stroke-width="1.5" marker-end="url(#arrPurp)"/>
+  <line x1="460" y1="840" x2="498" y2="840" stroke="#6e40c9" stroke-width="1.5" marker-end="url(#arrPurp)"/>
+  <line x1="680" y1="840" x2="698" y2="840" stroke="#6e40c9" stroke-width="1.5" marker-end="url(#arrPurp)"/>
+
+  <!-- Steps 10 + 11 -->
+  <line x1="370" y1="880" x2="370" y2="906" stroke="#30363d" stroke-width="1.5"/>
+  <line x1="370" y1="906" x2="450" y2="906" stroke="#30363d" stroke-width="1.5"/>
+  <line x1="450" y1="906" x2="530" y2="906" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Step 10 -->
+  <rect x="280" y="908" width="210" height="72" rx="7" fill="#161b22" stroke="#6e40c9" stroke-width="1.5"/>
+  <rect x="280" y="908" width="210" height="22" rx="7" fill="#6e40c9" opacity="0.3"/>
+  <rect x="280" y="926" width="210" height="4" fill="#6e40c9" opacity="0.3"/>
+  <text x="385" y="924" text-anchor="middle" font-size="10" font-weight="700" fill="#a78bfa">Step 10 — Blake</text>
+  <text x="385" y="941" text-anchor="middle" font-size="10" fill="#c9d1d9">Code Reviewer</text>
+  <text x="385" y="958" text-anchor="middle" font-size="9.5" fill="#7d8590">outputs/review-findings.md</text>
+
+  <!-- Step 11 -->
+  <rect x="520" y="908" width="210" height="72" rx="7" fill="#161b22" stroke="#6e40c9" stroke-width="1.5"/>
+  <rect x="520" y="908" width="210" height="22" rx="7" fill="#6e40c9" opacity="0.3"/>
+  <rect x="520" y="926" width="210" height="4" fill="#6e40c9" opacity="0.3"/>
+  <text x="625" y="924" text-anchor="middle" font-size="10" font-weight="700" fill="#a78bfa">Step 11 — Robin</text>
+  <text x="625" y="941" text-anchor="middle" font-size="10" fill="#c9d1d9">Security Agent</text>
+  <text x="625" y="958" text-anchor="middle" font-size="9.5" fill="#7d8590">outputs/security-findings.md</text>
+
+  <line x1="490" y1="944" x2="518" y2="944" stroke="#6e40c9" stroke-width="1.5" marker-end="url(#arrPurp)"/>
+  <line x1="625" y1="980" x2="625" y2="998" stroke="#30363d" stroke-width="1.5"/>
+  <line x1="625" y1="998" x2="450" y2="998" stroke="#30363d" stroke-width="1.5"/>
+  <line x1="450" y1="998" x2="450" y2="1014" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- CHECKPOINT 4 -->
+  <rect x="170" y="1015" width="560" height="44" rx="7" fill="#b45309" opacity="0.18" stroke="#d97706" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="380" y="1032" text-anchor="middle" font-size="10" font-weight="700" fill="#d97706">⛔  CHECKPOINT 4</text>
+  <text x="380" y="1048" text-anchor="middle" font-size="10" fill="#7d8590">Resolve all BLOCKING + SECURITY-BLOCKING findings before continuing</text>
+  <text x="670" y="1038" text-anchor="middle" font-size="9" fill="#d97706" font-style="italic">"Checkpoint 4 approved"</text>
+
+  <line x1="450" y1="1059" x2="450" y2="1076" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Step 12 -->
+  <rect x="170" y="1078" width="220" height="72" rx="7" fill="#161b22" stroke="#6e40c9" stroke-width="1.5"/>
+  <rect x="170" y="1078" width="220" height="22" rx="7" fill="#6e40c9" opacity="0.3"/>
+  <rect x="170" y="1096" width="220" height="4" fill="#6e40c9" opacity="0.3"/>
+  <text x="280" y="1094" text-anchor="middle" font-size="10" font-weight="700" fill="#a78bfa">Step 12 — Jamie</text>
+  <text x="280" y="1111" text-anchor="middle" font-size="10" fill="#c9d1d9">Documentation</text>
+  <text x="280" y="1128" text-anchor="middle" font-size="9.5" fill="#7d8590">outputs/docs/</text>
+
+  <!-- Step 13 -->
+  <rect x="430" y="1078" width="220" height="72" rx="7" fill="#161b22" stroke="#6e40c9" stroke-width="1.5"/>
+  <rect x="430" y="1078" width="220" height="22" rx="7" fill="#6e40c9" opacity="0.3"/>
+  <rect x="430" y="1096" width="220" height="4" fill="#6e40c9" opacity="0.3"/>
+  <text x="540" y="1094" text-anchor="middle" font-size="10" font-weight="700" fill="#a78bfa">Step 13 — Sage</text>
+  <text x="540" y="1111" text-anchor="middle" font-size="10" fill="#c9d1d9">PR Assembler</text>
+  <text x="540" y="1128" text-anchor="middle" font-size="9.5" fill="#7d8590">outputs/pr-description.md</text>
+
+  <line x1="450" y1="1076" x2="280" y2="1076" stroke="#30363d" stroke-width="1" stroke-dasharray="2,2"/>
+  <line x1="280" y1="1076" x2="280" y2="1078" stroke="#30363d" stroke-width="1" marker-end="url(#arr)"/>
+  <line x1="390" y1="1114" x2="428" y2="1114" stroke="#6e40c9" stroke-width="1.5" marker-end="url(#arrPurp)"/>
+  <line x1="540" y1="1150" x2="540" y2="1168" stroke="#30363d" stroke-width="1.5"/>
+  <line x1="540" y1="1168" x2="450" y2="1168" stroke="#30363d" stroke-width="1.5"/>
+  <line x1="450" y1="1168" x2="450" y2="1184" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- OUTPUT -->
+  <rect x="230" y="1186" width="440" height="62" rx="8" fill="#1a7f37" opacity="0.2" stroke="#2ea043" stroke-width="1.5"/>
+  <text x="450" y="1210" text-anchor="middle" font-size="13" font-weight="700" fill="#3fb950">OUTPUT — GitHub Pull Request</text>
+  <text x="450" y="1230" text-anchor="middle" font-size="10" fill="#7d8590">Full traceability PRD → stories → specs → code → tests → PR</text>
+  <text x="450" y="1244" text-anchor="middle" font-size="10" fill="#7d8590">⚠  Human approval required before merge — no auto-merge</text>
+
+  <!-- MCP SIDEBAR -->
+  <rect x="30" y="800" width="6" height="448" rx="3" fill="#6e40c9" opacity="0.4"/>
+  <text x="23" y="900" text-anchor="middle" font-size="9" fill="#7d8590" transform="rotate(-90,23,1024)">MCP: GitHub + Azure DevOps  ·  .vscode/mcp.json</text>
+
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#30363d"/>
+    </marker>
+    <marker id="arrBlue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#1f6feb"/>
+    </marker>
+    <marker id="arrPurp" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#6e40c9"/>
+    </marker>
+  </defs>
+</svg>
