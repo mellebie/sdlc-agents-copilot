@@ -415,7 +415,7 @@ function Get-PhaseConfidence($agents) {
     }
 }
 
-function New-Agent($id, $name, $file, $status, $sourceRel, $inputs, $outputs, $noteType, $noteText) {
+function New-Agent($id, $name, $file, $status, $sourceRel, $inputs, $outputs, $noteType, $noteText, $persona) {
     $ca   = if ($status -ne 'pend') { Get-CompletedAt $sourceRel } else { $null }
     $note = if ($noteType)          { [ordered]@{ type = $noteType; text = $noteText } } else { $null }
     $conf = if ($status -ne 'pend') { Get-AgentConfidence $id } else { [ordered]@{ level='pend'; reason='Agent not yet run' } }
@@ -424,6 +424,7 @@ function New-Agent($id, $name, $file, $status, $sourceRel, $inputs, $outputs, $n
     [ordered]@{
         id              = $id
         name            = $name
+        persona         = $persona
         file            = $file
         status          = $status
         completedAt     = $ca
@@ -511,25 +512,25 @@ $taskNote      = if ($s07 -ne 'pend') { "$totalTasks tasks - $totalHours estimat
 # ── Build agent arrays ────────────────────────────────────────────────────────
 
 $reqAgents = @(
-    (New-Agent '00' 'BRD to PRD bridge'  'agents/00-brd-to-prd.md'      $s00 'inputs/prd.md'               @('inputs/brd.doc')                                          @('inputs/prd.md')              $null   $null)
+    (New-Agent '00' 'BRD to PRD bridge'  'agents/00-brd-to-prd.md'      $s00 'inputs/prd.md'               @('inputs/brd.doc')                                          @('inputs/prd.md')              $null   $null   'Alex - The Translator')
     (New-Checkpoint 'Checkpoint 0 - PRD review approved'          $cp0   'inputs/prd.md')
-    (New-Agent '01' 'PRD analyst'         'agents/01-prd-analyst.md'     $s01 'outputs/requirements.md'     @('inputs/prd.md')                                           @('outputs/requirements.md')    $null   $null)
-    (New-Agent '02' 'Clarification'       'agents/02-clarification.md'   $s02 'outputs/clarifications.md'   @('outputs/requirements.md')                                 @('outputs/clarifications.md')  $null   $null)
+    (New-Agent '01' 'PRD analyst'         'agents/01-prd-analyst.md'     $s01 'outputs/requirements.md'     @('inputs/prd.md')                                           @('outputs/requirements.md')    $null   $null   'Sam - The Forensic Analyst')
+    (New-Agent '02' 'Clarification'       'agents/02-clarification.md'   $s02 'outputs/clarifications.md'   @('outputs/requirements.md')                                 @('outputs/clarifications.md')  $null   $null   'Jordan - The Interrogator')
     (New-Checkpoint 'Checkpoint 1 - requirements sign-off'        $cp1   'outputs/clarifications.md')
-    (New-Agent '03' 'Spec decomposer'     'agents/03-spec-decomposer.md' $s03 'outputs/specs.md'            @('outputs/requirements.md','outputs/clarifications.md')     @('outputs/specs.md')           $null   $null)
-    (New-Agent '04' 'Architecture'        'agents/04-architecture.md'    $s04 'outputs/architecture.md'     @('outputs/specs.md','outputs/requirements.md')              @('outputs/architecture.md')    $null   $null)
-    (New-Agent '05' 'Risk assessment'     'agents/05-risk-assessment.md' $s05 'outputs/risks.md'            @('outputs/specs.md','outputs/architecture.md')              @('outputs/risks.md')           $(if($s05 -ne 'pend'){'info'}else{$null}) 'Risk assessment complete. Review risks.md for GO / NO-GO recommendation.')
+    (New-Agent '03' 'Spec decomposer'     'agents/03-spec-decomposer.md' $s03 'outputs/specs.md'            @('outputs/requirements.md','outputs/clarifications.md')     @('outputs/specs.md')           $null   $null   'Taylor - The Precision Engineer')
+    (New-Agent '04' 'Architecture'        'agents/04-architecture.md'    $s04 'outputs/architecture.md'     @('outputs/specs.md','outputs/requirements.md')              @('outputs/architecture.md')    $null   $null   'Winston - The Architect')
+    (New-Agent '05' 'Risk assessment'     'agents/05-risk-assessment.md' $s05 'outputs/risks.md'            @('outputs/specs.md','outputs/architecture.md')              @('outputs/risks.md')           $(if($s05 -ne 'pend'){'info'}else{$null}) 'Risk assessment complete. Review risks.md for GO / NO-GO recommendation.' 'Morgan - The Risk Officer')
     (New-Checkpoint 'Checkpoint 2 - architecture & risk approved' $cp2   'outputs/risks.md')
 )
 
 $storAgents = @(
-    (New-Agent '06' 'Story writer'    'agents/06-story-writer.md'    $s06 'outputs/stories.md' @('outputs/specs.md','outputs/architecture.md','outputs/risks.md') @('outputs/stories.md') $null $null)
-    (New-Agent '07' 'Task breakdown'  'agents/07-task-breakdown.md'  $s07 'outputs/tasks.md'   @('outputs/stories.md','outputs/architecture.md')                  @('outputs/tasks.md')   $(if($s07 -ne 'pend'){'info'}else{$null}) $taskNote)
+    (New-Agent '06' 'Story writer'    'agents/06-story-writer.md'    $s06 'outputs/stories.md' @('outputs/specs.md','outputs/architecture.md','outputs/risks.md') @('outputs/stories.md') $null $null 'Riley - The Product Owner')
+    (New-Agent '07' 'Task breakdown'  'agents/07-task-breakdown.md'  $s07 'outputs/tasks.md'   @('outputs/stories.md','outputs/architecture.md')                  @('outputs/tasks.md')   $(if($s07 -ne 'pend'){'info'}else{$null}) $taskNote 'Casey - The Tech Lead')
     (New-Checkpoint 'Checkpoint 3 - stories & tasks approved' $cp3 'outputs/tasks.md')
 )
 
 $devAgents = @(
-    (New-Agent '08' 'Code generator' 'agents/08-code-generator.md' $s08 'outputs/task-log.md' @('outputs/tasks.md','outputs/architecture.md','outputs/specs.md','src/ (existing)') @('src/TCPA.Api/','src/TCPA.Scheduler/','outputs/task-log.md') $(if($s08 -ne 'pend'){'info'}else{$null}) 'Implementation files generated. Review task-log.md for per-task details.')
+    (New-Agent '08' 'Code generator' 'agents/08-code-generator.md' $s08 'outputs/task-log.md' @('outputs/tasks.md','outputs/architecture.md','outputs/specs.md','src/ (existing)') @('src/TCPA.Api/','src/TCPA.Scheduler/','outputs/task-log.md') $(if($s08 -ne 'pend'){'info'}else{$null}) 'Implementation files generated. Review task-log.md for per-task details.' 'Amelia - The Engineer')
 )
 
 $s9bNoteType = if ($s9b -eq 'err') {'err'} elseif ($s9b -eq 'done') {'info'} else {$null}
@@ -538,9 +539,9 @@ $s9cNoteType = if ($s9c -eq 'err') {'err'} elseif ($s9c -eq 'done') {'info'} els
 $s9cNoteText = if ($s9c -eq 'err') {'Test plan CSV and Excel not produced. Traceability matrix missing.'} elseif ($s9c -eq 'done') {'Test plan generated.'} else {''}
 
 $testAgents = @(
-    (New-Agent '09' 'Unit & integration tests'  'agents/09-test-generator.md'         $s09 'outputs/task-log.md' @('outputs/tasks.md','outputs/specs.md','src/')                                                                  @('tests/TCPA.Api.Tests/','outputs/task-log.md') $null           $null)
-    (New-Agent '9b' 'Functional & E2E tests'    'agents/09b-functional-test-agent.md' $s9b 'outputs/task-log.md' @('outputs/stories.md','outputs/specs.md','outputs/architecture.md','outputs/risks.md','tests/')                 @('tests/functional/')                          $s9bNoteType    $s9bNoteText)
-    (New-Agent '9c' 'Test plan generator'       'agents/09c-test-plan-agent.md'       $s9c 'outputs/task-log.md' @('outputs/requirements.md','outputs/stories.md','outputs/risks.md','tests/')                                    @('tests/TCPA-Test-Cases.csv','tests/TCPA-Test-Plan.xlsx') $s9cNoteType   $s9cNoteText)
+    (New-Agent '09' 'Unit & integration tests'  'agents/09-test-generator.md'         $s09 'outputs/task-log.md' @('outputs/tasks.md','outputs/specs.md','src/')                                                                  @('tests/TCPA.Api.Tests/','outputs/task-log.md') $null           $null        'Quinn - The QA Engineer')
+    (New-Agent '9b' 'Functional & E2E tests'    'agents/09b-functional-test-agent.md' $s9b 'outputs/task-log.md' @('outputs/stories.md','outputs/specs.md','outputs/architecture.md','outputs/risks.md','tests/')                 @('tests/functional/')                          $s9bNoteType    $s9bNoteText 'Drew - The Journey Tester')
+    (New-Agent '9c' 'Test plan generator'       'agents/09c-test-plan-agent.md'       $s9c 'outputs/task-log.md' @('outputs/requirements.md','outputs/stories.md','outputs/risks.md','tests/')                                    @('tests/TCPA-Test-Cases.csv','tests/TCPA-Test-Plan.xlsx') $s9cNoteType   $s9cNoteText 'Avery - The QA Lead')
 )
 
 $s10NoteType = if ($s10 -eq 'warn') {'warn'} elseif ($s10 -eq 'done') {'info'} else {$null}
@@ -549,11 +550,11 @@ $s11NoteType = if ($s11 -eq 'warn') {'warn'} elseif ($s11 -eq 'done') {'info'} e
 $s11NoteText = if ($s11 -eq 'warn') {'PASS WITH CONDITIONS - security conditions must be acknowledged before merge.'} elseif ($s11 -eq 'done') {'PASS - no security-blocking findings.'} else {''}
 
 $qualAgents = @(
-    (New-Agent '10' 'Code reviewer'   'agents/10-code-reviewer.md'    $s10 'outputs/review-findings.md'   @('src/','tests/','outputs/architecture.md','outputs/specs.md')                                                                                    @('outputs/review-findings.md')   $s10NoteType $(if($s10NoteText){$s10NoteText}else{$null}))
-    (New-Agent '11' 'Security agent'  'agents/11-security-agent.md'   $s11 'outputs/security-findings.md' @('src/','outputs/specs.md','outputs/risks.md','outputs/architecture.md')                                                                          @('outputs/security-findings.md') $s11NoteType $(if($s11NoteText){$s11NoteText}else{$null}))
+    (New-Agent '10' 'Code reviewer'   'agents/10-code-reviewer.md'    $s10 'outputs/review-findings.md'   @('src/','tests/','outputs/architecture.md','outputs/specs.md')                                                                                    @('outputs/review-findings.md')   $s10NoteType $(if($s10NoteText){$s10NoteText}else{$null}) 'Blake - The Principal Engineer')
+    (New-Agent '11' 'Security agent'  'agents/11-security-agent.md'   $s11 'outputs/security-findings.md' @('src/','outputs/specs.md','outputs/risks.md','outputs/architecture.md')                                                                          @('outputs/security-findings.md') $s11NoteType $(if($s11NoteText){$s11NoteText}else{$null}) 'Robin - The Security Engineer')
     (New-Checkpoint 'Checkpoint 4 - review & security sign-off' $cp4 'outputs/security-findings.md')
-    (New-Agent '12' 'Documentation'   'agents/12-documentation-agent.md' $s12 'outputs/task-log.md'       @('src/','tests/','outputs/architecture.md','outputs/specs.md')                                                                                    @('outputs/docs/README.md','outputs/docs/api.md','outputs/docs/operations.md','outputs/docs/CHANGELOG.md') $null $null)
-    (New-Agent '13' 'PR assembler'    'agents/13-pr-assembler.md'     $s13 'outputs/pr-description.md'    @('outputs/requirements.md','outputs/stories.md','outputs/task-log.md','outputs/review-findings.md','outputs/security-findings.md')                @('outputs/pr-description.md')    $(if($s13 -eq 'done'){'warn'}else{$null}) $(if($s13 -eq 'done'){'PR assembled. Human approval required before merge.'}else{$null}))
+    (New-Agent '12' 'Documentation'   'agents/12-documentation-agent.md' $s12 'outputs/task-log.md'       @('src/','tests/','outputs/architecture.md','outputs/specs.md')                                                                                    @('outputs/docs/README.md','outputs/docs/api.md','outputs/docs/operations.md','outputs/docs/CHANGELOG.md') $null $null 'Jamie - The Tech Writer')
+    (New-Agent '13' 'PR assembler'    'agents/13-pr-assembler.md'     $s13 'outputs/pr-description.md'    @('outputs/requirements.md','outputs/stories.md','outputs/task-log.md','outputs/review-findings.md','outputs/security-findings.md')                @('outputs/pr-description.md')    $(if($s13 -eq 'done'){'warn'}else{$null}) $(if($s13 -eq 'done'){'PR assembled. Human approval required before merge.'}else{$null}) 'Sage - The Delivery Lead')
 )
 
 # ── Build artifacts map ───────────────────────────────────────────────────────
