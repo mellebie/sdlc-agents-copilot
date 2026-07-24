@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <!-- Test packages (xunit, NSubstitute, FluentAssertions, Mvc.Testing) inherited from Directory.Build.props
+         because the project name ends in .Tests -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- InMemory provider — not in Directory.Build.props -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- TCPA.Api pulls in TCPA.Core transitively -->
+    <ProjectReference Include="..\..\src\TCPA.Api\TCPA.Api.csproj" />
+  </ItemGroup>
+</Project>

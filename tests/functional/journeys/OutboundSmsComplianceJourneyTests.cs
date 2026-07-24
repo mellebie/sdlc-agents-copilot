@@ -1,243 +1,274 @@
-// Outbound SMS Compliance Journey Tests
-// Source: STORY-002 | SPEC-001, SPEC-002, SPEC-009 | AC-001 through AC-007
-// Generated: 2026-06-26 | Agent 09b — Functional & E2E Test Agent
-// Risk Level: HIGH-RISK — Full happy + 3 unhappy paths required
+// journeys/OutboundSmsComplianceJourneyTests.cs
+// Source: Agent 09b (Drew) | STORY-002 (Outbound SMS compliance gate) | AC-001 through AC-007
+// SPEC-006, SPEC-007, BR-018 through BR-023 — Queue-time opt-out check and Kafka dispatch
 
 using System.Net;
+using System.Net.Http.Json;
 using FluentAssertions;
-using Moq;
-using TCPA.Api.Domain;
-using TCPA.Api.FunctionalTests.Infrastructure;
-using TCPA.Api.Infrastructure.CoolText;
+using NSubstitute;
+using TCPA.Api.Messaging;
+using TCPA.Functional.Tests.Infrastructure;
+using Xunit;
 
-namespace TCPA.Api.FunctionalTests.Journeys;
+namespace TCPA.Functional.Tests.Journeys;
 
 /// <summary>
-/// User journey tests for the outbound SMS TCPA compliance gate.
-/// Verifies the complete request path from HTTP → ApiKeyAuthFilter → OutboundSmsGate
-/// → ICoolTextClient (mocked) → SmsResponse, using a real in-process ASP.NET Core host.
-/// Tests operate against the full middleware pipeline; no components are mocked except
-/// the external Cool Text HTTP client.
+/// Journey tests for POST /api/v1/messages/outbound.
+/// Verifies the queue-time opt-out check, idempotency, account validation, and auth.
 /// </summary>
-public class OutboundSmsComplianceJourneyTests : FunctionalTestBase, IClassFixture<TcpaFunctionalTestFactory>
+[Collection(TcpaTestCollection.Name)]
+public class OutboundSmsComplianceJourneyTests : FunctionalTestBase
 {
-    // Each test uses a unique phone number to prevent cross-test state pollution
-    // when multiple tests run against the shared InMemory database instance.
-    private const string OptedInNumber = "+12025550001";
-    private const string OptedOutNumber = "+12025550002";
-    private const string NoRecordNumber = "+12025550003";
+    public OutboundSmsComplianceJourneyTests(TcpaTestFactory factory) : base(factory) { }
 
-    private const string RegisteredAccountId = "CT-GCMA-TEST-001";
-    private const string UnregisteredAccountId = "CT-UNKNOWN-TEST-999";
-
-    public OutboundSmsComplianceJourneyTests(TcpaFunctionalTestFactory factory)
-        : base(factory)
-    {
-    }
+    // ─── Happy path — queued ──────────────────────────────────────────────────────
 
     /// <summary>
-    /// AC-001 (Happy Path): An opted-in number receives the message via Cool Text.
-    /// BR-001: No opt-out record means OPT_IN by default.
+    /// AC-001 (Happy Path): Opted-in number with valid account → HTTP 200 "queued",
+    /// non-empty messageId, non-null queuedAt. Kafka publish called once.
     /// </summary>
     [Fact]
-    public async Task OutboundSmsCompliance_OptedInNumber_ForwardsMessage()
+    public async Task OutboundMessage_OptedInNumber_Returns200Queued()
     {
         // Arrange
-        await SeedApplicationRegistrationAsync(RegisteredAccountId, "GCMA Test App");
-        await SeedOptOutRecordAsync(OptedInNumber, OptOutStatus.OptIn);
+        await SeedCoolTextAccountAsync(accountNumber: "CT-OUTB-001");
+        // No OptOutStatus record seeded → defaults to "opted-in"
 
-        Factory.MockCoolTextClient
-            .Setup(c => c.SendSmsAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new SendSmsResult { MessageId = "ct-msg-001", Status = "sent" });
-
-        var request = MakeApiKeyRequest(HttpMethod.Post, "/api/v1/sms/outbound", new
+        var payload = new
         {
-            cool_text_account_id = RegisteredAccountId,
-            destination_cell_number = OptedInNumber,
-            message_body = "Your monthly bill is ready. Visit scg.com to pay.",
-        });
+            ToNumber = "+15551110001",
+            Body = "Your gas bill is ready. Reply STOP to opt out.",
+            CoolTextAccountNumber = "CT-OUTB-001",
+            ApplicationId = "BizTalk",
+            CorrelationId = $"corr-happy-{Guid.NewGuid():N}",
+        };
 
         // Act
-        var response = await Client.SendAsync(request);
+        var response = await Client.PostAsJsonAsync("/api/v1/messages/outbound", payload);
 
-        // Assert
+        // Assert — HTTP
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var body = await ReadJsonAsync(response);
-        body.GetProperty("status").GetString().Should().Be("FORWARDED");
+        var body = await response.Content.ReadFromJsonAsync<OutboundResponseShape>();
+        body!.Status.Should().Be("queued");
+        body.MessageId.Should().NotBeNullOrWhiteSpace("a message GUID must be returned");
+        body.QueuedAt.Should().NotBeNull("a queue timestamp must be returned");
+        body.SuppressionReason.Should().BeNull("non-suppressed messages have no suppression reason");
 
-        Factory.MockCoolTextClient.Verify(
-            c => c.SendSmsAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<CancellationToken>()),
-            Times.Once);
+        // Assert — Kafka publish
+        await Factory.MockPublisher.Received(1)
+            .PublishOutboundAsync(
+                Arg.Is<OutboundMessageEvent>(e =>
+                    e.ToNumber == "+15551110001" &&
+                    e.CoolTextAccountNumber == "CT-OUTB-001"),
+                Arg.Any<CancellationToken>());
     }
 
+    // ─── Opt-out suppression ──────────────────────────────────────────────────────
+
     /// <summary>
-    /// AC-002 (Unhappy Path): An opted-out number is suppressed; Cool Text is never called.
-    /// SPEC-009: Suppression must be logged as a blocked-outbound audit entry.
+    /// AC-002 (Unhappy Path): Opted-out number → HTTP 200 "suppressed",
+    /// null messageId, null queuedAt, suppressionReason = "opted-out".
+    /// Kafka must NOT be published.
     /// </summary>
     [Fact]
-    public async Task OutboundSmsCompliance_OptedOutNumber_SuppressesMessage()
+    public async Task OutboundMessage_OptedOutNumber_Returns200Suppressed_NeverPublishesToKafka()
     {
         // Arrange
-        await SeedApplicationRegistrationAsync(RegisteredAccountId, "GCMA Test App");
-        await SeedOptOutRecordAsync(OptedOutNumber, OptOutStatus.OptOut);
+        await SeedCoolTextAccountAsync(accountNumber: "CT-OUTB-001");
+        await SeedOptOutStatusAsync("+15551110002", status: "opted-out");
+        Factory.MockPublisher.ClearReceivedCalls();
 
-        var request = MakeApiKeyRequest(HttpMethod.Post, "/api/v1/sms/outbound", new
+        var payload = new
         {
-            cool_text_account_id = RegisteredAccountId,
-            destination_cell_number = OptedOutNumber,
-            message_body = "Your monthly bill is ready.",
-        });
+            ToNumber = "+15551110002",
+            Body = "Your gas bill is ready.",
+            CoolTextAccountNumber = "CT-OUTB-001",
+            ApplicationId = "BizTalk",
+            CorrelationId = $"corr-suppressed-{Guid.NewGuid():N}",
+        };
 
         // Act
-        var response = await Client.SendAsync(request);
+        var response = await Client.PostAsJsonAsync("/api/v1/messages/outbound", payload);
+
+        // Assert — HTTP
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<OutboundResponseShape>();
+        body!.Status.Should().Be("suppressed");
+        body.MessageId.Should().BeNull("suppressed messages have no messageId");
+        body.QueuedAt.Should().BeNull("suppressed messages have no queuedAt");
+        body.SuppressionReason.Should().Be("opted-out");
+
+        // Assert — Kafka NOT published (TCPA compliance: never deliver to opted-out numbers)
+        await Factory.MockPublisher.DidNotReceive()
+            .PublishOutboundAsync(Arg.Any<OutboundMessageEvent>(), Arg.Any<CancellationToken>());
+    }
+
+    // ─── Idempotency ─────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// AC-003: Same correlationId sent twice on a queued message → idempotent 200 "queued"
+    /// with the same messageId. Kafka published only once.
+    /// </summary>
+    [Fact]
+    public async Task OutboundMessage_DuplicateCorrelationId_ReturnsIdempotentQueuedResponse()
+    {
+        // Arrange
+        await SeedCoolTextAccountAsync(accountNumber: "CT-OUTB-001");
+        var correlationId = $"corr-idem-{Guid.NewGuid():N}";
+
+        var payload = new
+        {
+            ToNumber = "+15551110003",
+            Body = "Your bill is ready.",
+            CoolTextAccountNumber = "CT-OUTB-001",
+            ApplicationId = "BizTalk",
+            CorrelationId = correlationId,
+        };
+
+        // First call
+        var first = await Client.PostAsJsonAsync("/api/v1/messages/outbound", payload);
+        first.StatusCode.Should().Be(HttpStatusCode.OK);
+        var firstBody = await first.Content.ReadFromJsonAsync<OutboundResponseShape>();
+
+        Factory.MockPublisher.ClearReceivedCalls();
+
+        // Act — second call
+        var second = await Client.PostAsJsonAsync("/api/v1/messages/outbound", payload);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var body = await ReadJsonAsync(response);
-        body.GetProperty("status").GetString().Should().Be("SUPPRESSED");
-        body.GetProperty("suppression_reason").GetString().Should().Be("OPT_OUT");
+        second.StatusCode.Should().Be(HttpStatusCode.OK);
+        var secondBody = await second.Content.ReadFromJsonAsync<OutboundResponseShape>();
+        secondBody!.Status.Should().Be("queued");
+        secondBody.MessageId.Should().Be(firstBody!.MessageId,
+            because: "idempotent replay must return the original messageId");
 
-        // Critical: Cool Text must NEVER be called for an opted-out number
-        Factory.MockCoolTextClient.Verify(
-            c => c.SendSmsAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<CancellationToken>()),
-            Times.Never);
+        // Kafka must NOT be republished
+        await Factory.MockPublisher.DidNotReceive()
+            .PublishOutboundAsync(Arg.Any<OutboundMessageEvent>(), Arg.Any<CancellationToken>());
     }
 
     /// <summary>
-    /// AC-003 (BR-001): A number with no opt-out record is treated as OPT_IN and forwarded.
-    /// This is the "unknown = opted-in" default behavior required by BR-001.
+    /// AC-004: Same correlationId for a previously suppressed message → idempotent 200 "suppressed".
     /// </summary>
     [Fact]
-    public async Task OutboundSmsCompliance_NoStatusRecord_DefaultsToOptIn_Forwards()
+    public async Task OutboundMessage_DuplicateCorrelationId_ReturnsIdempotentSuppressedResponse()
     {
-        // Arrange — no opt-out record seeded for this number
-        await SeedApplicationRegistrationAsync(RegisteredAccountId, "GCMA Test App");
+        // Arrange
+        await SeedCoolTextAccountAsync(accountNumber: "CT-OUTB-001");
+        await SeedOptOutStatusAsync("+15551110004", status: "opted-out");
+        var correlationId = $"corr-supp-idem-{Guid.NewGuid():N}";
 
-        Factory.MockCoolTextClient
-            .Setup(c => c.SendSmsAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new SendSmsResult { MessageId = "ct-msg-002", Status = "sent" });
-
-        var request = MakeApiKeyRequest(HttpMethod.Post, "/api/v1/sms/outbound", new
+        var payload = new
         {
-            cool_text_account_id = RegisteredAccountId,
-            destination_cell_number = NoRecordNumber,
-            message_body = "Payment reminder: your bill is due.",
-        });
+            ToNumber = "+15551110004",
+            Body = "Your bill is ready.",
+            CoolTextAccountNumber = "CT-OUTB-001",
+            ApplicationId = "BizTalk",
+            CorrelationId = correlationId,
+        };
 
-        // Act
-        var response = await Client.SendAsync(request);
+        // First call
+        var first = await Client.PostAsJsonAsync("/api/v1/messages/outbound", payload);
+        first.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // Act — second call
+        var second = await Client.PostAsJsonAsync("/api/v1/messages/outbound", payload);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var body = await ReadJsonAsync(response);
-        body.GetProperty("status").GetString().Should().Be("FORWARDED",
-            because: "BR-001 requires no-record to default to OPT_IN");
+        second.StatusCode.Should().Be(HttpStatusCode.OK);
+        var secondBody = await second.Content.ReadFromJsonAsync<OutboundResponseShape>();
+        secondBody!.Status.Should().Be("suppressed");
     }
 
+    // ─── Account validation ───────────────────────────────────────────────────────
+
     /// <summary>
-    /// AC-004 (Unhappy Path): Missing X-API-Key header returns 401.
+    /// AC-005: Unknown CoolTextAccountNumber → HTTP 400.
     /// </summary>
     [Fact]
-    public async Task OutboundSmsCompliance_MissingApiKey_Returns401()
+    public async Task OutboundMessage_UnknownAccount_Returns400()
     {
-        // Arrange — no API key header
-        var request = new System.Net.Http.HttpRequestMessage(HttpMethod.Post, "/api/v1/sms/outbound");
-        request.Content = System.Net.Http.Json.JsonContent.Create(new
+        var payload = new
         {
-            cool_text_account_id = RegisteredAccountId,
-            destination_cell_number = "+12025550010",
-            message_body = "Test message.",
-        });
+            ToNumber = "+15551110005",
+            Body = "Your bill is ready.",
+            CoolTextAccountNumber = "CT-DOES-NOT-EXIST",
+            ApplicationId = "BizTalk",
+        };
 
-        // Act
-        var response = await Client.SendAsync(request);
+        var response = await Client.PostAsJsonAsync("/api/v1/messages/outbound", payload);
 
-        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    // ─── Authentication ───────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// AC-006: Missing X-Api-Key → HTTP 401.
+    /// </summary>
+    [Fact]
+    public async Task OutboundMessage_MissingApiKey_Returns401()
+    {
+        using var anon = CreateUnauthenticatedClient();
+        var payload = new
+        {
+            ToNumber = "+15551110006",
+            Body = "Your bill is ready.",
+            CoolTextAccountNumber = "CT-OUTB-001",
+            ApplicationId = "BizTalk",
+        };
+
+        var response = await anon.PostAsJsonAsync("/api/v1/messages/outbound", payload);
+
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
-    /// <summary>
-    /// AC-005 (Unhappy Path): Wrong API key returns 401.
-    /// </summary>
-    [Fact]
-    public async Task OutboundSmsCompliance_WrongApiKey_Returns401()
-    {
-        // Arrange
-        var request = new System.Net.Http.HttpRequestMessage(HttpMethod.Post, "/api/v1/sms/outbound");
-        request.Headers.Add(TcpaTestConstants.ApiKeyHeaderName, "completely-wrong-key");
-        request.Content = System.Net.Http.Json.JsonContent.Create(new
-        {
-            cool_text_account_id = RegisteredAccountId,
-            destination_cell_number = "+12025550011",
-            message_body = "Test message.",
-        });
-
-        // Act
-        var response = await Client.SendAsync(request);
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-    }
+    // ─── Validation ───────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// AC-006 (Unhappy Path): A destination cell number not in E.164 format returns 400.
-    /// OutboundSmsRequest validates destination_cell_number with an E.164 regex.
+    /// AC-007: ToNumber in non-E.164 format → HTTP 400 (model validation).
     /// </summary>
     [Fact]
-    public async Task OutboundSmsCompliance_InvalidE164Number_Returns400()
+    public async Task OutboundMessage_InvalidPhoneFormat_Returns400()
     {
-        // Arrange — "12025551234" is missing the leading + required by E.164
-        var request = MakeApiKeyRequest(HttpMethod.Post, "/api/v1/sms/outbound", new
+        await SeedCoolTextAccountAsync(accountNumber: "CT-OUTB-001");
+        var payload = new
         {
-            cool_text_account_id = RegisteredAccountId,
-            destination_cell_number = "12025551234",
-            message_body = "Test message.",
-        });
+            ToNumber = "not-a-phone-number",
+            Body = "Your bill is ready.",
+            CoolTextAccountNumber = "CT-OUTB-001",
+            ApplicationId = "BizTalk",
+        };
 
-        // Act
-        var response = await Client.SendAsync(request);
+        var response = await Client.PostAsJsonAsync("/api/v1/messages/outbound", payload);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     /// <summary>
-    /// AC-007 (BR-004): An unregistered Cool Text account ID still returns 200 but with
-    /// UNREGISTERED_ACCOUNT status. The message is NOT forwarded (cannot route without registration).
+    /// AC-008: SMS body exceeds 160 characters → HTTP 400 (model validation).
     /// </summary>
     [Fact]
-    public async Task OutboundSmsCompliance_UnregisteredAccount_Returns200WithUnregisteredStatus()
+    public async Task OutboundMessage_BodyExceeds160Characters_Returns400()
     {
-        // Arrange — no application registration for this account
-        var request = MakeApiKeyRequest(HttpMethod.Post, "/api/v1/sms/outbound", new
+        await SeedCoolTextAccountAsync(accountNumber: "CT-OUTB-001");
+        var payload = new
         {
-            cool_text_account_id = UnregisteredAccountId,
-            destination_cell_number = "+12025550012",
-            message_body = "Test message.",
-        });
+            ToNumber = "+15551110007",
+            Body = new string('A', 161), // 161 chars — 1 over limit
+            CoolTextAccountNumber = "CT-OUTB-001",
+            ApplicationId = "BizTalk",
+        };
 
-        // Act
-        var response = await Client.SendAsync(request);
+        var response = await Client.PostAsJsonAsync("/api/v1/messages/outbound", payload);
 
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var body = await ReadJsonAsync(response);
-        body.GetProperty("status").GetString().Should().Be("UNREGISTERED_ACCOUNT");
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
+
+    // ─── Local response shape ─────────────────────────────────────────────────────
+    private record OutboundResponseShape(
+        string Status,
+        string? MessageId,
+        DateTimeOffset? QueuedAt,
+        string? SuppressionReason);
 }

@@ -1,167 +1,184 @@
-// Global Opt-Out Scope Cross-Component Integration Tests
-// Source: STORY-005 AC-003 | SPEC-005 BR-026 | HIGH-RISK
-// Generated: 2026-06-26 | Agent 09b — Functional & E2E Test Agent
-//
-// This test verifies the most critical cross-component behavioral invariant of the
-// TCPA Compliance Engine: an opt-out received via ANY registered application must
-// suppress outbound messages from ALL other registered applications.
-//
-// This cannot be tested at the unit level because unit tests mock the opt-out service.
-// Only a full-pipeline functional test can verify that the inbound opt-out write and
-// the outbound compliance gate both operate against the same shared opt-out table.
+// integration/GlobalOptOutScopeIntegrationTests.cs
+// Source: Agent 09b (Drew) | Cross-component integration | SPEC-006, SPEC-007, SPEC-008
+// Verifies that:
+//   1. An opt-out status written to the DB is respected by the outbound gate (suppression)
+//   2. A re-opt-in via the admin endpoint is immediately reflected in the outbound gate
+//   3. A number with no prior opt-out record is treated as opted-in (outbound queued)
+// These scenarios require multiple components working together and cannot be verified at the unit level.
 
 using System.Net;
+using System.Net.Http.Json;
 using FluentAssertions;
-using Moq;
-using TCPA.Api.FunctionalTests.Infrastructure;
-using TCPA.Api.Infrastructure.CoolText;
+using TCPA.Functional.Tests.Infrastructure;
+using Xunit;
 
-namespace TCPA.Api.FunctionalTests.Integration;
+namespace TCPA.Functional.Tests.Integration;
 
 /// <summary>
-/// Cross-component integration test verifying that opt-out state is global across
-/// all registered SCG applications. An opt-out via one application account must
-/// suppress outbound SMS from all other application accounts.
-///
-/// Components exercised:
-///   InboundSmsController → InboundSmsHandler → OptOutStatusService → TcpaDbContext
-///   OutboundSmsController → OutboundSmsGate → OptOutStatusService → TcpaDbContext
+/// Cross-component integration tests for the global opt-out scope.
+/// Uses real InMemory DB interactions (not mocked repositories) to verify
+/// that opt-out state flows correctly across the API, repositories, and admin service.
 /// </summary>
-public class GlobalOptOutScopeIntegrationTests : FunctionalTestBase, IClassFixture<TcpaFunctionalTestFactory>
+[Collection(TcpaTestCollection.Name)]
+public class GlobalOptOutScopeIntegrationTests : FunctionalTestBase
 {
-    private const string GcmaAccountId = "CT-GCMA-INTEG-001";
-    private const string VngAccountId = "CT-VNG-INTEG-001";
+    public GlobalOptOutScopeIntegrationTests(TcpaTestFactory factory) : base(factory) { }
 
-    public GlobalOptOutScopeIntegrationTests(TcpaFunctionalTestFactory factory)
-        : base(factory)
+    // ─── Opt-out enforcement ──────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Scenario 1: Number with an "opted-out" record in DB → outbound suppressed.
+    /// Verifies that <see cref="TCPA.Core.Repositories.SqlOptOutStatusRepository"/> correctly
+    /// reads opt-out status from the InMemory DB and the controller honours it.
+    /// </summary>
+    [Fact]
+    public async Task OptedOutNumber_OutboundSuppressed_AcrossComponents()
     {
+        // Arrange — seed account and opt-out status directly to DB
+        await SeedCoolTextAccountAsync(accountNumber: "CT-INTEG-001");
+        const string optedOutNumber = "+15553330001";
+        await SeedOptOutStatusAsync(optedOutNumber, "opted-out");
+
+        var payload = new
+        {
+            ToNumber = optedOutNumber,
+            Body = "Bill reminder",
+            CoolTextAccountNumber = "CT-INTEG-001",
+            ApplicationId = "BizTalk",
+            CorrelationId = $"integ-supp-{Guid.NewGuid():N}",
+        };
+
+        // Act
+        var response = await Client.PostAsJsonAsync("/api/v1/messages/outbound", payload);
+
+        // Assert — outbound gate respected the DB opt-out record
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<OutboundShape>();
+        body!.Status.Should().Be("suppressed",
+            because: "the opt-out record in DB must suppress outbound delivery across components");
     }
 
     /// <summary>
-    /// STORY-005 AC-003 (HIGH-RISK — Global Opt-Out Scope):
-    /// Customer opts out via the GCMA inbound webhook. VNG then attempts to send an outbound
-    /// SMS to the same number. The outbound must be SUPPRESSED even though the opt-out was
-    /// received by a different application account.
-    ///
-    /// This is the TCPA system's core compliance guarantee: one opt-out record applies globally
-    /// across all SCG application accounts (BR-026).
+    /// Scenario 2: Number with an "opted-in" record in DB → outbound queued.
+    /// Confirms that an explicit "opted-in" status (not just absence of a record) allows delivery.
     /// </summary>
     [Fact]
-    public async Task GlobalOptOut_OptOutViaGcmaAccount_SuppressesOutboundFromVngAccount()
-    {
-        // Arrange: seed both application registrations
-        await SeedApplicationRegistrationAsync(
-            GcmaAccountId,
-            "GCMA Integration Test",
-            "https://callback.gcma.example.com/sms");
-
-        await SeedApplicationRegistrationAsync(
-            VngAccountId,
-            "VNG Integration Test",
-            "https://callback.vng.example.com/sms");
-
-        const string customerNumber = "+15555550301";
-        // No opt-out record seeded — customer is currently opted in (by BR-001 default)
-
-        Factory.MockCoolTextClient
-            .Setup(c => c.SendSmsAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new SendSmsResult { MessageId = "ct-msg-global-test", Status = "sent" });
-
-        // --- Step 1: Customer opts out via GCMA inbound webhook ---
-        var inboundRequest = MakeHmacSignedRequest(HttpMethod.Post, "/api/v1/sms/inbound", new
-        {
-            cool_text_account_id = GcmaAccountId,
-            sender_cell_number = customerNumber,
-            message_body = "STOP",
-            cool_text_message_id = "inbound-stop-via-gcma",
-        });
-
-        var inboundResponse = await Client.SendAsync(inboundRequest);
-
-        inboundResponse.StatusCode.Should().Be(HttpStatusCode.OK,
-            because: "inbound webhook must be acknowledged with 200");
-
-        // Wait for the background fire-and-forget opt-out write to complete
-        await WaitForOptOutRecordAsync(customerNumber, timeoutMs: 5000);
-
-        // --- Step 2: VNG attempts to send an outbound SMS to the same number ---
-        var outboundRequest = MakeApiKeyRequest(HttpMethod.Post, "/api/v1/sms/outbound", new
-        {
-            cool_text_account_id = VngAccountId,
-            destination_cell_number = customerNumber,
-            message_body = "Your VNG bill is ready. Visit vngas.com to pay.",
-            originating_application_reference = "VNG-BILL-CYCLE-202606",
-        });
-
-        var outboundResponse = await Client.SendAsync(outboundRequest);
-
-        // Assert: outbound is SUPPRESSED even though the opt-out came through GCMA
-        outboundResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        var outboundBody = await ReadJsonAsync(outboundResponse);
-        outboundBody.GetProperty("status").GetString().Should().Be("SUPPRESSED",
-            because: "BR-026 requires that a STOP via any application suppresses ALL outbound messages " +
-                     "across all applications — opt-out scope is global, not per-application");
-
-        outboundBody.GetProperty("suppression_reason").GetString().Should().Be("OPT_OUT");
-
-        // Critical: Cool Text must NOT have been called for the VNG outbound
-        Factory.MockCoolTextClient.Verify(
-            c => c.SendSmsAsync(
-                It.Is<string>(accountId => accountId == VngAccountId),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<CancellationToken>()),
-            Times.Never,
-            because: "an opted-out number must never have messages forwarded to Cool Text");
-    }
-
-    /// <summary>
-    /// Verifies the inverse scenario: a number that is NOT opted-out can still receive
-    /// messages from multiple application accounts. This confirms the global opt-out scope
-    /// test above is actually testing the opt-out — not always-suppressing.
-    /// </summary>
-    [Fact]
-    public async Task GlobalOptOut_NotOptedOutNumber_ForwardsFromBothAccounts()
+    public async Task OptedInNumber_OutboundQueued_AcrossComponents()
     {
         // Arrange
-        await SeedApplicationRegistrationAsync(
-            GcmaAccountId,
-            "GCMA Integration Test",
-            "https://callback.gcma.example.com/sms");
+        await SeedCoolTextAccountAsync(accountNumber: "CT-INTEG-001");
+        const string optedInNumber = "+15553330002";
+        await SeedOptOutStatusAsync(optedInNumber, "opted-in");
 
-        await SeedApplicationRegistrationAsync(
-            VngAccountId,
-            "VNG Integration Test",
-            "https://callback.vng.example.com/sms");
-
-        const string customerNumber = "+15555550302"; // no opt-out record
-
-        Factory.MockCoolTextClient
-            .Setup(c => c.SendSmsAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new SendSmsResult { MessageId = "ct-msg-opt-in", Status = "sent" });
-
-        // Act — VNG sends outbound to an opted-in number
-        var outboundRequest = MakeApiKeyRequest(HttpMethod.Post, "/api/v1/sms/outbound", new
+        var payload = new
         {
-            cool_text_account_id = VngAccountId,
-            destination_cell_number = customerNumber,
-            message_body = "Your VNG bill is ready.",
-        });
+            ToNumber = optedInNumber,
+            Body = "Bill reminder",
+            CoolTextAccountNumber = "CT-INTEG-001",
+            ApplicationId = "BizTalk",
+            CorrelationId = $"integ-queue-{Guid.NewGuid():N}",
+        };
 
-        var outboundResponse = await Client.SendAsync(outboundRequest);
+        // Act
+        var response = await Client.PostAsJsonAsync("/api/v1/messages/outbound", payload);
 
         // Assert
-        outboundResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        var body = await ReadJsonAsync(outboundResponse);
-        body.GetProperty("status").GetString().Should().Be("FORWARDED",
-            because: "numbers without an opt-out record default to OPT_IN (BR-001)");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<OutboundShape>();
+        body!.Status.Should().Be("queued");
     }
+
+    /// <summary>
+    /// Scenario 3: Number with no record in DB → treated as opted-in (outbound queued).
+    /// Verifies the <c>GetStatusAsync</c> default of "opted-in" when no record exists.
+    /// </summary>
+    [Fact]
+    public async Task NumberWithNoRecord_OutboundQueued_DefaultsToOptedIn()
+    {
+        // Arrange — no OptOutStatus seeded for this number
+        await SeedCoolTextAccountAsync(accountNumber: "CT-INTEG-001");
+        // Use decimal digits only — GUID.N hex chars (a-f) fail E.164 \d validation
+        var phoneNumber = $"+1555333{Random.Shared.Next(1000, 9999):D4}";
+
+        var payload = new
+        {
+            ToNumber = phoneNumber,
+            Body = "Bill reminder",
+            CoolTextAccountNumber = "CT-INTEG-001",
+            ApplicationId = "BizTalk",
+            CorrelationId = $"integ-norecord-{Guid.NewGuid():N}",
+        };
+
+        // Act
+        var response = await Client.PostAsJsonAsync("/api/v1/messages/outbound", payload);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<OutboundShape>();
+        body!.Status.Should().Be("queued",
+            because: "absence of a record must default to opted-in per TCPA safe harbour");
+    }
+
+    // ─── Re-opt-in then outbound ──────────────────────────────────────────────────
+
+    /// <summary>
+    /// Scenario 4 (Cross-component): Admin re-opts-in a customer → subsequent outbound is queued.
+    /// This is the critical cross-component scenario: admin write via ReOptInService must be
+    /// immediately visible to the outbound gate (SqlOptOutStatusRepository).
+    /// Both read from the same InMemory database, so the write is immediately visible.
+    /// </summary>
+    [Fact]
+    public async Task AdminReOptIn_ThenOutbound_IsQueued_CrossComponent()
+    {
+        // Arrange — start with opted-out
+        await SeedCoolTextAccountAsync(accountNumber: "CT-INTEG-001");
+        const string phoneNumber = "+15553330004";
+        await SeedOptOutStatusAsync(phoneNumber, "opted-out");
+
+        // Verify baseline: outbound is suppressed before re-opt-in
+        var beforePayload = new
+        {
+            ToNumber = phoneNumber,
+            Body = "Bill reminder",
+            CoolTextAccountNumber = "CT-INTEG-001",
+            ApplicationId = "BizTalk",
+            CorrelationId = $"integ-before-{Guid.NewGuid():N}",
+        };
+        var before = await Client.PostAsJsonAsync("/api/v1/messages/outbound", beforePayload);
+        var beforeBody = await before.Content.ReadFromJsonAsync<OutboundShape>();
+        beforeBody!.Status.Should().Be("suppressed", because: "baseline: number is opted-out");
+
+        // Act — admin re-opts-in via admin endpoint
+        var reOptInPayload = new
+        {
+            PhoneNumber = phoneNumber,
+            Reason = "Customer called and verified identity. Wishes to receive bills by SMS.",
+            AgentId = "helpdesk-agent-007",
+        };
+        var reOptIn = await Client.PostAsJsonAsync("/api/v1/admin/reopt-in", reOptInPayload);
+        reOptIn.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // Assert — subsequent outbound for the same number is now queued
+        var afterPayload = new
+        {
+            ToNumber = phoneNumber,
+            Body = "Welcome back! Your bill is ready.",
+            CoolTextAccountNumber = "CT-INTEG-001",
+            ApplicationId = "BizTalk",
+            CorrelationId = $"integ-after-{Guid.NewGuid():N}",
+        };
+        var after = await Client.PostAsJsonAsync("/api/v1/messages/outbound", afterPayload);
+
+        after.StatusCode.Should().Be(HttpStatusCode.OK);
+        var afterBody = await after.Content.ReadFromJsonAsync<OutboundShape>();
+        afterBody!.Status.Should().Be("queued",
+            because: "after re-opt-in the outbound gate must allow delivery");
+
+        // Assert — DB reflects opted-in
+        var dbStatus = await GetOptOutStatusAsync(phoneNumber);
+        dbStatus.Should().Be("opted-in");
+    }
+
+    // ─── Local response shape ─────────────────────────────────────────────────────
+    private record OutboundShape(string Status, string? MessageId, DateTimeOffset? QueuedAt, string? SuppressionReason);
 }

@@ -520,3 +520,63 @@
   - Prior docs: health check at `/health` — actual path is `/api/v1/health`. **Corrected.**
   - Prior docs: health response shape referenced `tcpa-database` check name — actual field names are `database` and `kafka`. **Corrected.**
 - **Known documentation gaps:** None. All implemented endpoints documented. All config keys covered. Operations runbook covers all diagnosed failure modes.
+
+---
+
+## Functional Test Agent Output (09b)
+
+**Agent:** Drew — Functional & E2E Test Agent
+**Date:** 2026-07-24
+**Test project:** `tests/functional/TCPA.Functional.Tests.csproj`
+
+### Coverage Summary
+| Story | Journey Tests | Contract Tests | Smoke | Risk Level |
+|-------|---------------|----------------|-------|------------|
+| STORY-001 (Inbound opt-out) | 6 written | 4 written | ✅ | HIGH-RISK |
+| STORY-002 (Outbound compliance gate) | 8 written | 4 written | ✅ | HIGH-RISK |
+| STORY-003 (Admin re-opt-in) | 7 written | 3 written | ✅ | Standard |
+| STORY-004 (Health / observability) | — | 3 written | ✅ | Standard |
+| Cross-component integration | 4 written | — | — | — |
+
+### Journey Tests Written
+- `InboundOptOutJourneyTests`: 6 tests — happy path, idempotency, unknown account, inactive account, missing/invalid auth → `tests/functional/journeys/InboundOptOutJourneyTests.cs`
+- `OutboundSmsComplianceJourneyTests`: 8 tests — opted-in, opted-out suppression, duplicate correlation idempotency (queued + suppressed), unknown account, missing auth, invalid phone format, body > 160 chars → `tests/functional/journeys/OutboundSmsComplianceJourneyTests.cs`
+- `AdminReOptInJourneyTests`: 7 tests — opted-out re-opt-in (DB verified), never-opted-out, missing auth, non-admin key, invalid phone format, empty reason, reason > 500 chars → `tests/functional/journeys/AdminReOptInJourneyTests.cs`
+
+### Cross-Component Flows Tested
+- `GlobalOptOutScopeIntegrationTests`: 4 tests verifying opt-out state flows across SqlOptOutStatusRepository, outbound gate, and admin ReOptInService → `tests/functional/integration/GlobalOptOutScopeIntegrationTests.cs`
+  - Opted-out number → outbound suppressed across components
+  - Opted-in record → outbound queued across components
+  - No record (default) → outbound queued (TCPA safe harbour)
+  - Admin re-opt-in → subsequent outbound immediately queued (critical cross-component write/read scenario)
+
+### Contract Tests Written
+- `OutboundSmsApiContractTests`: 4 tests — field names (camelCase), types, required/optional, 400 error field → `tests/functional/contracts/OutboundSmsApiContractTests.cs`
+- `AdminApiContractTests`: 3 tests — success field presence and types, 401 shape, 400 ProblemDetails body → `tests/functional/contracts/AdminApiContractTests.cs`
+- `HealthContractTests`: 3 tests — field presence and types, no-auth required, Content-Type application/json → `tests/functional/contracts/HealthContractTests.cs`
+- `InboundWebhookContractTests`: 4 tests — success shape (status + internalId GUID), unknown account 400 error field, missing required field, missing auth 401 → `tests/functional/contracts/InboundWebhookContractTests.cs`
+
+### Smoke Tests Written
+- `TcpaApiSmokeTests`: 6 tests — health 200, inbound 401 unauthenticated, outbound 401 unauthenticated, admin 401 unauthenticated, inbound authenticated processed, outbound authenticated queued → `tests/functional/smoke/TcpaApiSmokeTests.cs`
+- Estimated runtime: < 3 s (well within 2-minute constraint)
+- Safe to run repeatedly: idempotent (unique MessageId/CorrelationId per run; numeric-only phone number generation)
+
+### Agent 09 Coverage Gaps Addressed
+- Unit tests cover repository and service layer in isolation; these functional tests verify the full stack including EF Core InMemory persistence, auth filter wiring, and cross-component data visibility
+- Idempotency (duplicate MessageId / duplicate CorrelationId) tested end-to-end — unit tests mock repositories, functional tests use real DB round-trip
+
+### Remaining Coverage Gaps
+- Testcontainers SQL Server integration tests: skipped (Docker not available locally) — the unit test project covers these paths with InMemory
+- Kafka consumer path (InboundMessageProcessor): no functional tests — the consumer is a Worker Service not exposed via HTTP; would require embedded Kafka which is unavailable without Docker
+
+### Test Infrastructure
+- `TcpaTestFactory`: WebApplicationFactory<Program> — replaces SQL Server DbContext with EF Core InMemory, replaces KafkaMessagePublisher with NSubstitute mock
+- `TcpaTestCollection`: xUnit collection fixture — one shared factory across all test classes prevents Serilog ReloadableLogger freeze race condition
+- `FunctionalTestBase`: base class with typed HttpClient (X-Api-Key pre-set), DB seeding helpers, `WaitForConditionAsync` polling (no Thread.Sleep)
+- No Testcontainers, no Docker — all tests run in-process with WebApplicationFactory
+
+### Final Test Results
+- Total tests: 45
+- Passed: 45
+- Failed: 0
+- Duration: ~2 s

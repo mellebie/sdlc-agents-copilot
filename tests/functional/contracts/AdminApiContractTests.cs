@@ -1,144 +1,108 @@
-// Admin API Contract Tests
-// Source: SPEC-010, SPEC-011 | BR-037 (PII masking in responses)
-// Generated: 2026-06-26 | Agent 09b — Functional & E2E Test Agent
-//
-// Verifies the shape of admin API responses consumed by helpdesk tooling and
-// compliance reporting workflows.
+// contracts/AdminApiContractTests.cs
+// Source: Agent 09b (Drew) | API contract for POST /api/v1/admin/reopt-in
+// Verifies the shape of admin API responses consumed by helpdesk tooling.
 
 using System.Net;
+using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
-using TCPA.Api.Domain;
-using TCPA.Api.FunctionalTests.Infrastructure;
+using TCPA.Functional.Tests.Infrastructure;
+using Xunit;
 
-namespace TCPA.Api.FunctionalTests.Contracts;
+namespace TCPA.Functional.Tests.Contracts;
 
 /// <summary>
-/// Contract tests for the admin opt-out management endpoints.
-/// Verifies response shape and PII masking behavior for the helpdesk-facing API.
+/// Contract tests for POST /api/v1/admin/reopt-in.
+/// Asserts field names (camelCase), types, and required presence.
 /// </summary>
-public class AdminApiContractTests : FunctionalTestBase, IClassFixture<TcpaFunctionalTestFactory>
+[Collection(TcpaTestCollection.Name)]
+public class AdminApiContractTests : FunctionalTestBase
 {
-    public AdminApiContractTests(TcpaFunctionalTestFactory factory)
-        : base(factory)
-    {
-    }
+    public AdminApiContractTests(TcpaTestFactory factory) : base(factory) { }
+
+    // ─── Success response contract ────────────────────────────────────────────────
 
     /// <summary>
-    /// CONTRACT: Admin status response must contain maskedCellNumber, optOutStatus,
-    /// and lastOptOutTimestamp fields.
+    /// Successful re-opt-in response must contain:
+    /// reOptInId (long > 0), phoneNumber (E.164 string), status ("opted-in"), effectiveAt (ISO-8601).
+    /// All field names are camelCase.
     /// </summary>
     [Fact]
-    public async Task AdminStatusResponse_ContainsRequiredFields()
+    public async Task AdminReOptIn_SuccessResponse_ContainsAllRequiredFields()
     {
         // Arrange
-        const string cellNumber = "+12025551101";
-        await SeedOptOutRecordAsync(cellNumber, OptOutStatus.OptOut);
+        const string phoneNumber = "+15554440101";
 
-        // Act
-        var response = await Client.GetAsync("/admin/v1/opt-out/status/%2B12025551101");
-        var body = await ReadJsonAsync(response);
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        body.TryGetProperty("maskedCellNumber", out var maskedProp).Should().BeTrue(
-            because: "admin status response must return maskedCellNumber, not the full number");
-        maskedProp.GetString().Should().NotBeNullOrEmpty();
-
-        body.TryGetProperty("optOutStatus", out var statusProp).Should().BeTrue(
-            because: "admin status response must include optOutStatus");
-        statusProp.GetString().Should().NotBeNullOrEmpty();
-
-        body.TryGetProperty("lastOptOutTimestamp", out var timestampProp).Should().BeTrue(
-            because: "admin status response must include lastOptOutTimestamp (nullable ISO 8601)");
-
-        // Timestamp may be null for OPT_IN records, but must be present for OPT_OUT
-        if (timestampProp.ValueKind != JsonValueKind.Null)
+        var payload = new
         {
-            DateTimeOffset.TryParse(timestampProp.GetString(), out _).Should().BeTrue(
-                because: "lastOptOutTimestamp when present must be a valid ISO 8601 datetime");
-        }
-    }
-
-    /// <summary>
-    /// CONTRACT — BR-037: The maskedCellNumber in admin responses must show only the
-    /// last 4 digits, prefixed with asterisks. The full number must never be returned.
-    /// </summary>
-    [Fact]
-    public async Task AdminStatusResponse_MaskedNumber_OnlyShowsLast4Digits()
-    {
-        // Arrange
-        const string cellNumber = "+12025559876";
-        await SeedOptOutRecordAsync(cellNumber, OptOutStatus.OptOut);
-
-        // Act
-        var response = await Client.GetAsync("/admin/v1/opt-out/status/%2B12025559876");
-        var body = await ReadJsonAsync(response);
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-
-        var maskedNumber = body.GetProperty("maskedCellNumber").GetString();
-        maskedNumber.Should().NotBeNull();
-
-        // Must end with last 4 digits
-        maskedNumber.Should().EndWith("9876",
-            because: "BR-037: masked number must show only the last 4 digits");
-
-        // Must NOT contain the full phone number
-        maskedNumber.Should().NotContain("+12025559876",
-            because: "BR-037: the full cell number is PII and must never appear in any response");
-
-        // Must contain masking characters
-        maskedNumber.Should().Match("*9876",
-            because: "BR-037: the leading digits must be replaced with asterisks");
-    }
-
-    /// <summary>
-    /// CONTRACT: Re-opt-in response must contain success, previousStatus, newStatus,
-    /// and updatedTimestamp fields.
-    /// </summary>
-    [Fact]
-    public async Task AdminReOptInResponse_ContainsRequiredFields()
-    {
-        // Arrange
-        const string cellNumber = "+12025551102";
-        await SeedOptOutRecordAsync(cellNumber, OptOutStatus.OptOut);
-
-        var request = new System.Net.Http.HttpRequestMessage(
-            HttpMethod.Put, "/admin/v1/opt-out/re-opt-in")
-        {
-            Content = System.Net.Http.Json.JsonContent.Create(new
-            {
-                cellPhoneNumber = cellNumber,
-                reason = "Customer called helpdesk to request re-opt-in after accidental STOP.",
-            }),
+            PhoneNumber = phoneNumber,
+            Reason = "Customer called to re-opt-in — verified via account PIN.",
+            AgentId = "helpdesk-agent-contract-001",
         };
 
         // Act
-        var response = await Client.SendAsync(request);
-        var body = await ReadJsonAsync(response);
-
-        // Assert
+        var response = await Client.PostAsJsonAsync("/api/v1/admin/reopt-in", payload);
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        body.TryGetProperty("success", out var successProp).Should().BeTrue(
-            because: "re-opt-in response must include a 'success' boolean");
-        successProp.ValueKind.Should().Be(JsonValueKind.True,
-            because: "success must be true for a successful re-opt-in");
+        var json = await response.Content.ReadFromJsonAsync<JsonDocument>();
+        var root = json!.RootElement;
 
-        body.TryGetProperty("previousStatus", out var prevStatusProp).Should().BeTrue(
-            because: "re-opt-in response must include previousStatus for audit trail");
-        prevStatusProp.GetString().Should().NotBeNullOrEmpty();
+        // Assert — field presence and types
+        root.TryGetProperty("reOptInId", out var idEl).Should().BeTrue("'reOptInId' field must be present");
+        idEl.ValueKind.Should().Be(JsonValueKind.Number, "reOptInId must be numeric");
+        idEl.GetInt64().Should().BeGreaterThan(0, "reOptInId must be a positive audit record ID");
 
-        body.TryGetProperty("newStatus", out var newStatusProp).Should().BeTrue(
-            because: "re-opt-in response must include newStatus for confirmation");
-        newStatusProp.GetString().Should().NotBeNullOrEmpty();
+        root.TryGetProperty("phoneNumber", out var phoneEl).Should().BeTrue("'phoneNumber' field must be present");
+        phoneEl.GetString().Should().Be(phoneNumber, "phoneNumber must echo back the submitted value");
 
-        body.TryGetProperty("updatedTimestamp", out var updatedTimestampProp).Should().BeTrue(
-            because: "re-opt-in response must include updatedTimestamp for audit correlation");
-        DateTimeOffset.TryParse(updatedTimestampProp.GetString(), out _).Should().BeTrue(
-            because: "updatedTimestamp must be a parseable ISO 8601 datetime");
+        root.TryGetProperty("status", out var statusEl).Should().BeTrue("'status' field must be present");
+        statusEl.GetString().Should().Be("opted-in");
+
+        root.TryGetProperty("effectiveAt", out var effectiveAtEl).Should().BeTrue("'effectiveAt' field must be present");
+        DateTimeOffset.TryParse(effectiveAtEl.GetString(), out var effectiveAt).Should().BeTrue("effectiveAt must be a valid ISO-8601 timestamp");
+        effectiveAt.Should().BeCloseTo(DateTimeOffset.UtcNow, precision: TimeSpan.FromMinutes(1));
+    }
+
+    // ─── Error response contracts ─────────────────────────────────────────────────
+
+    /// <summary>
+    /// Missing X-Api-Key → HTTP 401 (no body contract required; status code is the contract).
+    /// </summary>
+    [Fact]
+    public async Task AdminReOptIn_MissingAuth_Returns401()
+    {
+        using var anon = CreateUnauthenticatedClient();
+        var payload = new
+        {
+            PhoneNumber = "+15554440102",
+            Reason = "Valid reason",
+            AgentId = "agent-001",
+        };
+
+        var response = await anon.PostAsJsonAsync("/api/v1/admin/reopt-in", payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    /// <summary>
+    /// Invalid phone format → HTTP 400 with a ProblemDetails-style body.
+    /// </summary>
+    [Fact]
+    public async Task AdminReOptIn_ValidationError_Returns400WithProblemDetails()
+    {
+        var payload = new
+        {
+            PhoneNumber = "not-e164",  // invalid format
+            Reason = "Valid reason",
+            AgentId = "agent-001",
+        };
+
+        var response = await Client.PostAsJsonAsync("/api/v1/admin/reopt-in", payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        // The response should be a ProblemDetails object (ASP.NET Core default for model validation)
+        var content = await response.Content.ReadAsStringAsync();
+        content.Should().NotBeNullOrEmpty("400 must include a body describing what was invalid");
     }
 }

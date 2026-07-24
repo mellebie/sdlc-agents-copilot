@@ -1,170 +1,187 @@
-// TCPA API Smoke Tests
-// Source: All critical paths | Post-deployment verification
-// Generated: 2026-06-26 | Agent 09b — Functional & E2E Test Agent
-//
-// These tests run against a deployed environment (not the in-process test factory).
-// They verify that the API is alive and its authentication/authorization layers are
-// functioning correctly. They make NO data mutations and are safe against production.
-//
-// Configuration:
-//   Set TCPA_API_BASE_URL environment variable to the deployed API base URL.
-//   Falls back to http://localhost:5000 for local smoke testing.
-//
-// Performance target: all smoke tests must complete in under 30 seconds total.
-// Each individual test has a 10-second timeout on the HttpClient.
+// smoke/TcpaApiSmokeTests.cs
+// Source: Agent 09b (Drew) | Post-deployment smoke verification | All critical paths
+// Smoke tests must:
+//   - Complete in under 2 minutes total
+//   - Be safe to run against any environment (no data mutation — read-only or idempotent)
+//   - Produce a clear PASS/FAIL with actionable failure messages
 
 using System.Net;
-using System.Text;
-using System.Text.Json;
+using System.Net.Http.Json;
 using FluentAssertions;
+using TCPA.Functional.Tests.Infrastructure;
+using Xunit;
 
-namespace TCPA.Api.FunctionalTests.Smoke;
+namespace TCPA.Functional.Tests.Smoke;
 
 /// <summary>
-/// Post-deployment smoke tests that verify the TCPA API is alive and security controls
-/// are operational. Safe to run against any environment including production because
-/// no valid API keys or HMAC secrets are used — all requests are intentionally unauthenticated.
+/// Smoke tests for the TCPA Compliance API.
+/// These tests run against the in-process WebApplicationFactory and verify that all
+/// critical paths are alive and authentication layers are functioning.
+/// They are designed to be safe and fast — no heavy data setup, no external dependencies.
 /// </summary>
-public class TcpaApiSmokeTests : IDisposable
+[Collection(TcpaTestCollection.Name)]
+public class TcpaApiSmokeTests : FunctionalTestBase
 {
-    private readonly HttpClient _client;
-    private readonly string _baseUrl;
+    public TcpaApiSmokeTests(TcpaTestFactory factory) : base(factory) { }
 
-    public TcpaApiSmokeTests()
-    {
-        _baseUrl = Environment.GetEnvironmentVariable("TCPA_API_BASE_URL") ?? "http://localhost:5000";
-        _client = new HttpClient
-        {
-            BaseAddress = new Uri(_baseUrl),
-            Timeout = TimeSpan.FromSeconds(10),
-        };
-    }
+    // ─── Health check ─────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// SMOKE: Health endpoint returns a 200 response, confirming the API is alive
-    /// and its EF Core health check is passing.
+    /// Smoke-001: Health endpoint is reachable and returns 200 (no auth required).
+    /// This is the first check any monitoring system should make.
     /// </summary>
     [Fact]
-    public async Task HealthEndpoint_ReturnsHealthy()
+    public async Task Smoke_HealthEndpoint_Returns200()
     {
+        // Arrange — no auth needed
+        using var anon = CreateUnauthenticatedClient();
+
         // Act
-        var response = await _client.GetAsync("/health");
+        var response = await anon.GetAsync("/api/v1/health");
 
-        // Assert — 200 = Healthy, 503 = Degraded (still reachable but something is wrong)
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.OK,
-            HttpStatusCode.ServiceUnavailable,
-            because: "any status other than these indicates the API is unreachable or crashed (not just unhealthy)");
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK,
+            because: "the health endpoint must return 200 for the API to be considered live");
 
-        // If we get 200, confirm the response is parseable health check output
-        if (response.StatusCode == HttpStatusCode.OK)
-        {
-            var content = await response.Content.ReadAsStringAsync();
-            content.Should().NotBeNullOrEmpty(
-                because: "health endpoint must return a response body");
-        }
+        var body = await response.Content.ReadFromJsonAsync<HealthShape>();
+        body!.Status.Should().BeOneOf(new[] { "healthy", "degraded" },
+            "status must be a known value");
+        body.Checks.Should().NotBeNull("health checks sub-object must be present");
     }
 
+    // ─── API key enforcement ──────────────────────────────────────────────────────
+
     /// <summary>
-    /// SMOKE: Outbound endpoint without an API key returns 401 (not 500).
-    /// Verifies that API key authentication middleware is active and correctly rejecting
-    /// unauthenticated requests before they reach business logic.
-    /// Safe: no mutation, no valid key used.
+    /// Smoke-002: Inbound webhook endpoint rejects unauthenticated requests with 401.
+    /// Verifies that the API key filter is active.
     /// </summary>
     [Fact]
-    public async Task OutboundEndpoint_WithMissingApiKey_Returns401NotServerError()
+    public async Task Smoke_InboundWebhook_RejectsUnauthenticated_Returns401()
     {
-        // Arrange — deliberately no X-API-Key header
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/sms/outbound")
+        // Arrange — no auth
+        using var anon = CreateUnauthenticatedClient();
+        var payload = new
         {
-            Content = new StringContent(
-                JsonSerializer.Serialize(new
-                {
-                    cool_text_account_id = "SMOKE-TEST-ACCOUNT",
-                    destination_cell_number = "+10000000000",
-                    message_body = "Smoke test — should be rejected before processing.",
-                }),
-                Encoding.UTF8,
-                "application/json"),
+            From = "+15550000001",
+            To = "CT-SMOKE",
+            Body = "STOP",
+            Provider = "cooltext",
+            MessageId = $"smoke-inb-{Guid.NewGuid():N}",
+            Timestamp = DateTimeOffset.UtcNow,
         };
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await anon.PostAsJsonAsync("/webhook/inbound", payload);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized,
-            because: "API key authentication must reject requests without X-API-Key before they reach business logic; " +
-                     "a 500 here indicates an uncaught startup error or missing middleware");
+            because: "the API key filter must reject unauthenticated requests to the inbound endpoint");
     }
 
     /// <summary>
-    /// SMOKE: Inbound webhook endpoint without HMAC signature returns 401 (not 500).
-    /// Verifies that HMAC signature validation middleware is active.
-    /// Safe: no valid signature means no processing occurs.
+    /// Smoke-003: Outbound messages endpoint rejects unauthenticated requests with 401.
     /// </summary>
     [Fact]
-    public async Task InboundEndpoint_WithMissingSignature_Returns401NotServerError()
+    public async Task Smoke_OutboundMessages_RejectsUnauthenticated_Returns401()
     {
-        // Arrange — no X-CoolText-Signature header
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/sms/inbound")
+        using var anon = CreateUnauthenticatedClient();
+        var payload = new
         {
-            Content = new StringContent(
-                JsonSerializer.Serialize(new
-                {
-                    cool_text_account_id = "SMOKE-TEST-ACCOUNT",
-                    sender_cell_number = "+10000000001",
-                    message_body = "Smoke test — should be rejected before processing.",
-                    cool_text_message_id = "smoke-test-msg-001",
-                }),
-                Encoding.UTF8,
-                "application/json"),
+            ToNumber = "+15550000002",
+            Body = "Smoke test",
+            CoolTextAccountNumber = "CT-SMOKE",
+            ApplicationId = "BizTalk",
+        };
+
+        var response = await anon.PostAsJsonAsync("/api/v1/messages/outbound", payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized,
+            because: "the API key filter must reject unauthenticated requests to the outbound endpoint");
+    }
+
+    /// <summary>
+    /// Smoke-004: Admin endpoint rejects unauthenticated requests with 401.
+    /// </summary>
+    [Fact]
+    public async Task Smoke_AdminEndpoint_RejectsUnauthenticated_Returns401()
+    {
+        using var anon = CreateUnauthenticatedClient();
+        var payload = new
+        {
+            PhoneNumber = "+15550000003",
+            Reason = "Smoke test",
+            AgentId = "smoke-agent",
+        };
+
+        var response = await anon.PostAsJsonAsync("/api/v1/admin/reopt-in", payload);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized,
+            because: "the admin endpoint must reject unauthenticated requests");
+    }
+
+    // ─── Authenticated happy-path smoke ───────────────────────────────────────────
+
+    /// <summary>
+    /// Smoke-005: Inbound webhook with a valid API key accepts the request.
+    /// Uses a seeded account to get past account validation.
+    /// Asserts a non-5xx response (400 is also acceptable — account not registered is expected in some envs).
+    /// </summary>
+    [Fact]
+    public async Task Smoke_InboundWebhook_ValidApiKey_IsProcessed()
+    {
+        // Arrange — seed an account so we can get a 200 (not a 400 for unknown account)
+        await SeedCoolTextAccountAsync(accountNumber: "CT-SMOKE-001");
+
+        var payload = new
+        {
+            From = "+15550000010",
+            To = "CT-SMOKE-001",
+            Body = "STOP",
+            Provider = "cooltext",
+            MessageId = $"smoke-auth-{Guid.NewGuid():N}",
+            Timestamp = DateTimeOffset.UtcNow,
         };
 
         // Act
-        var response = await _client.SendAsync(request);
+        var response = await Client.PostAsJsonAsync("/webhook/inbound", payload);
+
+        // Assert — accepted by the API (200 = processed, 400 = account validation — either is non-5xx)
+        ((int)response.StatusCode).Should().BeLessThan(500,
+            because: "the inbound endpoint must not return 5xx for a properly authenticated request");
+        response.StatusCode.Should().Be(HttpStatusCode.OK,
+            because: "a seeded account should result in a 200 received response");
+    }
+
+    /// <summary>
+    /// Smoke-006: Outbound message with a valid API key is accepted.
+    /// Uses a seeded account and a number with no opt-out record.
+    /// </summary>
+    [Fact]
+    public async Task Smoke_OutboundMessage_ValidApiKey_IsQueued()
+    {
+        // Arrange
+        await SeedCoolTextAccountAsync(accountNumber: "CT-SMOKE-001");
+
+        // Decimal digits only — GUID.N hex chars (a-f) fail E.164 \d validation
+        var toNumber = $"+1555{Random.Shared.Next(1_000_000, 9_999_999):D7}";
+        var payload = new
+        {
+            ToNumber = toNumber,
+            Body = "Smoke test message — safe to ignore.",
+            CoolTextAccountNumber = "CT-SMOKE-001",
+            ApplicationId = "BizTalk",
+        };
+
+        // Act
+        var response = await Client.PostAsJsonAsync("/api/v1/messages/outbound", payload);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized,
-            because: "HMAC signature validation must reject requests without a valid signature; " +
-                     "a 500 here indicates an uncaught startup error or missing middleware");
+        ((int)response.StatusCode).Should().BeLessThan(500,
+            because: "authenticated outbound requests must not return 5xx");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
-    /// <summary>
-    /// SMOKE: Admin re-opt-in endpoint without Bearer token returns 401 (not 500).
-    /// Verifies that JWT Bearer authentication is active on admin endpoints.
-    /// Safe: no data mutation (request is rejected before reaching any service layer).
-    /// </summary>
-    [Fact]
-    public async Task AdminEndpoint_WithoutAuth_Returns401NotServerError()
-    {
-        // Arrange — no Authorization header
-        var request = new HttpRequestMessage(HttpMethod.Put, "/admin/v1/opt-out/re-opt-in")
-        {
-            Content = new StringContent(
-                JsonSerializer.Serialize(new
-                {
-                    cellPhoneNumber = "+10000000002",
-                    reason = "Smoke test — should be rejected before processing by auth middleware.",
-                }),
-                Encoding.UTF8,
-                "application/json"),
-        };
-
-        // Act
-        var response = await _client.SendAsync(request);
-
-        // Assert — 401 = JWT auth is working; 500 = startup/middleware error
-        response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.Unauthorized,
-            HttpStatusCode.Forbidden,
-            because: "admin endpoints must require JWT Bearer authentication; " +
-                     "a 500 here indicates an uncaught startup error, " +
-                     "a 200 would indicate auth is not configured (test environment only)");
-    }
-
-    public void Dispose()
-    {
-        _client.Dispose();
-        GC.SuppressFinalize(this);
-    }
+    // ─── Local response shape helpers ─────────────────────────────────────────────
+    private record HealthShape(string Status, HealthChecksShape? Checks, DateTimeOffset Timestamp);
+    private record HealthChecksShape(string Database, string Kafka);
 }
