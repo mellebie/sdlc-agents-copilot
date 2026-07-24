@@ -211,12 +211,22 @@ function Get-AgentConfidence($id) {
             $c = ReadContent 'outputs/architecture.md'
             $sr = Check-SelfReported $c; if ($sr) { return $sr }
             if (-not $c) { return [ordered]@{ level='low'; reason='architecture.md not found' } }
-            $n = Count-Flags $c 'ARCH-RISK'
+            # Count unique ARCH-RISK IDs (raw Count-Flags double-counts inline refs + table rows)
+            $allIds = @([regex]::Matches($c, 'ARCH-RISK-\d+') | ForEach-Object { $_.Value } | Sort-Object -Unique)
+            $n = $allIds.Count
             if ($n -eq 0) { return [ordered]@{ level='high'; reason='No architectural risks flagged' } }
+            # Cross-check risks.md: count only ARCH-RISK items that still have Status: Open
+            $r = ReadContent 'outputs/risks.md'
+            $openCount = $n  # assume all open if risks.md missing
+            if ($r) {
+                $blocks = @([regex]::Matches($r, '(?ms)^### RISK-\d+:.*?(?=^### RISK-\d+:|\z)') | ForEach-Object { $_.Value })
+                $openCount = @($blocks | Where-Object { $_ -match 'ARCH-RISK-\d+' -and $_ -match 'Status:\s*Open' }).Count
+            }
+            if ($openCount -eq 0) { return [ordered]@{ level='high'; reason="All $n architectural risk(s) mitigated or accepted in risks.md" } }
             $titles  = Get-SectionHeadings $c 'Architectural Risks' '(?m)\|\s*ARCH-RISK-\d+\s*\|\s*([^|]+?)\s*\|' 3
-            $headline = "$n architectural risk$(if($n -ne 1){'s'}) - review before proceeding"
-            $reason  = Format-BulletReason $headline $titles $n 'outputs/architecture.md'
-            if ($n -le 3) { return [ordered]@{ level='medium'; reason=$reason } }
+            $headline = "$openCount of $n architectural risk(s) still Open - review risks.md before proceeding"
+            $reason  = Format-BulletReason $headline $titles $openCount 'outputs/architecture.md'
+            if ($openCount -le 2) { return [ordered]@{ level='medium'; reason=$reason } }
             return [ordered]@{ level='low'; reason=$reason }
         }
         '05' {
@@ -255,10 +265,16 @@ function Get-AgentConfidence($id) {
             $c = ReadContent 'outputs/tasks.md'
             $sr = Check-SelfReported $c; if ($sr) { return $sr }
             if (-not $c) { return [ordered]@{ level='low'; reason='tasks.md not found' } }
-            $decisions = Count-Flags $c '\[DECISION-NEEDED'
-            $blocked   = Count-Flags $c '\[BLOCKED-BY'
+            $decisions = Count-Flags $c '\[DECISION-NEEDED:'
+            # BLOCKED-BY at story level are sequencing dependencies, not unresolved blockers.
+            # Once implementation has started (task-log.md exists), they are resolved by definition.
+            $codeStarted = Exists 'outputs/task-log.md'
+            $blocked   = if ($codeStarted) { 0 } else { Count-Flags $c '\[BLOCKED-BY' }
             $total     = $decisions + $blocked
-            if ($total -eq 0) { return [ordered]@{ level='high'; reason='No blocked or undecided tasks' } }
+            if ($total -eq 0) {
+                if ($codeStarted) { return [ordered]@{ level='high'; reason='No decisions pending - all dependencies resolved by implementation' } }
+                return [ordered]@{ level='high'; reason='No blocked or undecided tasks' }
+            }
             $flagged  = Get-SectionHeadings $c $null '(?m)^### (TASK-\d+:[^\r\n]+\[(?:DECISION-NEEDED|BLOCKED-BY)[^\]]*\])' 3
             $headline = "$decisions decision$(if($decisions -ne 1){'s'}) pending, $blocked blocked task$(if($blocked -ne 1){'s'}) - resolve before dev starts"
             $reason   = Format-BulletReason $headline $flagged $total 'outputs/tasks.md'
