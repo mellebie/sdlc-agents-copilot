@@ -61,10 +61,12 @@ public class CoolTextApiClient : ICoolTextApiClient
         }
 
         var errorBody = await response.Content.ReadAsStringAsync(ct);
+        // Truncate error body — may contain PII from gateway response
+        var safeError = errorBody.Length > 200 ? errorBody[..200] + "…" : errorBody;
         _logger.LogWarning(
             "Cool Text API returned {StatusCode} for account {AccountNumber}: {ErrorBody}",
-            (int)response.StatusCode, fromAccountNumber, errorBody);
-        return new CoolTextSendResult(false, null, $"HTTP {(int)response.StatusCode}: {errorBody}");
+            (int)response.StatusCode, fromAccountNumber, safeError);
+        return new CoolTextSendResult(false, null, $"HTTP {(int)response.StatusCode}: {safeError}");
     }
 
     private sealed record CoolTextApiResponse(

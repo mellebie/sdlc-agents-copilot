@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TCPA.Core.Data;
 using TCPA.Core.Interfaces;
@@ -28,7 +29,7 @@ public class ConfirmationDispatchService : IConfirmationDispatchService
     private readonly ILogger<ConfirmationDispatchService> _logger;
 
     public ConfirmationDispatchService(
-        TcpaDbContext ctx,
+        [FromKeyedServices("primary")] TcpaDbContext ctx,
         ISystemConfigRepository configRepo,
         ICoolTextApiClient coolTextClient,
         IAuditLogRepository auditRepo,

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TCPA.Core.Data;
 using TCPA.Core.Interfaces;
@@ -32,7 +33,7 @@ public class OutboundSendService : IOutboundSendService
 
     /// <summary>Initializes a new instance of <see cref="OutboundSendService"/>.</summary>
     public OutboundSendService(
-        TcpaDbContext ctx,
+        [FromKeyedServices("primary")] TcpaDbContext ctx,
         ICoolTextApiClient coolTextClient,
         IAuditLogRepository auditRepo,
         IPhoneNumberHasher hasher,
