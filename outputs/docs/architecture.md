@@ -16,6 +16,13 @@
 - Intake API (`src/IntakeApi`)
 - Intent Classifier (`src/IntentClassifier`)
 - Consent Service models/services embedded into API flow (`src/ConsentService`)
+- Pipeline eval orchestration (`scripts/Invoke-PipelineEval.ps1` and `scripts/Invoke-PipelineEval-AutoGate.ps1`)
+
+## Pipeline Eval Orchestration (Implemented)
+1. Artifact-level deterministic validation runs for required sections and blocker flags.
+2. Stage-aware rubric file matching is resolved from `.github/eval-rubrics/`.
+3. Matched rubrics are executed automatically and results are embedded into eval artifacts.
+4. Rubric verdicts are advisory by default and become gate-enforced only with `-EnforceRubricGate`.
 
 ## Implemented Request Flow
 1. Inbound request enters `POST /api/v1/inbound/messages`.

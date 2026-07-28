@@ -206,9 +206,11 @@ These apply to every agent in the pipeline:
 ## Operational Guardrails
 
 - Run `.\scripts\Validate-PipelineInputs.ps1` before feeding new BRD/PRD content into Copilot.
-- Run `.\scripts\Invoke-PipelineEval.ps1` after the analysis artifacts are updated to write `outputs/eval-summary.md` and the timestamped eval report.
+- Run `\.\scripts\Invoke-PipelineEval.ps1` after the analysis artifacts are updated to write `outputs/eval-summary.md` and the timestamped eval report.
+- Pipeline eval now auto-selects rubric files from `.github/eval-rubrics/` by stage and records rubric confidence/verdict per artifact in eval outputs.
+- Use `-EnforceRubricGate` only when you want rubric verdict failures to hard-fail the overall gate.
 - After Checkpoint 3 approval, run `.\scripts\Invoke-PipelineEval.ps1 -EnforcePostCheckpoint3` so missing delivery artifacts (Steps 08-13) are treated as `FAIL` rather than `MISSING`.
-- Prefer `.\scripts\Invoke-PipelineEval-AutoGate.ps1` for normal operation. It auto-detects Checkpoint 3 approval from `outputs/pipeline-manifest.json` (with phrase fallback) and enables strict mode automatically.
+- Prefer `\.\scripts\Invoke-PipelineEval-AutoGate.ps1` for normal operation. It auto-detects Checkpoint 3 approval from `outputs/pipeline-manifest.json` (with phrase fallback), enables strict mode automatically, and runs rubric orchestration by default.
 - Run `.\scripts\Write-PipelineManifest.ps1` to refresh `outputs/pipeline-manifest.json` from the template and current repo state.
 - Maintain `context/` as a controlled standards source; keep files concise, current, and explicitly referenced by delivery prompts.
 - When context files are updated, re-run delivery eval (`.\scripts\Invoke-PipelineEval-AutoGate.ps1`) to ensure standards evidence remains present in artifacts.

@@ -28,6 +28,8 @@ All notable changes for this pipeline run are documented in this file.
 ### Changed
 - Introduced API request gate requiring `X-Service-Auth` header.
 - Updated consent transition failure behavior to return failed state plus alert publication path.
+- Updated pipeline eval automation to orchestrate stage-to-rubric auto-selection and rubric execution by default.
+- Added optional rubric-gate enforcement switch (`-EnforceRubricGate`) for strict rubric-driven failures.
 
 ### Fixed
 - Stabilized tests for new auth gate by adding required request headers in integration/contract tests.

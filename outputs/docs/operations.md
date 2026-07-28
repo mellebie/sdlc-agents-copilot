@@ -33,6 +33,14 @@ No required environment variables are currently enforced by code paths in this r
 ## Pipeline Validation
 - Strict eval:
   - `./scripts/Invoke-PipelineEval-AutoGate.ps1`
+- Explicit strict eval plus rubric-gate enforcement:
+  - `./scripts/Invoke-PipelineEval-AutoGate.ps1 -EnforceRubricGate`
+
+### Eval Orchestration Behavior
+- Stage outputs are evaluated with deterministic checks (required sections and blocker flags).
+- When matching files exist in `.github/eval-rubrics/`, rubric scoring is auto-selected and executed per stage.
+- Rubric confidence and verdict entries are written to `outputs/eval-summary.md` and timestamped eval reports.
+- Rubric verdict failures are non-blocking unless `-EnforceRubricGate` is passed.
 
 ## Known Failure Modes
 - Missing `X-Service-Auth` returns `401 UNAUTHORIZED`.

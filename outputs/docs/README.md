@@ -17,6 +17,8 @@ This documentation set reflects implemented behavior in the current codebase and
      - `dotnet test sldc-agents-copilot.sln`
 3. Run strict pipeline eval:
      - `./scripts/Invoke-PipelineEval-AutoGate.ps1`
+     - This run includes automatic stage-to-rubric selection and rubric scoring where rubric files exist.
+     - Add `-EnforceRubricGate` only when rubric failures should fail the overall pipeline gate.
 4. Run the API locally (from `src/IntakeApi`):
      - `dotnet run`
 5. Call endpoints with required headers:
@@ -32,6 +34,11 @@ This documentation set reflects implemented behavior in the current codebase and
 ## Pipeline Flow Diagrams
 - Detailed engineering view: `outputs/docs/pipeline-flow.mmd`
 - Executive storyboard view: `outputs/docs/pipeline-flow-executive.mmd`
+
+## Eval Orchestration Notes
+- `scripts/Invoke-PipelineEval.ps1` performs deterministic checks plus automatic rubric orchestration.
+- Rubric results are written into `outputs/eval-summary.md` and timestamped `outputs/eval-report-*.md` artifacts.
+- Rubric gating is advisory by default and can be enforced explicitly with `-EnforceRubricGate`.
 
 ## Implemented Endpoint Count
 - 3 endpoints documented
