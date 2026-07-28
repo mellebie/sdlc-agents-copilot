@@ -8,6 +8,11 @@
 
 # API Documentation
 
+## Pipeline Context
+- For stage, checkpoint, and control flow context behind these endpoints, see:
+  - `outputs/docs/pipeline-flow.mmd`
+  - `outputs/docs/pipeline-flow-executive.mmd`
+
 ## Authentication
 All API endpoints currently require a non-empty `X-Service-Auth` header.
 

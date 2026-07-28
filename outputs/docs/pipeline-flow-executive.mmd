@@ -1,0 +1,41 @@
+flowchart LR
+    A[Input Preparation
+00A and 00] --> B[Analysis and Design
+01 to 07]
+    B --> C{Checkpoint 3
+Approved}
+    C -->|Yes| D[Build and Test
+08, 09, 09b, 09c]
+    C -->|No| B
+
+    D --> E[Quality Review
+10 and 11]
+    E --> F{Checkpoint 4
+Approved}
+    F -->|Yes| G[Documentation and PR
+12 and 13]
+    F -->|No| E
+
+    G --> H[Human Review and Approval]
+
+    subgraph Controls[Guardrails and Controls]
+        C1[No auto-merge]
+        C2[Traceability required]
+        C3[Strict gate after Checkpoint 3]
+        C4[Resolve blockers before Checkpoint 4]
+        C5[Sensitive file exclusions]
+    end
+
+    C1 -.applies throughout.-> A
+    C2 -.applies throughout.-> H
+    C3 -.enforced across delivery.-> D
+    C4 -.enforced at review gate.-> E
+    C5 -.applies throughout.-> G
+
+    classDef gate fill:#ffe8a3,stroke:#8a6d00,stroke-width:2px,color:#2b2b2b;
+    classDef stage fill:#d9ecff,stroke:#1f4f8b,stroke-width:1.5px,color:#1a1a1a;
+    classDef control fill:#e8f8e8,stroke:#1f7a1f,stroke-width:1.5px,color:#1a1a1a;
+
+    class C,F gate;
+    class A,B,D,E,G,H stage;
+    class C1,C2,C3,C4,C5 control;

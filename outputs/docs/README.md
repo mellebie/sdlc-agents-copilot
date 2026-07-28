@@ -29,6 +29,10 @@ This documentation set reflects implemented behavior in the current codebase and
 - `outputs/docs/operations.md` — operational commands, failure modes, and runtime controls
 - `outputs/docs/CHANGELOG.md` — this run's delivery changes (Added/Changed/Fixed/Security)
 
+## Pipeline Flow Diagrams
+- Detailed engineering view: `outputs/docs/pipeline-flow.mmd`
+- Executive storyboard view: `outputs/docs/pipeline-flow-executive.mmd`
+
 ## Implemented Endpoint Count
 - 3 endpoints documented
   - `POST /api/v1/inbound/messages`

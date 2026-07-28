@@ -8,6 +8,10 @@
 
 # Runtime Architecture (Implemented)
 
+## Pipeline Visualization
+- Detailed SDLC pipeline flow (all agents, controls, checkpoints): `outputs/docs/pipeline-flow.mmd`
+- Executive SDLC flow summary: `outputs/docs/pipeline-flow-executive.mmd`
+
 ## Implemented Components
 - Intake API (`src/IntakeApi`)
 - Intent Classifier (`src/IntentClassifier`)

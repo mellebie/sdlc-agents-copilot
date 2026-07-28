@@ -38,6 +38,10 @@ This PR delivers TCPA compliance pipeline implementation through Story 007, incl
 | Tests | `tests/IntakeApi.Tests/**/*`, `tests/functional/**/*`, `tests/TCPA-Test-Cases.csv`, `tests/TCPA-Test-Plan.xlsx` |
 | Delivery artifacts | `outputs/task-log.md`, `outputs/review-findings.md`, `outputs/security-findings.md`, `outputs/docs/*`, `outputs/pipeline-manifest.json` |
 
+## Pipeline Visuals Included
+- Detailed SDLC pipeline diagram: `outputs/docs/pipeline-flow.mmd`
+- Executive SDLC pipeline diagram: `outputs/docs/pipeline-flow-executive.mmd`
+
 ## Why These Changes
 - PRD traceability:
      - REQ/SPEC coverage through implemented stories STORY-001 to STORY-007.

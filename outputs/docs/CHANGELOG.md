@@ -21,6 +21,9 @@ All notable changes for this pipeline run are documented in this file.
 - Re-opt-in API (`POST /api/v1/consent/reoptin`) with authorization and replay checks.
 - Functional test assets under `tests/functional/`.
 - Traceable test plan outputs: `tests/TCPA-Test-Cases.csv`, `tests/TCPA-Test-Plan.xlsx`.
+- Mermaid SDLC pipeline visualizations:
+     - `outputs/docs/pipeline-flow.mmd` (detailed engineering view)
+     - `outputs/docs/pipeline-flow-executive.mmd` (executive summary view)
 
 ### Changed
 - Introduced API request gate requiring `X-Service-Auth` header.

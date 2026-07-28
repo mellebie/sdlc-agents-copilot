@@ -8,6 +8,10 @@
 
 # Operations Guide
 
+## Pipeline Visualization References
+- Detailed flow with all agent gates/controls: `outputs/docs/pipeline-flow.mmd`
+- Executive flow summary for operational briefings: `outputs/docs/pipeline-flow-executive.mmd`
+
 ## Runtime Requirements
 - .NET 8 SDK
 - PowerShell (for pipeline scripts)

@@ -272,6 +272,8 @@
   - `outputs/docs/architecture.md`
   - `outputs/docs/operations.md`
   - `outputs/docs/CHANGELOG.md`
+  - `outputs/docs/pipeline-flow.mmd`
+  - `outputs/docs/pipeline-flow-executive.mmd`
 - Endpoints documented: 3
 - Spec/code divergences found:
   - SPEC-006 not implemented in this run
