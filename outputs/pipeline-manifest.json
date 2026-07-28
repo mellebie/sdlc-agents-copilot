@@ -9,7 +9,7 @@
                 "initiated_by":  "mark.ellebie",
                 "project":  "sdlc-agents-copilot",
                 "branch":  "main",
-                "pr_number":  null
+                "pr_number":  1
             },
     "pipeline":  {
                      "version":  "1.0",
