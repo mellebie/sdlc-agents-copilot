@@ -24,6 +24,8 @@ Approved}
         C3[Strict gate after Checkpoint 3]
         C4[Resolve blockers before Checkpoint 4]
         C5[Sensitive file exclusions]
+        C6[Auto rubric eval: stage to rubric selection and scoring in pipeline eval]
+        C7[Rubric gate is optional and only enforced when explicitly enabled]
     end
 
     C1 -.applies throughout.-> A
@@ -31,6 +33,8 @@ Approved}
     C3 -.enforced across delivery.-> D
     C4 -.enforced at review gate.-> E
     C5 -.applies throughout.-> G
+    C6 -.captured in eval summary and reports.-> E
+    C7 -.does not block by default.-> H
 
     classDef gate fill:#ffe8a3,stroke:#8a6d00,stroke-width:2px,color:#2b2b2b;
     classDef stage fill:#d9ecff,stroke:#1f4f8b,stroke-width:1.5px,color:#1a1a1a;
@@ -38,4 +42,4 @@ Approved}
 
     class C,F gate;
     class A,B,D,E,G,H stage;
-    class C1,C2,C3,C4,C5 control;
+    class C1,C2,C3,C4,C5,C6,C7 control;

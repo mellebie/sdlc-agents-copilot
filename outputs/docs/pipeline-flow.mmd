@@ -53,6 +53,10 @@ flowchart TB
 
     subgraph Quality_Gates[Quality Gates and Evidence Controls]
         Q1[Invoke Pipeline Eval]
+        Q1A[Deterministic checks: required sections and blocker flags]
+        Q1B[Auto rubric orchestration: stage to rubric selection and scoring]
+        Q1C[Rubric verdicts written to eval summary and report artifacts]
+        Q1D[Optional rubric gate enforcement when explicitly enabled]
         Q2[AutoGate strict mode after Checkpoint 3]
         Q3[Outputs required for stages 10-13]
         Q4[Task log evidence with context standards and divergences]
@@ -67,6 +71,10 @@ flowchart TB
     D10 --> Q3
     D11 --> Q3
     C3 --> Q2
+    Q1 --> Q1A
+    Q1 --> Q1B
+    Q1B --> Q1C
+    Q1C --> Q1D
     D12 --> Q4
     D13 --> Q5
     D13 --> Q6
@@ -85,5 +93,5 @@ flowchart TB
 
     class C0,C1,C2,C3,C4 checkpoint;
     class S00A,S00,S01,S02,S03,S04,S05,S06,S07,D08,D09,D09B,D09C,D10,D11,D12,D13 stage;
-    class Q1,Q2,Q3,Q4,Q5,Q6,GR1,GR2,GR3,GR4,GR5,GR6,GR7 control;
+    class Q1,Q1A,Q1B,Q1C,Q1D,Q2,Q3,Q4,Q5,Q6,GR1,GR2,GR3,GR4,GR5,GR6,GR7 control;
     class H0,H1,H2,H3,RH4,HR human;
