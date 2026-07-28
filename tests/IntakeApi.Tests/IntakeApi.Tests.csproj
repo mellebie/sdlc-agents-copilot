@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\IntakeApi\IntakeApi.csproj" />
+    <ProjectReference Include="..\..\src\IntentClassifier\IntentClassifier.csproj" />
+    <ProjectReference Include="..\..\src\ConsentService\ConsentService.csproj" />
+  </ItemGroup>
+
+</Project>
