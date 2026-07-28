@@ -178,6 +178,15 @@ export default function DashboardPage() {
   const actionQueuePreview = awaitingActions.slice(0, 4);
   const remainingActionCount = Math.max(awaitingActions.length - actionQueuePreview.length, 0);
   const progressPercent = Math.round((data.stats.stepsCompleted / data.stats.stepsTotal) * 100);
+  const overallConfidencePercent = data.steps.length
+    ? Math.round(data.steps.reduce((sum, step) => sum + step.confidence.percent, 0) / data.steps.length)
+    : 0;
+  const overallConfidenceBand = confidenceBandFromPercent(overallConfidencePercent);
+  const highConfidenceStages = data.steps.filter((step) => step.confidence.band === 'High').length;
+  const mediumConfidenceStages = data.steps.filter((step) => step.confidence.band === 'Medium').length;
+  const lowConfidenceStages = data.steps.filter((step) => step.confidence.band === 'Low').length;
+  const lowestConfidenceStep = [...data.steps].sort((left, right) => left.confidence.percent - right.confidence.percent)[0] ?? null;
+  const confidenceAttentionCount = data.evalSummary.failCount + data.governance.openCount + lowConfidenceStages;
   const confidenceScoringHelp = [
     'Confidence scoring (starts at 100):',
     'warn status: -20',
@@ -428,38 +437,68 @@ export default function DashboardPage() {
               </div>
             </section>
 
-            <div className="hero-card accent pipeline-state-card">
-              <span className="meta-label">Pipeline state</span>
-              <strong>{data.project.overallStatus.replace('_', ' ')}</strong>
-              <span className="meta-sub">Phase: {data.project.phase}</span>
-              {nextAction ? (
-                <>
-                  <span className="meta-sub">
-                    Next action: Step {nextAction.step} - {nextAction.name}
-                  </span>
-                  <span className="meta-sub">
-                    Next agent: {nextAction.agent} ({nextAction.agentRan ? toneLabel(nextAction.status).toLowerCase() : 'not run'})
-                  </span>
-                  <span className="meta-sub">Prompt: {nextAction.promptFile.split('/').pop()}</span>
-                </>
-              ) : (
-                <span className="meta-sub">All steps complete for this run.</span>
-              )}
-              {actionQueuePreview.length ? (
-                <div className="state-action-queue">
-                  <span className="meta-label">Awaiting action</span>
-                  <ul>
-                    {actionQueuePreview.map((step) => (
-                      <li key={`state-${step.step}`}>
-                        Step {step.step} - {step.name} · {step.agent} · {step.agentRan ? toneLabel(step.status) : 'Not run'}
-                      </li>
-                    ))}
-                  </ul>
-                  {remainingActionCount > 0 ? (
-                    <span className="meta-sub">+{remainingActionCount} more step(s) awaiting action</span>
-                  ) : null}
+            <div className="hero-side-column">
+              <div className="hero-card accent pipeline-state-card">
+                <span className="meta-label">Pipeline state</span>
+                <strong>{data.project.overallStatus.replace('_', ' ')}</strong>
+                <span className="meta-sub">Phase: {data.project.phase}</span>
+                {nextAction ? (
+                  <>
+                    <span className="meta-sub">
+                      Next action: Step {nextAction.step} - {nextAction.name}
+                    </span>
+                    <span className="meta-sub">
+                      Next agent: {nextAction.agent} ({nextAction.agentRan ? toneLabel(nextAction.status).toLowerCase() : 'not run'})
+                    </span>
+                    <span className="meta-sub">Prompt: {nextAction.promptFile.split('/').pop()}</span>
+                  </>
+                ) : (
+                  <span className="meta-sub">All steps complete for this run.</span>
+                )}
+                {actionQueuePreview.length ? (
+                  <div className="state-action-queue">
+                    <span className="meta-label">Awaiting action</span>
+                    <ul>
+                      {actionQueuePreview.map((step) => (
+                        <li key={`state-${step.step}`}>
+                          Step {step.step} - {step.name} · {step.agent} · {step.agentRan ? toneLabel(step.status) : 'Not run'}
+                        </li>
+                      ))}
+                    </ul>
+                    {remainingActionCount > 0 ? (
+                      <span className="meta-sub">+{remainingActionCount} more step(s) awaiting action</span>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+
+              <article className="hero-card confidence-summary-card">
+                <span className="meta-label">Confidence</span>
+                <strong>{overallConfidencePercent}% ({overallConfidenceBand})</strong>
+                <span className="meta-sub">Pipeline confidence across all stages</span>
+                <div className="confidence-summary-grid">
+                  <div className="confidence-chip done">
+                    <span>High</span>
+                    <strong>{highConfidenceStages}</strong>
+                  </div>
+                  <div className="confidence-chip warn">
+                    <span>Medium</span>
+                    <strong>{mediumConfidenceStages}</strong>
+                  </div>
+                  <div className="confidence-chip pend">
+                    <span>Low</span>
+                    <strong>{lowConfidenceStages}</strong>
+                  </div>
                 </div>
-              ) : null}
+                {lowestConfidenceStep ? (
+                  <span className="meta-sub confidence-detail">
+                    Lowest stage confidence: Step {lowestConfidenceStep.step} ({lowestConfidenceStep.confidence.percent}%).
+                  </span>
+                ) : null}
+                <span className="meta-sub confidence-detail">
+                  Attention indicators: {confidenceAttentionCount} (eval fails + open governance + low-confidence stages).
+                </span>
+              </article>
             </div>
           </div>
         </section>

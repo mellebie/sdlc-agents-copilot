@@ -154,6 +154,61 @@ a {
   height: fit-content;
 }
 
+.hero-side-column {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.confidence-summary-card {
+  width: 100%;
+  height: fit-content;
+}
+
+.confidence-summary-grid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.confidence-chip {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(10, 18, 32, 0.72);
+  padding: 10px;
+  display: grid;
+  gap: 2px;
+}
+
+.confidence-chip span {
+  color: var(--muted-2);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.confidence-chip strong {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.confidence-chip.done {
+  border-color: rgba(86, 211, 100, 0.26);
+}
+
+.confidence-chip.warn {
+  border-color: rgba(244, 185, 66, 0.26);
+}
+
+.confidence-chip.pend {
+  border-color: rgba(148, 163, 184, 0.24);
+}
+
+.confidence-detail {
+  margin-top: 8px;
+}
+
 .roi-head h2 {
   margin: 2px 0 8px;
   font-size: 1.2rem;
