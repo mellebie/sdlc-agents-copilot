@@ -427,15 +427,21 @@ function countMarkdownMatches(content: string, pattern: RegExp): number {
 function parseEvalSummary(): PipelineSnapshot['evalSummary'] {
   const content = readText('outputs/eval-summary.md');
   const normalized = content.replace(/\r\n/g, '\n');
+  const readSummaryField = (label: string, fallback: string = 'UNKNOWN'): string => {
+    const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const standardPattern = new RegExp(`\\*\\*${escaped}:\\*\\*\\s*([^\\n]+)`, 'i');
+    const legacyPattern = new RegExp(`\\*\\*${escaped}:\\s*([^\\n]+?)\\*\\*`, 'i');
+    return (normalized.match(standardPattern) ?? normalized.match(legacyPattern) ?? [])[1]?.trim() ?? fallback;
+  };
   const passCount = Number((normalized.match(/\|\s*PASS\s*\|\s*(\d+)\s*\|/i) ?? [])[1] ?? 0);
   const conditionalCount = Number((normalized.match(/\|\s*CONDITIONAL\s*\|\s*(\d+)\s*\|/i) ?? [])[1] ?? 0);
   const failCount = Number((normalized.match(/\|\s*FAIL\s*\|\s*(\d+)\s*\|/i) ?? [])[1] ?? 0);
   const missingCount = Number((normalized.match(/\|\s*MISSING\s*\|\s*(\d+)\s*\|/i) ?? [])[1] ?? 0);
   const overallGate = (normalized.match(/\*\*Overall pipeline gate:\s*([A-Z]+)\*\*/i) ?? [])[1] ?? 'UNKNOWN';
-  const scope = (normalized.match(/\*\*Evaluation scope:\s*([^\n]+)\*\*/i) ?? [])[1]?.trim() ?? 'Unknown';
-  const strictMode = (normalized.match(/\*\*Post-Checkpoint-3 strict mode:\s*([^\n]+)\*\*/i) ?? [])[1]?.trim() ?? 'UNKNOWN';
-  const rubricAutoEval = (normalized.match(/\*\*Rubric auto-eval:\s*([^\n]+)\*\*/i) ?? [])[1]?.trim() ?? 'UNKNOWN';
-  const rubricGateEnforcementRaw = (normalized.match(/\*\*Rubric gate enforcement:\s*([^\n]+)\*\*/i) ?? [])[1]?.trim() ?? '';
+  const scope = readSummaryField('Evaluation scope', 'Unknown');
+  const strictMode = readSummaryField('Post-Checkpoint-3 strict mode');
+  let rubricAutoEval = readSummaryField('Rubric auto-eval');
+  const rubricGateEnforcementRaw = readSummaryField('Rubric gate enforcement', '');
   let rubricGateMode: PipelineSnapshot['evalSummary']['rubricGateMode'] = 'UNKNOWN';
   if (/enabled|enforced/i.test(rubricGateEnforcementRaw)) {
     rubricGateMode = 'ENFORCED';
@@ -472,6 +478,11 @@ function parseEvalSummary(): PipelineSnapshot['evalSummary'] {
         rubricCounts.fail = count;
       }
     }
+  }
+
+  // Backfill rubric status when older summaries omit explicit header lines.
+  if (rubricAutoEval.toUpperCase() === 'UNKNOWN' && rubricCounts.executed > 0) {
+    rubricAutoEval = 'ENABLED';
   }
 
   const artifacts: EvalArtifact[] = [];

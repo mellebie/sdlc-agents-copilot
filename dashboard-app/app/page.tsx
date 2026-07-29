@@ -109,7 +109,7 @@ function rubricSummaryTone(summary: PipelineSnapshot['evalSummary']): 'done' | '
 
 function rubricLabel(artifact: PipelineSnapshot['evalSummary']['artifacts'][number]): string {
   if (artifact.rubric.status === 'NOT_CONFIGURED') {
-    return 'not configured';
+    return 'no rubric defined';
   }
 
   if (artifact.rubric.status === 'NOT_EXECUTED') {
@@ -122,6 +122,18 @@ function rubricLabel(artifact: PipelineSnapshot['evalSummary']['artifacts'][numb
   }
 
   return `${verdict} (${artifact.rubric.confidencePercent}%)`;
+}
+
+function rubricGateModeTooltip(mode: PipelineSnapshot['evalSummary']['rubricGateMode']): string {
+  if (mode === 'ADVISORY') {
+    return 'Advisory means rubric scores are informational only. Deterministic quality gates still control pass/fail unless rubric enforcement is explicitly enabled.';
+  }
+
+  if (mode === 'ENFORCED') {
+    return 'Enforced means rubric verdicts can affect overall gate decisions in addition to deterministic checks.';
+  }
+
+  return 'Unknown means rubric enforcement intent was not explicitly found in the eval summary.';
 }
 
 function artifactIssueSummary(artifact: PipelineSnapshot['evalSummary']['artifacts'][number]): string[] {
@@ -370,6 +382,12 @@ export default function DashboardPage() {
                 title="Strict gating enabled: DRAFT stays warning, no downstream auto-approval, and checkpoints pass only when required stages are complete."
               >
                 Strict Gating
+              </div>
+              <div
+                className="copilot-badge"
+                title="This dashboard and orchestration flow are implemented and continuously updated with GitHub Copilot assistance."
+              >
+                GitHub Copilot Driven
               </div>
             </div>
             <h1>{data.project.name}</h1>
@@ -624,9 +642,15 @@ export default function DashboardPage() {
                 </p>
                 <p className="rubric-mode">
                   Rubric gate mode:{' '}
-                  <span className={`pill ${data.evalSummary.rubricGateMode === 'ENFORCED' ? 'err' : data.evalSummary.rubricGateMode === 'ADVISORY' ? 'warn' : 'pend'}`}>
+                  <span
+                    className={`pill ${data.evalSummary.rubricGateMode === 'ENFORCED' ? 'err' : data.evalSummary.rubricGateMode === 'ADVISORY' ? 'warn' : 'pend'}`}
+                    title={rubricGateModeTooltip(data.evalSummary.rubricGateMode)}
+                  >
                     {data.evalSummary.rubricGateMode}
                   </span>
+                </p>
+                <p className="rubric-note">
+                  Steps labeled "no rubric defined" still pass or fail deterministic quality checks; rubric scoring is just not applied to those steps.
                 </p>
               </div>
             </div>
