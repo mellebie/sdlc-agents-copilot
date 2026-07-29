@@ -1,3 +1,13 @@
+﻿<!-- MODEL ATTESTATION START -->
+> **Model Attestation**
+> **Step:** 13
+> **Prompt:** .github/prompts/13-pr-assembler.prompt.md
+> **Model ID:** gpt-5.3-codex
+> **Model Vendor:** OpenAI
+> **Model Name:** GPT-5.3-Codex
+> **Captured:** 2026-07-29 08:41:56
+<!-- MODEL ATTESTATION END -->
+
 <!-- SDLC Pipeline Artifact
      Stage: 13-pr-assembler
      Source PRD: inputs/prd.md
@@ -115,3 +125,4 @@ This PR delivers TCPA compliance pipeline implementation through Story 007, incl
 > This pull request description was produced by an AI pipeline (GitHub Copilot Chat, Agent Mode) with human checkpoint review.  
 > Pipeline version: 1.0 | Prompt version: 1.0  
 > Accountable reviewer: _[to be named at checkpoint approval]_ | Review date: _[to be filled at approval]_
+

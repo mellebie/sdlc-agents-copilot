@@ -1,3 +1,13 @@
+﻿<!-- MODEL ATTESTATION START -->
+> **Model Attestation**
+> **Step:** 11
+> **Prompt:** .github/prompts/11-security-agent.prompt.md
+> **Model ID:** gpt-5.3-codex
+> **Model Vendor:** OpenAI
+> **Model Name:** GPT-5.3-Codex
+> **Captured:** 2026-07-29 08:41:55
+<!-- MODEL ATTESTATION END -->
+
 <!-- SDLC Pipeline Artifact
      Stage: 11-security-agent
      Source PRD: inputs/prd.md
@@ -81,3 +91,4 @@
 > This document was produced by an AI pipeline (GitHub Copilot Chat, Agent Mode) with human checkpoint review.  
 > Pipeline version: 1.0 | Prompt version: 1.0  
 > Accountable reviewer: _x2melleb_ | Review date: _072826_
+

@@ -84,6 +84,12 @@ export interface PipelineSnapshot {
     pickup: string;
     branch: string;
     overallStatus: string;
+    model: {
+      id: string;
+      vendor: string;
+      displayName: string;
+      capturedAt: string;
+    };
   };
   stats: {
     stepsCompleted: number;
@@ -173,6 +179,12 @@ interface ManifestStep {
 interface Manifest {
   run?: {
     branch?: string;
+    model?: {
+      id?: string;
+      vendor?: string;
+      display_name?: string;
+      captured_at?: string;
+    };
   };
   summary?: {
     overall_status?: string;
@@ -1295,7 +1307,13 @@ export function loadDashboardSnapshot(): PipelineSnapshot {
       nextPromptFile: nextStep?.promptFile ?? 'N/A',
       pickup,
       branch: manifest.run?.branch ?? 'main',
-      overallStatus: manifest.summary?.overall_status ?? 'in_progress'
+      overallStatus: manifest.summary?.overall_status ?? 'in_progress',
+      model: {
+        id: manifest.run?.model?.id ?? 'unknown',
+        vendor: manifest.run?.model?.vendor ?? 'unknown',
+        displayName: manifest.run?.model?.display_name ?? (manifest.run?.model?.id ?? 'unknown'),
+        capturedAt: manifest.run?.model?.captured_at ?? 'unknown'
+      }
     },
     stats: {
       stepsCompleted,

@@ -212,6 +212,8 @@ These apply to every agent in the pipeline:
 - After Checkpoint 3 approval, run `.\scripts\Invoke-PipelineEval.ps1 -EnforcePostCheckpoint3` so missing delivery artifacts (Steps 08-13) are treated as `FAIL` rather than `MISSING`.
 - Prefer `\.\scripts\Invoke-PipelineEval-AutoGate.ps1` for normal operation. It auto-detects Checkpoint 3 approval from `outputs/pipeline-manifest.json` (with phrase fallback), enables strict mode automatically, and runs rubric orchestration by default.
 - Run `.\scripts\Write-PipelineManifest.ps1` to refresh `outputs/pipeline-manifest.json` from the template and current repo state.
+- For model traceability, pass explicit model metadata when writing the manifest: `\.\scripts\Write-PipelineManifest.ps1 -ModelId "<model-id>" -ModelVendor "<vendor>" -ModelDisplayName "<display-name>"`.
+- `Write-PipelineManifest.ps1` stamps markdown output artifacts with a `Model Attestation` block so audits can trace step outputs to the captured model record.
 - Maintain `context/` as a controlled standards source; keep files concise, current, and explicitly referenced by delivery prompts.
 - When context files are updated, re-run delivery eval (`.\scripts\Invoke-PipelineEval-AutoGate.ps1`) to ensure standards evidence remains present in artifacts.
 - Keep prompt-file changes under the checkpoint process described in [decisions/pipeline-raci.md](decisions/pipeline-raci.md).

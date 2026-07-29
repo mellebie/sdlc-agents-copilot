@@ -460,6 +460,8 @@ export default function DashboardPage() {
                 <span className="meta-label">Pipeline state</span>
                 <strong>{data.project.overallStatus.replace('_', ' ')}</strong>
                 <span className="meta-sub">Phase: {data.project.phase}</span>
+                <span className="meta-sub">Model: {data.project.model.displayName} ({data.project.model.vendor})</span>
+                <span className="meta-sub">Model captured: {data.project.model.capturedAt}</span>
                 {nextAction ? (
                   <>
                     <span className="meta-sub">

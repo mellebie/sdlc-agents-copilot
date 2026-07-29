@@ -29,6 +29,16 @@ The dashboard surfaces both deterministic quality gates and rubric orchestration
 - rubric result totals (executed/pass/conditional/fail)
 - per-artifact rubric verdict and confidence when available
 
+## Model Attestation Visibility
+
+The dashboard reads run-level model metadata from `outputs/pipeline-manifest.json` (`run.model`) and shows it in the Pipeline state card.
+
+Use `./scripts/Write-PipelineManifest.ps1` with model parameters to capture this metadata and stamp markdown artifacts:
+
+- `-ModelId`
+- `-ModelVendor`
+- `-ModelDisplayName`
+
 ## Context Pack Relationship
 
 The dashboard does not read files under `context/` directly.
