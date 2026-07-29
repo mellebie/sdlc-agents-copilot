@@ -4,6 +4,8 @@ An end-to-end software delivery pipeline that transforms a Product Requirements 
 
 The pipeline is structured as a sequence of specialised agents. Each agent has a single responsibility, reads declared inputs, and writes a versioned output artifact that becomes the next agent's input. Human checkpoint gates separate analysis, design, and delivery phases.
 
+The repository also includes a reusable development context pack under `context/` that captures coding standards, testing standards, security standards, and approved examples for delivery agents.
+
 ---
 
 ## How It Works
@@ -12,7 +14,7 @@ The pipeline runs in two modes depending on the stage:
 
 | Mode | Stages | How to run |
 |------|--------|------------|
-| **Copilot Chat — Agent Mode** | Steps 0–7 (analysis & planning) | Open a prompt file from `.github/prompts/` in VS Code → Copilot Chat → Agent mode |
+| **Copilot Chat — Agent Mode** | Step 00A (pre-pipeline bootstrap) and Steps 0–7 (analysis & planning) | Open a prompt file from `.github/prompts/` in VS Code → Copilot Chat → Agent mode |
 | **Copilot Coding Agent** | Steps 8–13 (build & deliver) | Create a GitHub Issue using a template from `.github/ISSUE_TEMPLATE/` → assign to Copilot |
 
 Copilot loads `.github/copilot-instructions.md` automatically for every request in this repo — it carries all pipeline rules, checkpoint phrases, and the stage map.
@@ -33,21 +35,33 @@ Copilot loads `.github/copilot-instructions.md` automatically for every request 
 ## Quick Start
 
 ### Step 1 — Add your input document
-Place your PRD at `inputs/prd.md`. If you have a BRD instead, place it at `inputs/brd.md` and run Step 0 first.
+Place your PRD at `inputs/prd.md`. If you have a BRD instead, place the Word document in `inputs/` and run Step 00A first to generate `inputs/brd.md`, then run Step 0.
 
-### Step 2 — Run Step 1 in Copilot Chat
+### Step 1a — Validate inputs
+Run `\.\scripts\Validate-PipelineInputs.ps1` before Step 00A, Step 0, or Step 1. It checks pipeline inputs for common PII patterns and blocks forbidden file types from entering the pipeline.
+
+### Step 1b — Bootstrap BRD markdown when needed
+If `inputs/brd.md` is missing and a Word BRD exists in `inputs/`, open `.github/prompts/00a-brd-bootstrap.prompt.md` in Copilot Chat (Agent mode) and run the bootstrap step first. It creates `inputs/brd.md` for the main pipeline.
+
+### Step 2 — Run Step 0 in Copilot Chat
+1. In VS Code, open Copilot Chat (`Ctrl+Alt+I`)
+2. Switch to **Agent** mode
+3. Click the paperclip / attach prompt → select `.github/prompts/00-brd-to-prd.prompt.md`
+4. Send — Copilot reads `inputs/brd.md` and writes `inputs/prd.md`
+
+### Step 3 — Run Step 1 in Copilot Chat
 1. In VS Code, open Copilot Chat (`Ctrl+Alt+I`)
 2. Switch to **Agent** mode
 3. Click the paperclip / attach prompt → select `.github/prompts/01-prd-analyst.prompt.md`
 4. Send — Copilot reads `inputs/prd.md` and writes `outputs/requirements.md`
 
-### Step 3 — Review and checkpoint
+### Step 4 — Review and checkpoint
 Review the output artifact. Answer any [AMBIGUOUS] or blocking questions before continuing to the next step. Human checkpoints are hard stops — do not skip them.
 
-### Step 4 — Continue through Steps 2–7
+### Step 5 — Continue through Steps 2–7
 Repeat the pattern: open the next prompt file, run in agent mode, review the output.
 
-### Step 5 — Steps 8–13 via Copilot Coding Agent
+### Step 6 — Steps 8–13 via Copilot Coding Agent
 1. On GitHub.com, go to **Issues → New Issue**
 2. Select the SDLC template for the step you're running (e.g. `SDLC Step 08 — Code Generator`)
 3. Tick all pre-condition checkboxes to confirm inputs exist
@@ -60,6 +74,7 @@ Repeat the pattern: open the next prompt file, run in agent mode, review the out
 
 | Step | Agent | Persona | Mode | Output |
 |------|-------|---------|------|--------|
+| 00A | BRD Bootstrap | Intake Preparation | Chat | `inputs/brd.md` |
 | 0 | BRD to PRD Bridge | Alex — The Translator | Chat | `inputs/prd.md` |
 | 1 | PRD Analyst | Sam — The Forensic Analyst | Chat | `outputs/requirements.md` |
 | 2 | Clarification | Jordan — The Interrogator | Chat | `outputs/clarifications.md` |
@@ -81,17 +96,59 @@ Repeat the pattern: open the next prompt file, run in agent mode, review the out
 | 12 | Documentation | Jamie — The Tech Writer | Coding Agent | `outputs/docs/` |
 | 13 | PR Assembler | Sage — The Delivery Lead | Coding Agent | `outputs/pr-description.md` + GitHub PR |
 
+## Pipeline Mermaid Diagrams
+
+- Detailed engineering flow (all agents, checkpoints, controls, and guardrails): `outputs/docs/pipeline-flow.mmd`
+- Executive summary flow (leadership/stakeholder view): `outputs/docs/pipeline-flow-executive.mmd`
+
+These diagram files can be previewed directly in VS Code with the Mermaid extension.
+
 ---
+
+## Development Context Pack (Steps 08-13)
+
+Use the context pack to improve consistency and reuse across delivery agents.
+
+- Location: `context/`
+- Standards: `context/standards/`
+- Reusable patterns: `context/patterns/`
+- Examples: `context/examples/`
+
+Important:
+- Because scope isolation is enforced, agents only read files explicitly declared in each stage prompt.
+- If you add a new context file, update the relevant `.github/prompts/*.prompt.md` Inputs section to include a `#file:` reference.
+
+### Context-to-Stage Mapping
+
+| Step | Prompt | Required context inputs |
+|------|--------|-------------------------|
+| 08 | `.github/prompts/08-code-generator.prompt.md` | `context/standards/coding-standards.md`, `context/standards/security-standards.md`, `context/patterns/error-handling-patterns.md` |
+| 09 | `.github/prompts/09-test-generator.prompt.md` | `context/standards/testing-standards.md`, `context/standards/security-standards.md`, `context/examples/test-case-style-example.md` |
+| 09b | `.github/prompts/09b-functional-tests.prompt.md` | `context/standards/testing-standards.md`, `context/standards/security-standards.md`, `context/examples/test-case-style-example.md` |
+| 09c | `.github/prompts/09c-test-plan.prompt.md` | `context/standards/testing-standards.md`, `context/standards/security-standards.md`, `context/examples/test-case-style-example.md` |
+| 10 | `.github/prompts/10-code-reviewer.prompt.md` | `context/standards/code-review-standards.md`, `context/standards/coding-standards.md`, `context/standards/testing-standards.md`, `context/standards/security-standards.md` |
+| 11 | `.github/prompts/11-security-agent.prompt.md` | `context/standards/security-standards.md`, `context/standards/coding-standards.md`, `context/standards/testing-standards.md` |
+| 12 | `.github/prompts/12-documentation.prompt.md` | `context/standards/documentation-standards.md`, `context/standards/security-standards.md` |
+| 13 | `.github/prompts/13-pr-assembler.prompt.md` | `context/standards/pr-standards.md`, `context/standards/documentation-standards.md` |
+
+Each delivery output must include standards traceability:
+- `Context Standards Applied`
+- `Context Divergences`
 
 ## Repository Structure
 
 ```
 .github/
   copilot-instructions.md     # Global rules — loaded by Copilot on every request
-  prompts/                    # 16 prompt files for Copilot Chat agent mode (Steps 0-7)
+  prompts/                    # 17 prompt files for Copilot Chat agent mode (Step 00A + Steps 0-7)
   ISSUE_TEMPLATE/             # 8 issue templates for Copilot Coding Agent (Steps 8-13)
 .vscode/
   mcp.json                    # MCP server config — GitHub + Azure DevOps
+context/
+  README.md                   # Context governance and usage rules
+  standards/                  # Shared coding, testing, security, docs, review, and PR standards
+  patterns/                   # Reusable implementation patterns
+  examples/                   # Approved example formats for delivery agents
 agents/                       # Agent instruction source files (00-13)
 scripts/
   Sync-Dashboard.ps1          # Syncs pipeline artifact state into the dashboard HTML
@@ -113,7 +170,8 @@ Checkpoints are hard stops. Confirm with the exact phrase to proceed:
 
 | Checkpoint | Confirm with |
 |------------|-------------|
-| After Step 0 (BRD inputs only) | `Checkpoint 0 approved` |
+| After Step 00A (BRD bootstrap only) | No checkpoint — continue to Step 0 |
+| After Step 0 (PRD ready) | `Checkpoint 0 approved` |
 | After Step 2 — requirements and clarifications reviewed | `Checkpoint 1 approved` |
 | After Step 5 — architecture and risks approved | `Checkpoint 2 approved` |
 | After Step 7 — stories and tasks approved | `Checkpoint 3 approved` |
@@ -144,3 +202,20 @@ These apply to every agent in the pipeline:
 - **Ambiguity halts the pipeline.** Any [AMBIGUOUS] flag stops execution and surfaces to human.
 - **Sensitive files are off limits.** No modifications to .tf, .bicep, .yml, .yaml, .cfn, .env files.
 - **On any failure:** halt, report the step and reason, and surface to human before resuming.
+
+## Operational Guardrails
+
+- Run `.\scripts\Validate-PipelineInputs.ps1` before feeding new BRD/PRD content into Copilot.
+- Run `\.\scripts\Invoke-PipelineEval.ps1` after the analysis artifacts are updated to write `outputs/eval-summary.md` and the timestamped eval report.
+- Pipeline eval now auto-selects rubric files from `.github/eval-rubrics/` by stage and records rubric confidence/verdict per artifact in eval outputs.
+- Use `-EnforceRubricGate` only when you want rubric verdict failures to hard-fail the overall gate.
+- After Checkpoint 3 approval, run `.\scripts\Invoke-PipelineEval.ps1 -EnforcePostCheckpoint3` so missing delivery artifacts (Steps 08-13) are treated as `FAIL` rather than `MISSING`.
+- Prefer `\.\scripts\Invoke-PipelineEval-AutoGate.ps1` for normal operation. It auto-detects Checkpoint 3 approval from `outputs/pipeline-manifest.json` (with phrase fallback), enables strict mode automatically, and runs rubric orchestration by default.
+- Run `.\scripts\Write-PipelineManifest.ps1` to refresh `outputs/pipeline-manifest.json` from the template and current repo state.
+- For model traceability, pass explicit model metadata when writing the manifest: `\.\scripts\Write-PipelineManifest.ps1 -ModelId "<model-id>" -ModelVendor "<vendor>" -ModelDisplayName "<display-name>"`.
+- `Write-PipelineManifest.ps1` stamps markdown output artifacts with a `Model Attestation` block so audits can trace step outputs to the captured model record.
+- Maintain `context/` as a controlled standards source; keep files concise, current, and explicitly referenced by delivery prompts.
+- When context files are updated, re-run delivery eval (`.\scripts\Invoke-PipelineEval-AutoGate.ps1`) to ensure standards evidence remains present in artifacts.
+- Keep prompt-file changes under the checkpoint process described in [decisions/pipeline-raci.md](decisions/pipeline-raci.md).
+- Do not store real customer phone numbers, account identifiers, or secrets in examples, fixtures, or generated artifacts unless they are clearly synthetic and masked.
+- Treat the high-blast-radius prompts in `.github/prompts/08-code-generator.prompt.md`, `.github/prompts/10-code-reviewer.prompt.md`, and `.github/prompts/11-security-agent.prompt.md` as controlled policy documents.

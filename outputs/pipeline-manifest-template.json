@@ -1,0 +1,270 @@
+{
+  "_comment": "SDLC AI Pipeline Manifest — one file per pipeline run. Copy to outputs/ and fill in values.",
+  "_schema_version": "1.0",
+  "_status": "STAGED — deploy to outputs/pipeline-manifest-template.json",
+  "_decision_register": "GV-I-01",
+
+  "run": {
+    "id": "YYYYMMDD-HHMMSS",
+    "date": "YYYY-MM-DD",
+    "initiated_by": "",
+    "project": "",
+    "branch": "",
+    "pr_number": null,
+    "model": {
+      "id": "",
+      "vendor": "",
+      "display_name": "",
+      "captured_at": ""
+    }
+  },
+
+  "pipeline": {
+    "version": "1.0",
+    "tool": "GitHub Copilot Chat",
+    "mode": "Agent Mode"
+  },
+
+  "steps": [
+    {
+      "step": "00",
+      "name": "BRD to PRD",
+      "prompt_file": ".github/prompts/00-brd-to-prd.prompt.md",
+      "prompt_sha": "",
+      "output_file": "inputs/prd.md",
+      "output_sha": "",
+      "model_version": "",
+      "status": "not_run",
+      "checkpoint_required": false,
+      "checkpoint": {
+        "approved_by": null,
+        "approved_at": null,
+        "notes": null
+      }
+    },
+    {
+      "step": "01",
+      "name": "PRD Analyst",
+      "prompt_file": ".github/prompts/01-prd-analyst.prompt.md",
+      "prompt_sha": "",
+      "output_file": "outputs/requirements.md",
+      "output_sha": "",
+      "model_version": "",
+      "status": "not_run",
+      "checkpoint_required": false,
+      "checkpoint": {
+        "approved_by": null,
+        "approved_at": null,
+        "notes": null
+      }
+    },
+    {
+      "step": "02",
+      "name": "Clarification",
+      "prompt_file": ".github/prompts/02-clarification.prompt.md",
+      "prompt_sha": "",
+      "output_file": "outputs/clarifications.md",
+      "output_sha": "",
+      "model_version": "",
+      "status": "not_run",
+      "checkpoint_required": true,
+      "checkpoint": {
+        "approved_by": null,
+        "approved_at": null,
+        "notes": null
+      }
+    },
+    {
+      "step": "03",
+      "name": "Spec Decomposer",
+      "prompt_file": ".github/prompts/03-spec-decomposer.prompt.md",
+      "prompt_sha": "",
+      "output_file": "outputs/specs.md",
+      "output_sha": "",
+      "model_version": "",
+      "status": "not_run",
+      "checkpoint_required": false,
+      "checkpoint": {
+        "approved_by": null,
+        "approved_at": null,
+        "notes": null
+      }
+    },
+    {
+      "step": "04",
+      "name": "Architecture",
+      "prompt_file": ".github/prompts/04-architecture.prompt.md",
+      "prompt_sha": "",
+      "output_file": "outputs/architecture.md",
+      "output_sha": "",
+      "model_version": "",
+      "status": "not_run",
+      "checkpoint_required": true,
+      "checkpoint": {
+        "approved_by": null,
+        "approved_at": null,
+        "notes": null
+      }
+    },
+    {
+      "step": "05",
+      "name": "Risk Assessment",
+      "prompt_file": ".github/prompts/05-risk-assessment.prompt.md",
+      "prompt_sha": "",
+      "output_file": "outputs/risks.md",
+      "output_sha": "",
+      "model_version": "",
+      "status": "not_run",
+      "checkpoint_required": false,
+      "checkpoint": {
+        "approved_by": null,
+        "approved_at": null,
+        "notes": null
+      }
+    },
+    {
+      "step": "06",
+      "name": "Story Writer",
+      "prompt_file": ".github/prompts/06-story-writer.prompt.md",
+      "prompt_sha": "",
+      "output_file": "outputs/stories.md",
+      "output_sha": "",
+      "model_version": "",
+      "status": "not_run",
+      "checkpoint_required": true,
+      "checkpoint": {
+        "approved_by": null,
+        "approved_at": null,
+        "notes": null
+      }
+    },
+    {
+      "step": "07",
+      "name": "Task Breakdown",
+      "prompt_file": ".github/prompts/07-task-breakdown.prompt.md",
+      "prompt_sha": "",
+      "output_file": "outputs/tasks.md",
+      "output_sha": "",
+      "model_version": "",
+      "status": "not_run",
+      "checkpoint_required": false,
+      "checkpoint": {
+        "approved_by": null,
+        "approved_at": null,
+        "notes": null
+      }
+    },
+    {
+      "step": "08",
+      "name": "Code Generator",
+      "prompt_file": ".github/prompts/08-code-generator.prompt.md",
+      "prompt_sha": "",
+      "output_file": "src/",
+      "output_sha": "",
+      "model_version": "",
+      "status": "not_run",
+      "checkpoint_required": false,
+      "checkpoint": {
+        "approved_by": null,
+        "approved_at": null,
+        "notes": null
+      }
+    },
+    {
+      "step": "09",
+      "name": "Test Generator",
+      "prompt_file": ".github/prompts/09-test-generator.prompt.md",
+      "prompt_sha": "",
+      "output_file": "tests/",
+      "output_sha": "",
+      "model_version": "",
+      "status": "not_run",
+      "checkpoint_required": false,
+      "checkpoint": {
+        "approved_by": null,
+        "approved_at": null,
+        "notes": null
+      }
+    },
+    {
+      "step": "10",
+      "name": "Code Reviewer",
+      "prompt_file": ".github/prompts/10-code-reviewer.prompt.md",
+      "prompt_sha": "",
+      "output_file": "outputs/review-findings.md",
+      "output_sha": "",
+      "model_version": "",
+      "status": "not_run",
+      "checkpoint_required": true,
+      "checkpoint": {
+        "approved_by": null,
+        "approved_at": null,
+        "notes": null
+      }
+    },
+    {
+      "step": "11",
+      "name": "Security Agent",
+      "prompt_file": ".github/prompts/11-security-agent.prompt.md",
+      "prompt_sha": "",
+      "output_file": "outputs/security-findings.md",
+      "output_sha": "",
+      "model_version": "",
+      "status": "not_run",
+      "checkpoint_required": true,
+      "checkpoint": {
+        "approved_by": null,
+        "approved_at": null,
+        "notes": null
+      }
+    },
+    {
+      "step": "12",
+      "name": "Documentation",
+      "prompt_file": ".github/prompts/12-documentation.prompt.md",
+      "prompt_sha": "",
+      "output_file": "outputs/docs/",
+      "output_sha": "",
+      "model_version": "",
+      "status": "not_run",
+      "checkpoint_required": false,
+      "checkpoint": {
+        "approved_by": null,
+        "approved_at": null,
+        "notes": null
+      }
+    },
+    {
+      "step": "13",
+      "name": "PR Assembler",
+      "prompt_file": ".github/prompts/13-pr-assembler.prompt.md",
+      "prompt_sha": "",
+      "output_file": "outputs/pr-description.md",
+      "output_sha": "",
+      "model_version": "",
+      "status": "not_run",
+      "checkpoint_required": true,
+      "checkpoint": {
+        "approved_by": null,
+        "approved_at": null,
+        "notes": null
+      }
+    }
+  ],
+
+  "eval": {
+    "run": false,
+    "eval_agent_version": null,
+    "scores": {}
+  },
+
+  "summary": {
+    "overall_status": "not_run",
+    "steps_completed": 0,
+    "steps_total": 14,
+    "checkpoints_approved": 0,
+    "checkpoints_required": 5,
+    "blocking_findings": [],
+    "notes": ""
+  }
+}

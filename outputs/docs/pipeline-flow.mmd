@@ -1,0 +1,97 @@
+flowchart TB
+    Start([Pipeline Start]) --> G0[Load Global Rules and Copilot Instructions]
+
+    subgraph Global_Guardrails[Global Guardrails and Controls]
+        GR1[No auto-merge]
+        GR2[Traceability required on every artifact]
+        GR3[Ambiguity halts execution]
+        GR4[Scope isolation by declared inputs]
+        GR5[Sensitive file exclusions: tf, bicep, yml, yaml, cfn, env]
+        GR6[Idempotent reruns expected]
+        GR7[On failure halt and escalate to human]
+    end
+
+    G0 --> S00A[00A BRD Bootstrap - Intake Preparation]
+    S00A --> S00[00 BRD to PRD - Alex The Translator]
+    S00 --> C0{Checkpoint 0 approved?}
+
+    C0 -->|yes| S01[01 PRD Analyst - Sam The Forensic Analyst]
+    C0 -->|no| H0[[Human clarification and PRD readiness]]
+    H0 --> S00
+
+    S01 --> S02[02 Clarification - Jordan The Interrogator]
+    S02 --> C1{Checkpoint 1 approved?}
+    C1 -->|yes| S03[03 Spec Decomposer - Taylor The Precision Engineer]
+    C1 -->|no| H1[[Human resolves blocking questions]]
+    H1 --> S02
+
+    S03 --> S04[04 Architecture - Winston The Architect]
+    S04 --> S05[05 Risk Assessment - Morgan The Risk Officer]
+    S05 --> C2{Checkpoint 2 approved?}
+    C2 -->|yes| S06[06 Story Writer - Riley The Product Owner]
+    C2 -->|no| H2[[Human approves architecture and risk posture]]
+    H2 --> S04
+
+    S06 --> S07[07 Task Breakdown - Casey The Tech Lead]
+    S07 --> C3{Checkpoint 3 approved?}
+    C3 -->|yes| D08[08 Code Generator - Amelia The Engineer]
+    C3 -->|no| H3[[Human approves stories and tasks]]
+    H3 --> S06
+
+    subgraph Delivery_Execution[Delivery Stages 08-13]
+        D08 --> D09[09 Test Generator - Quinn The QA Engineer]
+        D09 --> D09B[09b Functional Tests - Drew The Journey Tester]
+        D09B --> D09C[09c Test Plan - Avery The QA Lead]
+        D09C --> D10[10 Code Reviewer - Blake The Principal Engineer]
+        D10 --> D11[11 Security Agent - Robin The Security Engineer]
+        D11 --> C4{Checkpoint 4 approved?}
+        C4 -->|yes| D12[12 Documentation - Jamie The Tech Writer]
+        C4 -->|no| RH4[[Resolve review and security blockers]]
+        RH4 --> D10
+        D12 --> D13[13 PR Assembler - Sage The Delivery Lead]
+    end
+
+    subgraph Quality_Gates[Quality Gates and Evidence Controls]
+        Q1[Invoke Pipeline Eval]
+        Q1A[Deterministic checks: required sections and blocker flags]
+        Q1B[Auto rubric orchestration: stage to rubric selection and scoring]
+        Q1C[Rubric verdicts written to eval summary and report artifacts]
+        Q1D[Optional rubric gate enforcement when explicitly enabled]
+        Q2[AutoGate strict mode after Checkpoint 3]
+        Q3[Outputs required for stages 10-13]
+        Q4[Task log evidence with context standards and divergences]
+        Q5[Review verdict must be APPROVED or APPROVED WITH CONDITIONS]
+        Q6[Security verdict must be PASS or PASS WITH CONDITIONS]
+    end
+
+    D08 --> Q1
+    D09 --> Q1
+    D09B --> Q1
+    D09C --> Q1
+    D10 --> Q3
+    D11 --> Q3
+    C3 --> Q2
+    Q1 --> Q1A
+    Q1 --> Q1B
+    Q1B --> Q1C
+    Q1C --> Q1D
+    D12 --> Q4
+    D13 --> Q5
+    D13 --> Q6
+
+    D13 --> PR[Create branch, commit, push, open PR]
+    PR --> HR[[Human review and explicit approval required]]
+    HR --> End([Pipeline Complete])
+
+    Global_Guardrails -.applies to all steps.-> Start
+    Global_Guardrails -.enforced through every stage.-> End
+
+    classDef checkpoint fill:#ffe8a3,stroke:#8a6d00,stroke-width:2px,color:#2b2b2b;
+    classDef stage fill:#d9ecff,stroke:#1f4f8b,stroke-width:1.5px,color:#1a1a1a;
+    classDef control fill:#e8f8e8,stroke:#1f7a1f,stroke-width:1.5px,color:#1a1a1a;
+    classDef human fill:#ffd9d9,stroke:#8b1f1f,stroke-width:1.5px,color:#1a1a1a;
+
+    class C0,C1,C2,C3,C4 checkpoint;
+    class S00A,S00,S01,S02,S03,S04,S05,S06,S07,D08,D09,D09B,D09C,D10,D11,D12,D13 stage;
+    class Q1,Q1A,Q1B,Q1C,Q1D,Q2,Q3,Q4,Q5,Q6,GR1,GR2,GR3,GR4,GR5,GR6,GR7 control;
+    class H0,H1,H2,H3,RH4,HR human;
