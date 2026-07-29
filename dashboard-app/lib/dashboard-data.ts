@@ -30,6 +30,9 @@ export interface DashboardStep {
   agentDescription: string;
   persona: string;
   personaDescription: string;
+  modelVersion: string;
+  modelVendor: string;
+  modelCapturedAt: string;
   agentRan: boolean;
   artifacts: DashboardArtifactLink[];
   confidence: DashboardStageConfidence;
@@ -173,6 +176,7 @@ interface ManifestStep {
   name: string;
   prompt_file?: string;
   output_file: string;
+  model_version?: string;
   checkpoint_required?: boolean;
 }
 
@@ -950,6 +954,9 @@ function buildPipelineSteps(): DashboardStep[] {
       agentDescription: definition.agentDescription,
       persona: definition.persona,
       personaDescription: definition.personaDescription,
+      modelVersion: manifestStep?.model_version ?? manifest.run?.model?.id ?? 'unknown',
+      modelVendor: manifest.run?.model?.vendor ?? 'unknown',
+      modelCapturedAt: manifest.run?.model?.captured_at ?? 'unknown',
       agentRan,
       artifacts,
       confidence
